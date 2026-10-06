@@ -1,6 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { exigir } from '../plugins/autenticacao.js';
+import { MAX_PERIODOS } from '../servicos/matriculas.js';
+import { hoje } from '../dominio/datas.js';
 import type { Servicos } from '../servidor.js';
 
 const id = z.coerce.number().int().positive();
@@ -69,6 +71,24 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
 
   app.get('/api/pagamentos', caixa, async () => s.financeiro.pagamentosRecentes(30));
 
+  /**
+   * O vencimento que VAI sair, antes de gravar qualquer coisa. A tela mostra
+   * isso para a recepcao conferir: quem paga adiantado precisa ver que nao
+   * perdeu os dias que ainda tinha.
+   */
+  app.get('/api/pagamentos/previa', caixa, async (req) => {
+    const q = req.query as any;
+    const d = z.object({
+      alunoId: id,
+      planoId: id,
+      dataPagamento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      periodos: z.coerce.number().int().min(1).max(MAX_PERIODOS).optional(),
+      dataInicioEscolhida: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+      dataFimManual: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+    }).parse(q);
+    return s.matriculas.previa({ ...d, dataPagamento: d.dataPagamento ?? hoje() });
+  });
+
   app.post('/api/pagamentos', caixa, async (req, reply) => {
     const d = z.object({
       alunoId: z.number().int().positive(),
@@ -76,6 +96,8 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
       forma,
       cobrancaId: z.number().int().positive().optional(),
       planoId: z.number().int().positive().optional(),
+      /** adiantamento: 2 = o aluno pagou este periodo e o proximo */
+      periodos: z.number().int().min(1).max(MAX_PERIODOS).optional(),
       dataPagamento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
       observacao: z.string().max(200).optional(),
       /** diária marcada para outro dia */

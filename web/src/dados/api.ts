@@ -2,7 +2,7 @@ import { get, post, put, del } from './cliente';
 import type {
   Aluno, AvaliacaoFisica, AulaDoDia, Checkin, Cobranca, Config, Dashboard,
   FichaTreino, FormaPagamento, Pagamento, Plano, StatusAluno, Usuario,
-  Aviso, Membro, Exercicio, RelatorioMes } from '../tipos';
+  Aviso, Membro, Exercicio, RelatorioMes, PreviaPagamento } from '../tipos';
 
 const qs = (o: Record<string, string | undefined>) => {
   const p = new URLSearchParams(Object.entries(o).filter(([, v]) => v) as [string, string][]);
@@ -43,9 +43,21 @@ export const api = {
   pixDaCobranca: (id: number) => get<{ payload: string; valorCentavos: number }>(`/api/cobrancas/${id}/pix`),
   pixAvulso: (valorCentavos: number) => get<{ payload: string; valorCentavos: number }>(`/api/pix?valor=${valorCentavos}`),
   pagamentos: () => get<Pagamento[]>('/api/pagamentos'),
+  /** O vencimento que vai sair, calculado pelo servidor, antes de gravar. */
+  previaPagamento: (d: {
+    alunoId: number; planoId: number; dataPagamento?: string;
+    periodos?: number; dataInicioEscolhida?: string | null; dataFimManual?: string | null;
+  }) => get<PreviaPagamento>(`/api/pagamentos/previa${qs({
+    alunoId: String(d.alunoId), planoId: String(d.planoId), dataPagamento: d.dataPagamento,
+    periodos: d.periodos ? String(d.periodos) : undefined,
+    dataInicioEscolhida: d.dataInicioEscolhida ?? undefined,
+    dataFimManual: d.dataFimManual ?? undefined,
+  })}`),
   registrarPagamento: (d: {
     alunoId: number; valorCentavos: number; forma: FormaPagamento;
     cobrancaId?: number; planoId?: number; observacao?: string;
+    /** 2 = o aluno pagou este período e o próximo, de uma vez */
+    periodos?: number;
     /** quando a recepção registra um pagamento de outro dia */
     dataPagamento?: string;
     /** diária marcada para um dia específico */

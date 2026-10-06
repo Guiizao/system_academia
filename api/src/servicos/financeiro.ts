@@ -20,6 +20,8 @@ export function criarServicoFinanceiro(db: Db) {
     alunoId: number; valorCentavos: number; forma: Forma;
     cobrancaId?: number; planoId?: number; dataPagamento?: DataISO;
     observacao?: string; usuarioId?: number;
+    /** quantos periodos do plano o aluno esta adiantando num pagamento so */
+    periodos?: number;
     /** diária marcada para outro dia */
     dataInicioEscolhida?: DataISO | null;
     /** vencimento escolhido na mão, em vez do calculado */
@@ -54,6 +56,7 @@ export function criarServicoFinanceiro(db: Db) {
       const nova = planoId
         ? matriculas.renovarEm(tx as unknown as Db, {
             alunoId: args.alunoId, planoId, dataPagamento,
+            periodos: args.periodos,
             dataInicioEscolhida: args.dataInicioEscolhida ?? null,
             dataFimManual: args.dataFimManual ?? null,
           })

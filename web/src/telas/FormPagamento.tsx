@@ -6,7 +6,32 @@ import { useSessao } from '../sessao';
 import { formatarBRL, formatarData, hoje } from '../dominio';
 import { linkWhatsapp, mensagemCobranca, mensagemPix, podeAvisarNoWhatsapp } from '../dominio/whatsapp';
 import { Modal } from '../componentes/Modal';
-import type { Aluno, FormaPagamento } from '../tipos';
+import type { Aluno, FormaPagamento, Plano, PreviaPagamento } from '../tipos';
+
+const MAX_PERIODOS = 12;
+
+/**
+ * Como escrever a quantidade no seletor. Plano de 1 mês vira "3 meses";
+ * plano de 3 meses vira "3 períodos (9 meses)" — ninguém precisa fazer a
+ * conta de cabeça no balcão.
+ */
+function rotuloPeriodos(n: number, duracaoMeses: number): string {
+  if (duracaoMeses === 1) return n === 1 ? '1 mês' : `${n} meses`;
+  const total = n * duracaoMeses;
+  return n === 1 ? `1 período (${duracaoMeses} meses)` : `${n} períodos (${total} meses)`;
+}
+
+/** A frase que explica o vencimento que acabou de aparecer na tela. */
+function explicarPrevia(p: PreviaPagamento, ehDiaria: boolean): string {
+  if (ehDiaria) return 'Vale só este dia. Não mexe na mensalidade nem gera cobrança no mês que vem.';
+  if (!p.dataFimAnterior) return 'Primeira matrícula deste aluno: o período começa na data do pagamento.';
+  if (p.diasAproveitados > 0) {
+    const d = p.diasAproveitados;
+    const dias = d === 1 ? 'O dia que faltava entrou' : `Os ${d} dias que faltavam entraram`;
+    return `Vencia ${formatarData(p.dataFimAnterior)}. ${dias} no período novo — pagar adiantado não encurta o mês.`;
+  }
+  return `Estava vencido desde ${formatarData(p.dataFimAnterior)}, então o período novo conta da data do pagamento.`;
+}
 
 export function FormPagamento({ aluno, aoFechar, aoPagar }: {
   aluno: Aluno; aoFechar: () => void; aoPagar: () => void;
@@ -25,33 +50,65 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
   const [pixErro, setPixErro] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // quantos periodos de uma vez: "a moca ja adiantou novembro"
+  const [periodos, setPeriodos] = useState(1);
   // por padrao o sistema calcula tudo; quem quiser assume as datas na mao
   const [ajustarDatas, setAjustarDatas] = useState(false);
   const [dataPagamento, setDataPagamento] = useState(hoje());
   const [diaDaDiaria, setDiaDaDiaria] = useState(hoje());
   const [vencimentoManual, setVencimentoManual] = useState('');
+  // o vencimento que vai sair, calculado pelo servidor
+  const [previa, setPrevia] = useState<PreviaPagamento | null>(null);
 
   // cobranca em aberto ja vem selecionada: e o caso mais comum no balcao
   useEffect(() => { if (minhas[0] && !cobrancaId) setCobrancaId(String(minhas[0].id)); }, [minhas.length]);
 
   const cobranca = minhas.find((c) => String(c.id) === cobrancaId);
-  const plano = planos?.find((p) => String(p.id) === planoId);
+  const plano: Plano | undefined = planos?.find((p) => String(p.id) === planoId);
   const ehDiaria = !!plano?.duracaoDias;
-  const valor = cobranca?.valorCentavos ?? plano?.precoCentavos ?? 0;
+  const podeAdiantar = !!plano && !ehDiaria;
+
+  // diaria e pagamento avulso nao adiantam periodo
+  useEffect(() => { if (!podeAdiantar && periodos !== 1) setPeriodos(1); }, [podeAdiantar]);
+
+  // o periodo extra sai pelo preco do plano; o primeiro pode vir da cobranca em aberto
+  const precoPlano = plano?.precoCentavos ?? 0;
+  const valor = (cobranca?.valorCentavos ?? precoPlano) + (periodos - 1) * precoPlano;
 
   // Pix amarrado a cobranca quando existe; senao (renovacao antecipada, plano novo), Pix avulso do valor
   useEffect(() => {
     setPix(null); setQr(null); setPixErro(null);
     if (forma !== 'pix' || !valor) return;
     let vivo = true;
-    (cobranca ? api.pixDaCobranca(cobranca.id) : api.pixAvulso(valor))
+    // adiantamento muda o total, entao o Pix da cobranca nao serve mais
+    (cobranca && periodos === 1 ? api.pixDaCobranca(cobranca.id) : api.pixAvulso(valor))
       .then(async (r) => {
         const img = await QRCode.toDataURL(r.payload, { margin: 1, width: 440, errorCorrectionLevel: 'M', color: { dark: '#111318', light: '#FFFFFF' } });
         if (vivo) { setPix(r.payload); setQr(img); }
       })
       .catch((e) => vivo && setPixErro(e.message));
     return () => { vivo = false; };
-  }, [forma, cobrancaId, valor]);
+  }, [forma, cobrancaId, valor, periodos]);
+
+  /**
+   * A prévia vem do servidor de propósito: é a MESMA conta que vai ser
+   * gravada, não uma cópia da regra aqui na tela que pode desencontrar.
+   */
+  useEffect(() => {
+    if (!plano) { setPrevia(null); return; }
+    let vivo = true;
+    api.previaPagamento({
+      alunoId: aluno.id, planoId: plano.id, periodos,
+      ...(ajustarDatas ? {
+        dataPagamento,
+        dataInicioEscolhida: ehDiaria ? diaDaDiaria : null,
+        dataFimManual: vencimentoManual || null,
+      } : {}),
+    })
+      .then((p) => { if (vivo) setPrevia(p); })
+      .catch(() => { if (vivo) setPrevia(null); });
+    return () => { vivo = false; };
+  }, [aluno.id, plano?.id, periodos, ajustarDatas, dataPagamento, diaDaDiaria, vencimentoManual, ehDiaria]);
 
   async function confirmar(e: React.FormEvent) {
     e.preventDefault();
@@ -61,7 +118,10 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
       await api.registrarPagamento({
         alunoId: aluno.id, valorCentavos: valor, forma,
         cobrancaId: cobranca?.id, planoId: plano?.id,
-        observacao: plano ? plano.nome : 'Pagamento avulso',
+        periodos: podeAdiantar ? periodos : undefined,
+        observacao: plano
+          ? (periodos > 1 ? `${plano.nome}, ${rotuloPeriodos(periodos, plano.duracaoMeses)} adiantados` : plano.nome)
+          : 'Pagamento avulso',
         ...(ajustarDatas ? {
           dataPagamento,
           dataInicioEscolhida: ehDiaria ? diaDaDiaria : null,
@@ -117,9 +177,34 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
             </select></div>
         </div>
 
+        {podeAdiantar && (
+          <div className="campo"><label htmlFor="fp-periodos">Está pagando quanto tempo</label>
+            <select id="fp-periodos" value={periodos} onChange={(e) => setPeriodos(Number(e.target.value))}>
+              {Array.from({ length: MAX_PERIODOS }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>{rotuloPeriodos(n, plano!.duracaoMeses)}</option>
+              ))}
+            </select>
+            {periodos > 1 && (
+              <p className="form-nota previa-venc__extra">
+                Adiantamento: {formatarBRL(precoPlano)} × {periodos}. O vencimento anda tudo de uma vez.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="pagamento-total">
           <span>Total</span><strong>{formatarBRL(valor)}</strong>
         </div>
+
+        {previa && (
+          <div className="previa-venc">
+            <span className="previa-venc__rot">{ehDiaria ? 'Vale no dia' : 'Novo vencimento'}</span>
+            <strong className="previa-venc__data">
+              {formatarData(ehDiaria ? previa.dataInicio : previa.dataFim)}
+            </strong>
+            <p className="previa-venc__nota">{explicarPrevia(previa, ehDiaria)}</p>
+          </div>
+        )}
 
         <div className="datas">
           <label className="checkbox-linha">
@@ -131,7 +216,7 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
               {ehDiaria
                 ? 'A diária vale hoje. Marque aqui se o aluno vai vir em outro dia.'
                 : plano
-                  ? 'O vencimento é calculado: paga em dia emenda no vencimento atual; paga atrasado conta da data do pagamento.'
+                  ? 'Quem paga em dia ou adiantado emenda no vencimento atual e não perde dia nenhum. Quem paga atrasado conta da data do pagamento.'
                   : 'Pagamento avulso: não mexe no vencimento.'}
             </p>
           ) : (
@@ -150,7 +235,7 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
           )}
           {ajustarDatas && (
             <p className="form-nota">
-              Deixe "Vence em" vazio para o sistema calcular sozinho a partir da data do pagamento.
+              Deixe o campo <b>Vence em</b> vazio para o sistema calcular sozinho, pela regra acima.
             </p>
           )}
         </div>

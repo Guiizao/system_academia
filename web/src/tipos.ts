@@ -132,3 +132,21 @@ export interface RelatorioMes {
   /** resumo pronto para mandar no WhatsApp */
   texto: string;
 }
+
+/**
+ * O que o servidor responde antes de a recepção confirmar o pagamento.
+ * Serve para a tela mostrar o vencimento que VAI sair -- sem esta prévia
+ * ninguém consegue ver que pagar adiantado não encurta o mês.
+ */
+export type PreviaPagamento = {
+  dataInicio: DataISO;
+  dataFim: DataISO;
+  diaAncora: number;
+  /** vencimento de hoje; null quando o aluno ainda não tem matrícula */
+  dataFimAnterior: DataISO | null;
+  /** dias que ainda faltavam e foram aproveitados por pagar antes de vencer */
+  diasAproveitados: number;
+  periodos: number;
+  valorCentavos: number;
+  planoNome: string;
+};

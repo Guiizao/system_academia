@@ -65,6 +65,28 @@ e o QR code sai com o valor dele.
 
 O sistema quita a conta e renova o plano de uma vez, e já calcula o novo vencimento.
 
+### Quem paga adiantado não perde dia
+
+Antes de confirmar, a tela mostra em destaque o **novo vencimento** e o que aconteceu com
+os dias que faltavam. Vale conferir: é a mesma conta que vai ser gravada.
+
+- **Paga antes de vencer** — o período novo emenda no vencimento atual, não na data do
+  pagamento. Vence dia 10, pagou dia 6: o próximo vence dia **10**, não dia 6. Os 4 dias
+  que faltavam continuam valendo.
+- **Paga no dia** — igual: emenda no vencimento.
+- **Paga atrasado** — aí sim o período conta da data do pagamento, e o dia do vencimento
+  passa a ser esse. Quem sumiu dois meses não ganha os dois meses de volta.
+
+### Adiantar vários meses
+
+Em **Está pagando quanto tempo**, escolha quantos meses o aluno está pagando de uma vez.
+O total se multiplica e o vencimento anda tudo junto: pagou 2 meses com vencimento em
+10/10, passa a vencer 10/12. Dá para adiantar até 12 meses.
+
+Isso é um pagamento só, com um recibo só — não precisa registrar mês a mês. Diária não
+entra nessa conta: para vender mais dias, use um plano com a quantidade de dias que o
+aluno quer.
+
 > ### Pix: confira no extrato do banco
 >
 > **Só clique em confirmar depois de ver o dinheiro na conta.**

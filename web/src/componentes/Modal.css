@@ -57,6 +57,22 @@
 .pagamento-total { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--border); margin-top: 2px; }
 .pagamento-total span { color: var(--muted); font-size: var(--txt-base); font-weight: 600; }
 .pagamento-total strong { font-size: var(--txt-2xl); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+/* O vencimento que VAI sair, antes de confirmar. Sem isto a recepcao
+   confirma no escuro -- foi exatamente a duvida do Joao: quem paga
+   adiantado perde os dias que faltavam? Agora da para ler na tela. */
+.previa-venc {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r);
+  border-left: 3px solid var(--accent); padding: 12px 14px; margin-bottom: 14px;
+  animation: entrar var(--medio) var(--ease);
+}
+.previa-venc__rot { display: block; font-size: var(--txt-sm); color: var(--muted); font-weight: 650; }
+.previa-venc__data {
+  display: block; font-size: var(--txt-xl); font-weight: 800; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; margin: 2px 0 6px;
+}
+.previa-venc__nota { font-size: var(--txt-sm); color: var(--muted); line-height: 1.55; margin: 0; }
+.previa-venc__extra { margin: 6px 0 0; }
+
 .pix-caixa { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 14px; animation: entrar var(--medio) var(--ease); }
 .pix-caixa__qr { display: block; width: 196px; height: 196px; margin: 0 auto 14px; border-radius: 10px; background: #fff; padding: 6px; image-rendering: pixelated; }
 .pix-caixa__rot { font-size: var(--txt-sm); color: var(--muted); font-weight: 650; margin-bottom: 6px; }
