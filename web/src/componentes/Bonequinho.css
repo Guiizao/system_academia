@@ -5,6 +5,9 @@
 .bn__svg { width: 100%; height: 100%; overflow: visible; }
 
 .bn__osso { stroke: var(--muted); stroke-width: 1.7; stroke-linecap: round; fill: none; }
+/* membro de trás: mesmo traço, menos presença. É o único recurso de
+   profundidade do desenho, e basta. */
+.bn__osso--fundo { opacity: .42; }
 .bn__cabeca { fill: var(--surface-2); stroke: var(--muted); stroke-width: 1.7; }
 .bn__chao { stroke: var(--border); stroke-width: 1.2; stroke-linecap: round; }
 

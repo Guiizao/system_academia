@@ -113,9 +113,17 @@
 .container { max-width: 1180px; margin: 0 auto; padding: 0 28px 32px; }
 .shell--movel .container { padding: 0 0 24px; max-width: none; }
 
-/* bonequinho no canto superior direito da área de conteúdo */
+/* Bonequinho na folga da barra lateral.
+   Antes ele era `position: absolute` no canto superior direito do conteúdo,
+   com z-index 20 -- ou seja, flutuando POR CIMA da tela. E é exatamente ali
+   que ficam os botões de ação do aluno (Check-in, Pagamento, Editar): a linha
+   do chão dele atravessava os três. Agora ele entra no fluxo da lateral, no
+   espaço vazio que já existia entre o menu e o rodapé, e não cruza nada. */
 .shell__principal { position: relative; }
 .shell__boneco {
-  position: absolute; top: 6px; right: 14px; z-index: 20;
-  opacity: .9; animation: surgir 600ms var(--ease) both;
+  display: flex; justify-content: center; flex-shrink: 0;
+  padding: 6px 0 2px; opacity: .85;
+  animation: surgir 600ms var(--ease) both;
 }
+/* janela baixa: a lateral não tem folga sobrando, então o enfeite sai */
+@media (max-height: 640px) { .shell__boneco { display: none; } }

@@ -233,3 +233,68 @@ describe('correcoes de animacao (achadas na auditoria)', () => {
     expect(fundo.joelhoE).toBe(-fundo.joelhoD);
   });
 });
+
+describe('bracos invertidos: o defeito que o Joao viu na tela', () => {
+  /*
+   * Toda cena espelhava o lado direito (`ombroD = -ombroE`). De frente isso
+   * esta certo. De perfil, nao: espelhar manda um braco para a FRENTE e o
+   * outro para TRAS, e o boneco parecia fazer dois exercicios ao mesmo tempo.
+   * Correr e beber agua sao as excecoes legitimas -- ali os dois bracos fazem
+   * coisas diferentes de verdade.
+   */
+  const BRACOS_SEPARADOS = ['corrida', 'agua'];
+
+  it('toda cena diz de que lado esta sendo vista', () => {
+    for (const c of CENAS) {
+      expect(['frente', 'lado'], `cena ${c.id}`).toContain(c.vista);
+    }
+  });
+
+  it('de perfil os dois bracos vao para o mesmo lado', () => {
+    const cenas = CENAS.filter((c) => c.vista === 'lado' && !BRACOS_SEPARADOS.includes(c.id));
+    expect(cenas.length).toBeGreaterThan(3);
+    for (const cena of cenas) {
+      for (const q of cena.quadros) {
+        const juntos = (a: number, b: number) => Math.sign(a) === Math.sign(b) || Math.abs(a - b) <= 12;
+        expect(juntos(q.ombroE, q.ombroD), `${cena.id}: ombro ${q.ombroE} vs ${q.ombroD}`).toBe(true);
+        expect(juntos(q.cotoveloE, q.cotoveloD), `${cena.id}: cotovelo ${q.cotoveloE} vs ${q.cotoveloD}`).toBe(true);
+      }
+    }
+  });
+
+  it('de frente, ao contrario, um braco e o espelho do outro', () => {
+    for (const cena of CENAS.filter((c) => c.vista === 'frente')) {
+      for (const q of cena.quadros) {
+        expect(q.ombroD, `${cena.id} ombro`).toBe(-q.ombroE);
+        expect(q.cotoveloD, `${cena.id} cotovelo`).toBe(-q.cotoveloE);
+      }
+    }
+  });
+
+  it('no topo da rosca a mao sobe ate o ombro, em vez de abrir para o lado', () => {
+    // com o cotovelo em 128 o antebraco parava na horizontal: espantalho,
+    // nao rosca. A mao tem de chegar na altura do ombro e fechar para dentro.
+    const topo = assentarNoChao(esqueletoDe(CENAS.find((c) => c.id === 'rosca')!.quadros[1]), 0);
+    expect(Math.abs(topo.maoE.y - topo.ombro.y), 'mao na altura do ombro').toBeLessThan(2);
+    expect(Math.abs(topo.maoE.x - topo.ombro.x), 'mao nao abre mais que o cotovelo')
+      .toBeLessThan(Math.abs(topo.cotoveloE.x - topo.ombro.x) + 3);
+  });
+
+  it('na elevacao lateral o braco sobe esticado, nao em trave de gol', () => {
+    const alto = CENAS.find((c) => c.id === 'elevacao')!.quadros[1];
+    expect(Math.abs(alto.cotoveloE), 'cotovelo quase reto').toBeLessThan(30);
+    expect(Math.abs(alto.ombroE), 'braco na horizontal').toBeGreaterThan(75);
+  });
+
+  it('na remada o cotovelo sobe mais que o ombro: puxa para tras, nao empurra', () => {
+    const cena = CENAS.find((c) => c.id === 'remada')!;
+    const solto = assentarNoChao(esqueletoDe(cena.quadros[0]), 0);
+    const puxado = assentarNoChao(esqueletoDe(cena.quadros[1]), 0);
+    // y cresce para baixo: puxando, o cotovelo tem de SUBIR
+    expect(puxado.cotoveloE.y).toBeLessThan(solto.cotoveloE.y - 5);
+    // e a mao tem de chegar perto do tronco, nao ficar pendurada
+    const aoTronco = (e: typeof puxado) =>
+      Math.hypot(e.maoE.x - (e.quadril.x + e.ombro.x) / 2, e.maoE.y - (e.quadril.y + e.ombro.y) / 2);
+    expect(aoTronco(puxado)).toBeLessThan(aoTronco(solto));
+  });
+});

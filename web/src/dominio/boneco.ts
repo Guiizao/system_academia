@@ -1,10 +1,32 @@
 /**
  * O bonequinho da academia: esqueleto articulado, não figura rígida.
  *
- * A versão anterior girava peças inteiras no CSS e ficava dura. Aqui cada
- * junta tem ângulo próprio (ombro, cotovelo, quadril, joelho), a pose é
+ * Cada junta tem ângulo próprio (ombro, cotovelo, quadril, joelho), a pose é
  * interpolada quadro a quadro e as pontas chegam ATRASADAS em relação à raiz
  * — é esse atraso que faz o braço parecer solto em vez de um graveto.
+ *
+ * ─── Como ler os ângulos ───────────────────────────────────────────
+ * 0° aponta para BAIXO, 90° para a direita da tela, 180° para cima.
+ * O ângulo do cotovelo é RELATIVO ao braço, e o do joelho à coxa: o
+ * antebraço é desenhado em `ombro + cotovelo`.
+ *
+ * ─── As duas vistas, e por que isso importa ────────────────────────
+ * Antes, TODA cena espelhava o lado direito (`ombroD = -ombroE`). De frente
+ * isso está certo: polichinelo e elevação lateral abrem os dois braços juntos.
+ * Mas remada, rosca e terra só se leem de PERFIL, e ali espelhar manda um
+ * braço para a frente e o outro para trás — o boneco fazia dois exercícios ao
+ * mesmo tempo. Era isso que deixava os braços com cara de invertidos.
+ *
+ * Agora cada cena declara a vista e usa o construtor certo:
+ *   `frente(...)` espelha de propósito;
+ *   `lado(...)`   manda os dois braços juntos, com o de trás alguns graus
+ *                 atrasado só para dar profundidade.
+ *
+ * De perfil o boneco olha para a ESQUERDA da tela: `tronco` positivo joga os
+ * ombros para -x, então inclinar para a frente é inclinar para a esquerda.
+ * Daí as duas regras de sinal, que valem para toda cena de perfil:
+ *   - cotovelo NEGATIVO dobra o braço (a mão sobe pela frente);
+ *   - joelho POSITIVO dobra a perna (o calcanhar vai para trás).
  */
 
 export interface Pose {
@@ -23,10 +45,14 @@ export interface Pose {
 
 export type Aparelho = 'barra' | 'halteres' | 'nenhum' | 'garrafa' | 'celular' | 'corda';
 
+/** De frente os dois lados aparecem; de perfil um esconde o outro. */
+export type Vista = 'frente' | 'lado';
+
 export interface Cena {
   id: string;
   nome: string;
   aparelho: Aparelho;
+  vista: Vista;
   /** onde o aparelho fica: 'maos' acompanha as mãos, 'ombros' nas costas, 'chao' parado */
   presoEm: 'maos' | 'ombros' | 'chao';
   /** um ciclo do movimento, em ms */
@@ -42,7 +68,36 @@ const EM_PE: Pose = {
   coxaE: 6, joelhoE: 2, coxaD: -6, joelhoD: -2,
 };
 
-const pose = (p: Partial<Pose>): Pose => ({ ...EM_PE, ...p });
+/** Um lado só; o construtor da vista decide o que fazer com o outro. */
+type Meio = { ombro?: number; cotovelo?: number; coxa?: number; joelho?: number };
+
+/** Vista de frente: o lado direito é o espelho do esquerdo. */
+function frente(m: Meio = {}, resto: Partial<Pose> = {}): Pose {
+  const { ombro = 8, cotovelo = 4, coxa = 6, joelho = 2 } = m;
+  return {
+    ...EM_PE,
+    ombroE: ombro, cotoveloE: cotovelo, ombroD: -ombro, cotoveloD: -cotovelo,
+    coxaE: coxa, joelhoE: joelho, coxaD: -coxa, joelhoD: -joelho,
+    ...resto,
+  };
+}
+
+/**
+ * Vista de perfil: os dois braços fazem o MESMO movimento. O braço e a perna
+ * de trás ficam alguns graus atrás — é o bastante para o olho separar os dois
+ * sem parecer que o boneco está se contorcendo.
+ */
+function lado(m: Meio = {}, resto: Partial<Pose> = {}): Pose {
+  const { ombro = 6, cotovelo = -8, coxa = 4, joelho = 4 } = m;
+  return {
+    ...EM_PE,
+    ombroE: ombro, cotoveloE: cotovelo,
+    ombroD: ombro - 9, cotoveloD: cotovelo + 6,
+    coxaE: coxa, joelhoE: joelho,
+    coxaD: coxa - 7, joelhoD: joelho + 4,
+    ...resto,
+  };
+}
 
 /**
  * 12 exercícios + as pausas. A ordem conta uma sessão de treino: puxa o
@@ -50,136 +105,183 @@ const pose = (p: Partial<Pose>): Pose => ({ ...EM_PE, ...p });
  */
 export const CENAS: readonly Cena[] = [
   {
-    id: 'agachamento', nome: 'Agachamento', aparelho: 'barra', presoEm: 'ombros', cicloMs: 1700, repeticoes: 4,
+    // Agachamento de frente: a barra atravessa os ombros e as mãos a seguram
+    // por fora, com o cotovelo apontando para baixo. Antes os braços subiam
+    // num V acima da cabeça, que é gesto de comemorar, não de agachar.
+    id: 'agachamento', nome: 'Agachamento', aparelho: 'barra', vista: 'frente', presoEm: 'ombros',
+    cicloMs: 1700, repeticoes: 4,
     quadros: [
-      pose({ ombroE: 120, cotoveloE: 50, ombroD: -120, cotoveloD: -50 }),
-      pose({ tronco: 14, coxaE: 46, joelhoE: -52, coxaD: -46, joelhoD: 52, ombroE: 120, cotoveloE: 50, ombroD: -120, cotoveloD: -50 }),
-      pose({ ombroE: 120, cotoveloE: 50, ombroD: -120, cotoveloD: -50 }),
+      frente({ ombro: 140, cotovelo: -100, coxa: 8, joelho: -6 }),
+      frente({ ombro: 138, cotovelo: -94, coxa: 50, joelho: -50 }, { tronco: 10 }),
+      frente({ ombro: 140, cotovelo: -100, coxa: 8, joelho: -6 }),
     ],
   },
   {
-    id: 'rosca', nome: 'Rosca direta', aparelho: 'halteres', presoEm: 'maos', cicloMs: 1300, repeticoes: 5,
+    // Rosca de frente: a mão sobe até a altura do ombro e fecha PARA DENTRO.
+    // Com o cotovelo em 128 o antebraço parava na horizontal e virava
+    // espantalho; o fecho de verdade passa dos 150.
+    id: 'rosca', nome: 'Rosca direta', aparelho: 'halteres', vista: 'frente', presoEm: 'maos',
+    cicloMs: 1300, repeticoes: 5,
     quadros: [
-      pose({ ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6 }),
-      pose({ ombroE: 10, cotoveloE: 128, ombroD: -10, cotoveloD: -128 }),
-      pose({ ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6 }),
+      frente({ ombro: 10, cotovelo: 6 }),
+      frente({ ombro: 10, cotovelo: 150 }),
+      frente({ ombro: 10, cotovelo: 6 }),
     ],
   },
   {
-    id: 'desenvolvimento', nome: 'Desenvolvimento', aparelho: 'barra', presoEm: 'maos', cicloMs: 1600, repeticoes: 4,
+    // Desenvolvimento: embaixo a barra fica na altura do queixo com o cotovelo
+    // aberto; em cima os braços esticam quase juntos sobre a cabeça.
+    id: 'desenvolvimento', nome: 'Desenvolvimento', aparelho: 'barra', vista: 'frente', presoEm: 'maos',
+    cicloMs: 1600, repeticoes: 4,
     quadros: [
-      pose({ ombroE: 80, cotoveloE: 80, ombroD: -80, cotoveloD: -80 }),
-      pose({ ombroE: 160, cotoveloE: 8, ombroD: -160, cotoveloD: -8 }),
-      pose({ ombroE: 80, cotoveloE: 80, ombroD: -80, cotoveloD: -80 }),
+      frente({ ombro: 66, cotovelo: 82 }),
+      frente({ ombro: 171, cotovelo: 5 }),
+      frente({ ombro: 66, cotovelo: 82 }),
     ],
   },
   {
-    id: 'remada', nome: 'Remada curvada', aparelho: 'barra', presoEm: 'maos', cicloMs: 1500, repeticoes: 4,
+    // Remada de perfil. Aqui estava o pior caso: com os braços espelhados, um
+    // puxava para a frente e o outro para trás. Agora os dois descem juntos e
+    // sobem juntos, com o cotovelo indo para TRÁS e a barra chegando na barriga.
+    id: 'remada', nome: 'Remada curvada', aparelho: 'barra', vista: 'lado', presoEm: 'maos',
+    cicloMs: 1500, repeticoes: 4,
     quadros: [
-      pose({ tronco: 52, quadril: 2, ombroE: -34, cotoveloE: -8, ombroD: 34, cotoveloD: 8, coxaE: 12, joelhoE: -14, coxaD: -12, joelhoD: 14 }),
-      pose({ tronco: 50, quadril: 2, ombroE: 10, cotoveloE: 104, ombroD: -10, cotoveloD: -104, coxaE: 12, joelhoE: -14, coxaD: -12, joelhoD: 14 }),
-      pose({ tronco: 52, quadril: 2, ombroE: -34, cotoveloE: -8, ombroD: 34, cotoveloD: 8, coxaE: 12, joelhoE: -14, coxaD: -12, joelhoD: 14 }),
+      lado({ ombro: 5, cotovelo: -8, coxa: 12, joelho: 14 }, { tronco: 56, quadril: 2 }),
+      lado({ ombro: 118, cotovelo: -148, coxa: 12, joelho: 14 }, { tronco: 54, quadril: 2 }),
+      lado({ ombro: 5, cotovelo: -8, coxa: 12, joelho: 14 }, { tronco: 56, quadril: 2 }),
     ],
   },
   {
-    id: 'terra', nome: 'Levantamento terra', aparelho: 'barra', presoEm: 'maos', cicloMs: 2000, repeticoes: 3,
+    // Terra de perfil: o quadril vai para trás, a canela fica quase em pé e os
+    // braços penduram retos. Braço dobrado em levantamento terra é erro de
+    // academia, então aqui o cotovelo quase não mexe.
+    id: 'terra', nome: 'Levantamento terra', aparelho: 'barra', vista: 'lado', presoEm: 'maos',
+    cicloMs: 2000, repeticoes: 3,
     quadros: [
-      pose({ tronco: 2, ombroE: 4, cotoveloE: 2, ombroD: -4, cotoveloD: -2 }),
-      pose({ tronco: 62, quadril: 6, coxaE: 34, joelhoE: -38, coxaD: -30, joelhoD: 40, ombroE: -10, cotoveloE: -2, ombroD: 10, cotoveloD: 2 }),
-      pose({ tronco: 2, ombroE: 4, cotoveloE: 2, ombroD: -4, cotoveloD: -2 }),
+      lado({ ombro: 3, cotovelo: -4, coxa: 2, joelho: 2 }, { tronco: 3 }),
+      lado({ ombro: 1, cotovelo: -3, coxa: 26, joelho: -22 }, { tronco: 58, quadril: 4 }),
+      lado({ ombro: 3, cotovelo: -4, coxa: 2, joelho: 2 }, { tronco: 3 }),
     ],
   },
   {
-    id: 'elevacao', nome: 'Elevação lateral', aparelho: 'halteres', presoEm: 'maos', cicloMs: 1500, repeticoes: 4,
+    // Elevação lateral: braço quase ESTICADO subindo até a horizontal. O
+    // cotovelo em 86 fazia um gol de trave, não uma elevação.
+    id: 'elevacao', nome: 'Elevação lateral', aparelho: 'halteres', vista: 'frente', presoEm: 'maos',
+    cicloMs: 1500, repeticoes: 4,
     quadros: [
-      pose({ ombroE: 12, cotoveloE: 8, ombroD: -12, cotoveloD: -8 }),
-      pose({ ombroE: 92, cotoveloE: 86, ombroD: -92, cotoveloD: -86 }),
-      pose({ ombroE: 12, cotoveloE: 8, ombroD: -12, cotoveloD: -8 }),
+      frente({ ombro: 14, cotovelo: 8 }),
+      frente({ ombro: 88, cotovelo: 14 }),
+      frente({ ombro: 14, cotovelo: 8 }),
     ],
   },
   {
-    // exercicio de chao nao le bem num boneco de perfil deste tamanho:
-    // vira um risco horizontal. Os 12 sao todos em pe, de proposito.
-    id: 'triceps', nome: 'Tríceps francês', aparelho: 'halteres', presoEm: 'maos', cicloMs: 1500, repeticoes: 5,
+    // Tríceps de frente: braço parado apontando para cima, só o antebraço cai
+    // atrás da cabeça. O que manda é o cotovelo ficar QUIETO no alto.
+    id: 'triceps', nome: 'Tríceps francês', aparelho: 'halteres', vista: 'frente', presoEm: 'maos',
+    cicloMs: 1500, repeticoes: 5,
     quadros: [
-      pose({ ombroE: 166, cotoveloE: 4, ombroD: -166, cotoveloD: -4 }),
-      pose({ ombroE: 164, cotoveloE: -118, ombroD: -164, cotoveloD: 118, cabeca: 4 }),
-      pose({ ombroE: 166, cotoveloE: 4, ombroD: -166, cotoveloD: -4 }),
+      frente({ ombro: 171, cotovelo: 5 }),
+      frente({ ombro: 169, cotovelo: -148 }, { cabeca: 4 }),
+      frente({ ombro: 171, cotovelo: 5 }),
     ],
   },
   {
-    id: 'panturrilha', nome: 'Panturrilha', aparelho: 'halteres', presoEm: 'maos', cicloMs: 1100, repeticoes: 7,
+    id: 'panturrilha', nome: 'Panturrilha', aparelho: 'halteres', vista: 'frente', presoEm: 'maos',
+    cicloMs: 1100, repeticoes: 7,
     quadros: [
-      pose({ ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6 }),
-      pose({ voo: 2.6, ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6, coxaE: 4, joelhoE: 0, coxaD: -4, joelhoD: 0 }),
-      pose({ ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6 }),
+      frente({ ombro: 10, cotovelo: 6 }),
+      frente({ ombro: 10, cotovelo: 6, coxa: 4, joelho: 0 }, { voo: 2.6 }),
+      frente({ ombro: 10, cotovelo: 6 }),
     ],
   },
   {
-    id: 'polichinelo', nome: 'Polichinelo', aparelho: 'nenhum', presoEm: 'chao', cicloMs: 760, repeticoes: 8,
+    // Polichinelo é de frente por definição: braços e pernas abrem juntos.
+    // O joelho acompanha a coxa para a canela ficar em pé e o pé não cruzar.
+    id: 'polichinelo', nome: 'Polichinelo', aparelho: 'nenhum', vista: 'frente', presoEm: 'chao',
+    cicloMs: 760, repeticoes: 8,
     quadros: [
-      pose({ ombroE: 6, cotoveloE: 4, ombroD: -6, cotoveloD: -4, coxaE: 4, coxaD: -4 }),
-      pose({ voo: 3.4, ombroE: 164, cotoveloE: 4, ombroD: -164, cotoveloD: -4, coxaE: 24, joelhoE: -4, coxaD: -24, joelhoD: 4 }),
-      pose({ ombroE: 6, cotoveloE: 4, ombroD: -6, cotoveloD: -4, coxaE: 4, coxaD: -4 }),
+      frente({ ombro: 6, cotovelo: 4, coxa: 4, joelho: -2 }),
+      frente({ ombro: 156, cotovelo: 8, coxa: 26, joelho: -24 }, { voo: 3.2 }),
+      frente({ ombro: 6, cotovelo: 4, coxa: 4, joelho: -2 }),
     ],
   },
   {
-    id: 'corda', nome: 'Pular corda', aparelho: 'corda', presoEm: 'maos', cicloMs: 620, repeticoes: 10,
+    // Corda também é de frente: é assim que a corda passa por baixo dos pés.
+    // Antebraço na horizontal, braço colado no corpo -- quem pula corda não
+    // abre os braços, gira só o punho.
+    id: 'corda', nome: 'Pular corda', aparelho: 'corda', vista: 'frente', presoEm: 'maos',
+    cicloMs: 620, repeticoes: 10,
     quadros: [
-      pose({ ombroE: 44, cotoveloE: 96, ombroD: -44, cotoveloD: -96, coxaE: 4, joelhoE: -6, coxaD: -4, joelhoD: 6 }),
-      pose({ voo: 4.2, ombroE: 40, cotoveloE: 104, ombroD: -40, cotoveloD: -104, coxaE: 10, joelhoE: -34, coxaD: -10, joelhoD: 34 }),
-      pose({ ombroE: 44, cotoveloE: 96, ombroD: -44, cotoveloD: -96, coxaE: 4, joelhoE: -6, coxaD: -4, joelhoD: 6 }),
+      frente({ ombro: 22, cotovelo: 68, coxa: 4, joelho: -6 }),
+      frente({ ombro: 26, cotovelo: 74, coxa: 10, joelho: -18 }, { voo: 4.0 }),
+      frente({ ombro: 22, cotovelo: 68, coxa: 4, joelho: -6 }),
     ],
   },
   {
-    id: 'corrida', nome: 'Corrida no lugar', aparelho: 'nenhum', presoEm: 'chao', cicloMs: 620, repeticoes: 10,
+    // Corrida é a ÚNICA cena em que espelhar está certo de perfil: braço e
+    // perna opostos andam juntos de verdade. Por isso os ângulos vêm na mão.
+    id: 'corrida', nome: 'Corrida no lugar', aparelho: 'nenhum', vista: 'lado', presoEm: 'chao',
+    cicloMs: 620, repeticoes: 10,
     quadros: [
-      pose({ tronco: 6, ombroE: 54, cotoveloE: 92, ombroD: -54, cotoveloD: -92, coxaE: 52, joelhoE: -74, coxaD: -22, joelhoD: 16 }),
-      pose({ tronco: 6, ombroE: -54, cotoveloE: -92, ombroD: 54, cotoveloD: 92, coxaE: -22, joelhoE: 16, coxaD: 52, joelhoD: -74 }),
-      pose({ tronco: 6, ombroE: 54, cotoveloE: 92, ombroD: -54, cotoveloD: -92, coxaE: 52, joelhoE: -74, coxaD: -22, joelhoD: 16 }),
+      { ...EM_PE, tronco: 6, ombroE: -48, cotoveloE: -86, ombroD: 48, cotoveloD: -92, coxaE: -46, joelhoE: 62, coxaD: 26, joelhoD: 16 },
+      { ...EM_PE, tronco: 6, ombroE: 48, cotoveloE: -92, ombroD: -48, cotoveloD: -86, coxaE: 26, joelhoE: 16, coxaD: -46, joelhoD: 62 },
+      { ...EM_PE, tronco: 6, ombroE: -48, cotoveloE: -86, ombroD: 48, cotoveloD: -92, coxaE: -46, joelhoE: 62, coxaD: 26, joelhoD: 16 },
     ],
   },
   {
-    id: 'afundo', nome: 'Avanço', aparelho: 'halteres', presoEm: 'maos', cicloMs: 1800, repeticoes: 4,
+    // Avanço de perfil: as pernas fazem coisas opostas de verdade, então vêm
+    // escritas na mão. A da frente dobra em 90°, a de trás deixa o calcanhar
+    // subir. Os braços só penduram com o peso.
+    id: 'afundo', nome: 'Avanço', aparelho: 'halteres', vista: 'lado', presoEm: 'maos',
+    cicloMs: 1800, repeticoes: 4,
     quadros: [
-      pose({ ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6 }),
-      pose({ quadril: 8, tronco: 6, coxaE: 54, joelhoE: -64, coxaD: -46, joelhoD: 70, ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6 }),
-      pose({ ombroE: 10, cotoveloE: 6, ombroD: -10, cotoveloD: -6 }),
+      lado({ ombro: 6, cotovelo: -6, coxa: 3, joelho: 2 }),
+      lado({ ombro: 7, cotovelo: -7 }, {
+        quadril: 5, tronco: 7,
+        coxaE: -34, joelhoE: 34, coxaD: 30, joelhoD: 30,
+      }),
+      lado({ ombro: 6, cotovelo: -6, coxa: 3, joelho: 2 }),
     ],
   },
 
   /* ─── as pausas: é o que faz parecer gente, não motor ─── */
   {
-    id: 'descanso', nome: 'Descansando', aparelho: 'nenhum', presoEm: 'chao', cicloMs: 2600, repeticoes: 1,
+    id: 'descanso', nome: 'Descansando', aparelho: 'nenhum', vista: 'lado', presoEm: 'chao',
+    cicloMs: 2600, repeticoes: 1,
     quadros: [
-      pose({ tronco: 4, ombroE: 14, cotoveloE: 22, ombroD: -14, cotoveloD: -22 }),
-      pose({ tronco: 2, quadril: -1, ombroE: 10, cotoveloE: 18, ombroD: -10, cotoveloD: -18, cabeca: -3 }),
-      pose({ tronco: 4, ombroE: 14, cotoveloE: 22, ombroD: -14, cotoveloD: -22 }),
+      lado({ ombro: 12, cotovelo: -20 }, { tronco: 4 }),
+      lado({ ombro: 9, cotovelo: -16 }, { tronco: 2, quadril: -1, cabeca: -3 }),
+      lado({ ombro: 12, cotovelo: -20 }, { tronco: 4 }),
     ],
   },
   {
-    id: 'agua', nome: 'Bebendo água', aparelho: 'garrafa', presoEm: 'maos', cicloMs: 2600, repeticoes: 1,
+    // Só UMA mão sobe com a garrafa; a outra fica parada. Por isso os dois
+    // lados vêm escritos, em vez de sair do construtor.
+    id: 'agua', nome: 'Bebendo água', aparelho: 'garrafa', vista: 'lado', presoEm: 'maos',
+    cicloMs: 2600, repeticoes: 1,
     quadros: [
-      pose({ ombroE: 12, cotoveloE: 10, ombroD: -12, cotoveloD: -10 }),
-      pose({ ombroE: 12, cotoveloE: 10, ombroD: -62, cotoveloD: -138, cabeca: -14, tronco: -3 }),
-      pose({ ombroE: 12, cotoveloE: 10, ombroD: -66, cotoveloD: -146, cabeca: -20, tronco: -4 }),
-      pose({ ombroE: 12, cotoveloE: 10, ombroD: -12, cotoveloD: -10 }),
+      lado({ ombro: 10, cotovelo: -10 }),
+      lado({ ombro: 10, cotovelo: -10 }, { ombroD: -54, cotoveloD: -128, cabeca: -12, tronco: -3 }),
+      lado({ ombro: 10, cotovelo: -10 }, { ombroD: -58, cotoveloD: -140, cabeca: -18, tronco: -4 }),
+      lado({ ombro: 10, cotovelo: -10 }),
     ],
   },
   {
-    id: 'celular', nome: 'Olhando o celular', aparelho: 'celular', presoEm: 'maos', cicloMs: 3000, repeticoes: 1,
+    id: 'celular', nome: 'Olhando o celular', aparelho: 'celular', vista: 'lado', presoEm: 'maos',
+    cicloMs: 3000, repeticoes: 1,
     quadros: [
-      pose({ cabeca: 16, tronco: 7, ombroE: 40, cotoveloE: 104, ombroD: -40, cotoveloD: -104 }),
-      pose({ cabeca: 18, tronco: 8, ombroE: 42, cotoveloE: 110, ombroD: -38, cotoveloD: -100 }),
-      pose({ cabeca: 16, tronco: 7, ombroE: 40, cotoveloE: 104, ombroD: -40, cotoveloD: -104 }),
+      lado({ ombro: 26, cotovelo: -92 }, { cabeca: 16, tronco: 7 }),
+      lado({ ombro: 28, cotovelo: -98 }, { cabeca: 18, tronco: 8 }),
+      lado({ ombro: 26, cotovelo: -92 }, { cabeca: 16, tronco: 7 }),
     ],
   },
   {
-    id: 'troca', nome: 'Trocando de aparelho', aparelho: 'barra', presoEm: 'maos', cicloMs: 2200, repeticoes: 1,
+    id: 'troca', nome: 'Trocando de aparelho', aparelho: 'barra', vista: 'lado', presoEm: 'maos',
+    cicloMs: 2200, repeticoes: 1,
     quadros: [
-      pose({ tronco: 26, ombroE: -46, cotoveloE: -10, ombroD: -46, cotoveloD: -10, coxaE: 20, joelhoE: -16, coxaD: -16, joelhoD: 12 }),
-      pose({ tronco: 32, quadril: 3, ombroE: -58, cotoveloE: -16, ombroD: -58, cotoveloD: -16, coxaE: 26, joelhoE: -20, coxaD: -20, joelhoD: 16 }),
-      pose({ tronco: 26, ombroE: -46, cotoveloE: -10, ombroD: -46, cotoveloD: -10, coxaE: 20, joelhoE: -16, coxaD: -16, joelhoD: 12 }),
+      lado({ ombro: 6, cotovelo: -12, coxa: 18, joelho: 20 }, { tronco: 28 }),
+      lado({ ombro: 4, cotovelo: -10, coxa: 24, joelho: 26 }, { tronco: 34, quadril: 3 }),
+      lado({ ombro: 6, cotovelo: -12, coxa: 18, joelho: 20 }, { tronco: 28 }),
     ],
   },
 ] as const;

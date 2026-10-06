@@ -25,6 +25,17 @@ function pontaDaBarra(a: Ponto, b: Ponto, sobra = 3.2): [Ponto, Ponto] {
   return [{ x: a.x - ux, y: a.y - uy }, { x: b.x + ux, y: b.y + uy }];
 }
 
+/**
+ * De perfil a barra vem na direção de quem olha: as duas mãos quase coincidem,
+ * então desenhar de uma à outra daria um toquinho. Aqui ela sai atravessada,
+ * centrada entre as mãos -- é o que o olho espera ver numa remada de lado.
+ */
+function barraAtravessada(a: Ponto, b: Ponto, meia = 6): [Ponto, Ponto] {
+  const cx = (a.x + b.x) / 2;
+  const cy = (a.y + b.y) / 2;
+  return [{ x: cx - meia, y: cy }, { x: cx + meia, y: cy }];
+}
+
 /** Ângulo do antebraço: o halter gira junto com o punho. */
 function anguloDoPunho(cotovelo: Ponto, mao: Ponto): number {
   return (Math.atan2(mao.y - cotovelo.y, mao.x - cotovelo.x) * 180) / Math.PI;
@@ -81,13 +92,16 @@ export function Bonequinho() {
   // assentar no chão é o que impede o boneco de agachar no ar: ele desce o
   // corpo inteiro até o pé de apoio encostar na linha desenhada abaixo
   const e = assentarNoChao(esqueletoDe(pose), pose.voo);
-  const osso = (a: Ponto, b: Ponto, chave: string) => (
-    <line key={chave} className="bn__osso" x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+  const osso = (a: Ponto, b: Ponto, chave: string, fundo = false) => (
+    <line key={chave} className={fundo ? 'bn__osso bn__osso--fundo' : 'bn__osso'}
+          x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
   );
   // barra: linha de uma mão à outra (ou atravessada nos ombros, no agachamento)
   const [pontaE, pontaD] = cena.presoEm === 'ombros'
     ? pontaDaBarra({ x: e.ombro.x - 9, y: e.ombro.y }, { x: e.ombro.x + 9, y: e.ombro.y }, 2)
-    : pontaDaBarra(e.maoE, e.maoD);
+    : cena.vista === 'lado'
+      ? barraAtravessada(e.maoE, e.maoD)
+      : pontaDaBarra(e.maoE, e.maoD);
 
   return (
     <div className={`bn ${trocando ? 'bn--trocando' : ''}`} title={`Treinando: ${cena.nome.toLowerCase()}`} aria-hidden="true">
@@ -95,19 +109,22 @@ export function Bonequinho() {
         {/* o chão é a referência: o boneco é assentado NELE, não o contrário */}
         <line className="bn__chao" x1="3" y1={CHAO_Y} x2="61" y2={CHAO_Y} />
 
-        {/* pernas atrás do tronco */}
+        {/* O lado DIREITO vem primeiro e mais apagado: é o membro de trás.
+            Sem essa diferença, de perfil os dois braços viram um risco só e
+            não dá para ver que estão fazendo o mesmo movimento. */}
+        {osso(e.quadril, e.joelhoD, 'coxaD', true)}
+        {osso(e.joelhoD, e.peD, 'canelaD', true)}
+        {osso(e.ombro, e.cotoveloD, 'bracoD', true)}
+        {osso(e.cotoveloD, e.maoD, 'antebracoD', true)}
+
         {osso(e.quadril, e.joelhoE, 'coxaE')}
         {osso(e.joelhoE, e.peE, 'canelaE')}
-        {osso(e.quadril, e.joelhoD, 'coxaD')}
-        {osso(e.joelhoD, e.peD, 'canelaD')}
 
         {osso(e.quadril, e.ombro, 'tronco')}
         <circle className="bn__cabeca" cx={e.cabeca.x} cy={e.cabeca.y} r="4.2" />
 
         {osso(e.ombro, e.cotoveloE, 'bracoE')}
         {osso(e.cotoveloE, e.maoE, 'antebracoE')}
-        {osso(e.ombro, e.cotoveloD, 'bracoD')}
-        {osso(e.cotoveloD, e.maoD, 'antebracoD')}
 
         {/* o aparelho nasce NA mão: antes eu desenhava no ponto médio e os
             pesos pareciam soltos no ar quando os braços abriam */}
