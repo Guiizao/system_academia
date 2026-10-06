@@ -3,7 +3,7 @@
  * navegador de quem usa, então o PC da recepção pode ficar quieto enquanto a
  * TV da academia fica mais viva.
  */
-import { classesDe, normalizarEfeitos, type IdEfeito } from './dominio/efeitos';
+import { classesDoHtml, normalizarEfeitos, type IdEfeito } from './dominio/efeitos';
 
 const CHAVE = 'df-efeitos';
 
@@ -18,10 +18,10 @@ export function lerEfeitos(): IdEfeito[] {
 
 export function aplicarEfeitos(efeitos: readonly IdEfeito[] = lerEfeitos()) {
   const html = document.documentElement;
-  // tira as classes de efeito antigas sem encostar nas outras (tema, modal-aberto)
-  html.classList.forEach((c) => { if (c.startsWith('ef-')) html.classList.remove(c); });
-  const novas = classesDe(efeitos);
-  if (novas) html.classList.add(...novas.split(' '));
+  // A lista nova é montada do zero por `classesDoHtml` e escrita de uma vez.
+  // Mexer no `classList` durante o laço era o que deixava efeito desmarcado
+  // ainda ligado -- a explicação está lá no domínio.
+  html.className = classesDoHtml([...html.classList], efeitos).join(' ');
 }
 
 export function salvarEfeitos(efeitos: readonly IdEfeito[]) {

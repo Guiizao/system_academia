@@ -88,3 +88,98 @@ html.ef-troca-de-tela .tela-troca { animation: entrar-tela 260ms var(--ease) bac
   html.ef-relevo .plano:hover,
   html.ef-relevo .previa:hover { transform: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   VISUAIS — mudam a aparência da tela, não o movimento dela.
+   Todos saem desligados: quem quiser a tela mais estilosa liga em
+   Configurações. Nenhum deles mexe em tamanho de texto nem em
+   espaçamento, então nada reposiciona ao ligar ou desligar.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* 6. Linhas de neon ─────────────────────────────────────
+   Só o que está ATIVO acende: botão principal, campo em foco, item do
+   menu aceso, selo de status. Acender tudo cansaria a vista em dois
+   minutos de uso no balcão. */
+html.ef-neon .btn-primary {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
+              0 0 18px -4px var(--accent);
+}
+html.ef-neon .campo input:focus,
+html.ef-neon .campo select:focus,
+html.ef-neon .campo textarea:focus,
+html.ef-neon .busca input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 16px -4px var(--accent);
+}
+html.ef-neon .sidebar__item.on {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+html.ef-neon .chip.on { box-shadow: 0 0 12px -3px var(--accent); }
+html.ef-neon .b-ok, html.ef-neon .b-warn, html.ef-neon .b-danger {
+  box-shadow: 0 0 10px -3px currentColor;
+}
+
+/* 7. Grade no fundo ─────────────────────────────────────
+   Malha de 34px esmaecida de cima para baixo, atrás de tudo. */
+html.ef-grade body::after {
+  content: '';
+  position: fixed; inset: 0;
+  z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 34px 34px;
+  opacity: .5;
+  -webkit-mask-image: linear-gradient(#000, transparent 85%);
+          mask-image: linear-gradient(#000, transparent 85%);
+}
+
+/* 8. Vidro fosco ────────────────────────────────────────
+   O cartão deixa passar o que está atrás, desfocado. Precisa de uma cor
+   semitransparente E do blur: só o blur não aparece sobre fundo opaco. */
+html.ef-vidro .card,
+html.ef-vidro .bloco,
+html.ef-vidro .modal-caixa,
+html.ef-vidro .previa-venc,
+html.ef-vidro .pix-caixa {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.12);
+          backdrop-filter: blur(10px) saturate(1.12);
+}
+html.ef-vidro .sidebar {
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
+}
+
+/* 9. Aurora no fundo ────────────────────────────────────
+   Dois borrões de cor nos cantos opostos, bem apagados. Parados: quem quer
+   movimento no fundo liga o "respiro", que é outro efeito. */
+html.ef-aurora .shell::before {
+  content: '';
+  position: fixed; inset: 0;
+  z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(38vmax 30vmax at 8% 4%,
+      color-mix(in srgb, var(--accent) 16%, transparent), transparent 68%),
+    radial-gradient(34vmax 28vmax at 96% 92%,
+      color-mix(in srgb, var(--ok) 12%, transparent), transparent 70%);
+}
+
+/* 10. Títulos em degradê ────────────────────────────────
+   Só os títulos GRANDES, e o degradê começa na cor normal do texto: o
+   começo da palavra continua com o contraste de sempre. */
+html.ef-titulos .conteudo h1,
+html.ef-titulos .conteudo h2 {
+  background-image: linear-gradient(96deg, var(--text) 35%, var(--accent) 115%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
+
+/* A preferência do aparelho vence a escolha: com "reduzir movimento" ligado
+   no Windows, os efeitos visuais continuam (não se mexem), mas nada anima. */
+@media (prefers-reduced-motion: reduce) {
+  html.ef-aurora .shell::before { animation: none; }
+}

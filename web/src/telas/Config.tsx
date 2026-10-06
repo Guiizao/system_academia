@@ -7,7 +7,7 @@ import { FormAcademia } from './FormAcademia';
 import type { Membro } from '../tipos';
 import { lerTema, salvarTema, type PrefTema } from '../tema';
 import { lerEfeitos, salvarEfeitos } from '../efeitos';
-import { EFEITOS, alternar, type IdEfeito } from '../dominio/efeitos';
+import { ROTULO_GRUPO, alternar, efeitosDoGrupo, type IdEfeito } from '../dominio/efeitos';
 import { TEMAS } from '../dominio/temas';
 import './Config.css';
 
@@ -44,7 +44,8 @@ export function Config() {
           <div>
             <strong>Efeitos</strong>
             <small>
-              Cinco extras que você liga e desliga. Valem só para este aparelho, e o sistema
+              Dez extras que você liga e desliga: cinco mexem no jeito que a tela reage,
+              cinco mudam a aparência dela. Valem só para este aparelho, e o sistema
               funciona igual com todos desligados.
             </small>
           </div>
@@ -171,21 +172,28 @@ function SeletorTema({ valor, aoMudar }: { valor: PrefTema; aoMudar: (v: PrefTem
 function SeletorEfeitos({ ligados, aoMudar }: {
   ligados: readonly IdEfeito[]; aoMudar: (id: IdEfeito) => void;
 }) {
+  // dois grupos, com titulo: movimento e aparencia sao escolhas diferentes e
+  // misturar os dez numa lista so vira parede de texto
   return (
     <div className="efeitos">
-      {EFEITOS.map((e) => {
-        const on = ligados.includes(e.id);
-        return (
-          <button key={e.id} type="button" role="switch" aria-checked={on}
-                  className={`efeito ${on ? 'on' : ''}`} onClick={() => aoMudar(e.id)}>
-            <span className="efeito__chave" aria-hidden="true"><i /></span>
-            <span className="efeito__texto">
-              <strong>{e.nome}</strong>
-              <small>{e.descricao}</small>
-            </span>
-          </button>
-        );
-      })}
+      {(['movimento', 'visual'] as const).map((grupo) => (
+        <div key={grupo} className="efeitos__grupo">
+          <span className="efeitos__titulo">{ROTULO_GRUPO[grupo]}</span>
+          {efeitosDoGrupo(grupo).map((e) => {
+            const on = ligados.includes(e.id);
+            return (
+              <button key={e.id} type="button" role="switch" aria-checked={on}
+                      className={`efeito ${on ? 'on' : ''}`} onClick={() => aoMudar(e.id)}>
+                <span className="efeito__chave" aria-hidden="true"><i /></span>
+                <span className="efeito__texto">
+                  <strong>{e.nome}</strong>
+                  <small>{e.descricao}</small>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

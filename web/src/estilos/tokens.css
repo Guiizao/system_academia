@@ -187,7 +187,10 @@
   --topbar-h: 56px;
   --bottomnav-h: 62px;
   --largura-mobile: 480px;
-  --lista-w: 380px;
+  /* largura que cabe os cinco filtros numa linha so: Todos,
+     Ativos, A vencer, Vencidos e Inativos. Em 380px o ultimo
+     caia sozinho na segunda linha. */
+  --lista-w: 452px;
 }
 
 .com-barra-janela { --barra-janela: 34px; }

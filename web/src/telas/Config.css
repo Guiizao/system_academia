@@ -92,3 +92,12 @@
 .efeito__texto { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .efeito__texto strong { font-size: var(--txt-base); font-weight: 650; }
 .efeito__texto small { font-size: var(--txt-sm); color: var(--muted); line-height: 1.35; }
+
+/* os dez efeitos vem em dois grupos: movimento e aparencia */
+.efeitos__grupo { display: contents; }
+.efeitos__titulo {
+  grid-column: 1 / -1;
+  font-size: var(--txt-sm); font-weight: 750; color: var(--muted);
+  letter-spacing: .04em; text-transform: uppercase;
+  margin-top: 4px;
+}

@@ -113,17 +113,19 @@
 .container { max-width: 1180px; margin: 0 auto; padding: 0 28px 32px; }
 .shell--movel .container { padding: 0 0 24px; max-width: none; }
 
-/* Bonequinho na folga da barra lateral.
-   Antes ele era `position: absolute` no canto superior direito do conteúdo,
-   com z-index 20 -- ou seja, flutuando POR CIMA da tela. E é exatamente ali
-   que ficam os botões de ação do aluno (Check-in, Pagamento, Editar): a linha
-   do chão dele atravessava os três. Agora ele entra no fluxo da lateral, no
-   espaço vazio que já existia entre o menu e o rodapé, e não cruza nada. */
+/* Bonequinho no canto superior direito do conteúdo.
+   Ele flutua por cima da tela, então as telas que têm botão nesse canto
+   RESERVAM o espaço dele (ver `--boneco-w` lá embaixo). Foi assim que a
+   linha do chão dele parou de atravessar Check-in, Pagamento e Editar. */
 .shell__principal { position: relative; }
 .shell__boneco {
-  display: flex; justify-content: center; flex-shrink: 0;
-  padding: 6px 0 2px; opacity: .85;
+  position: absolute; top: 4px; right: 16px; z-index: 5;
+  opacity: .9; pointer-events: none;
   animation: surgir 600ms var(--ease) both;
 }
-/* janela baixa: a lateral não tem folga sobrando, então o enfeite sai */
-@media (max-height: 640px) { .shell__boneco { display: none; } }
+
+/* O espaço que o boneco ocupa, para quem precisa desviar dele. Vale só no PC
+   largo: abaixo disso o próprio boneco some. */
+:root { --boneco-w: 0px; }
+@media (min-width: 1101px) { :root { --boneco-w: 118px; } }
+.conteudo > .container > :first-child { padding-right: var(--boneco-w); }

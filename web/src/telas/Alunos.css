@@ -69,7 +69,14 @@
 
 /* ─── perfil ─── */
 .perfil { padding-bottom: 40px; }
-.perfil__topo { display: flex; align-items: center; gap: 16px; padding: 26px 28px 18px; flex-wrap: wrap; }
+/* O padding da direita abre espaço para o bonequinho, que flutua no canto
+   superior direito do conteúdo. Sem isso a linha do chão dele atravessava
+   os botões Check-in, Pagamento e Editar. --boneco-w é 0 quando a janela é
+   estreita demais e o boneco nem aparece. */
+.perfil__topo {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 26px calc(28px + var(--boneco-w)) 18px 28px;
+}
 .perfil__id { flex: 1; min-width: 180px; }
 .perfil__id h2 { font-size: var(--txt-xl); font-weight: 750; letter-spacing: -.02em; line-height: 1.25; }
 .perfil__id p { font-size: var(--txt-base); color: var(--muted); margin-top: 2px; }

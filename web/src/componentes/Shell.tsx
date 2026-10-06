@@ -101,10 +101,6 @@ export function Shell({
               ))}
             </nav>
 
-            {/* o treino que nunca para, na folga da lateral: aqui ele nao
-                cruza botao nenhum -- fica no fluxo, nao flutuando por cima */}
-            {desktop && <div className="shell__boneco"><Bonequinho /></div>}
-
             <div className="sidebar__rodape">
               <button className="sidebar__item" onClick={() => setVendoAvisos(true)} title="Avisos">
                 <IconeSino size={19} />
@@ -153,6 +149,9 @@ export function Shell({
           </header>
         )}
 
+        {/* canto do treino: so no PC, e so enfeite. As telas que tem botao
+            no canto superior direito abrem espaco para ele no CSS. */}
+        {desktop && <div className="shell__boneco"><Bonequinho /></div>}
         <main className="conteudo">{children}</main>
       </div>
 
