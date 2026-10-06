@@ -12,6 +12,8 @@ import QRCode from 'qrcode';
 import { lerInicioWindows, gravarInicioWindows } from './sistema/inicio-windows.js';
 import { linkExternoPermitido, ehOSistema } from './sistema/links.js';
 import { mensagemImportacao } from './sistema/importacao.js';
+import { criarTunel } from './sistema/tunel.js';
+import { spawn } from 'node:child_process';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 // O servidor mora em <app>/app/servidor, na MESMA arvore do node_modules do app
@@ -38,6 +40,8 @@ const CAMINHO_BANCO = join(PASTAS.dados, 'academia.db');
 const PORTA = Number(process.env.DF_PORTA ?? 3000);
 
 let servidor = null;          // { parar, urls, sqlite, db }
+// o tunel da internet; so sobe quando alguem clica no painel
+const tunel = criarTunel({ spawn, log: (m, t) => log(m, t) });
 let painel = null, janelaSistema = null, bandeja = null;
 let saindo = false;
 const logs = [];
@@ -64,6 +68,7 @@ async function estado() {
     iniciarComWindows: lerInicioWindows(app),
     precisaConfigurar: servidor ? (await importar('servicos/primeiro-acesso.js')).precisaConfigurar(servidor.db) : null,
     backups: (await importar('servicos/backup.js')).listarBackups(PASTAS.backups).slice(0, 8),
+    tunel: tunel.estado(),
     versao: app.getVersion(),
   };
 }
@@ -227,6 +232,8 @@ ipcMain.handle('parar', () => pararServidor());
 ipcMain.handle('abrir-sistema', () => abrirSistema());
 ipcMain.handle('backup', () => backupAgora('manual'));
 ipcMain.handle('abrir-pasta', (_e, qual) => shell.openPath(Object.hasOwn(PASTAS, qual) ? PASTAS[qual] : BASE));
+ipcMain.handle('tunel:abrir', async () => { const r = await tunel.abrir(PORTA); await avisarPainel(); return r; });
+ipcMain.handle('tunel:fechar', async () => { const r = tunel.fechar(); await avisarPainel(); return r; });
 ipcMain.handle('qr', (_e, url) => QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: '#1C2228', light: '#FFFFFF' } }));
 ipcMain.handle('iniciar-com-windows', (_e, ligado) => {
   const ficou = gravarInicioWindows(app, ligado);

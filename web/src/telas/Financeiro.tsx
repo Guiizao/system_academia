@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao, pode } from '../sessao';
-import { formatarBRL, formatarData, diffDias, hoje } from '../dominio';
+import { formatarData, diffDias, hoje } from '../dominio';
+import { Olho, useValores } from '../componentes/Valores';
 import { mesCurto, variacaoTexto } from '../dominio/grafico';
 import { IconeAlerta } from '../componentes/Icones';
 import { BarrasVerticais, BarrasHorizontais } from '../componentes/Grafico';
@@ -23,6 +24,8 @@ function sufixoDuracao(p: Plano): string {
 const FORMA: Record<string, string> = { pix: 'Pix', dinheiro: 'dinheiro', debito: 'débito', credito: 'crédito', boleto: 'boleto' };
 
 export function Financeiro() {
+  // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
+  const { formatar: dinheiro } = useValores();
   const { usuario, avisar } = useSessao();
   const dono = pode.verFinanceiro(usuario);
   const { dados: cobrancas, recarregar: recCob } = useDados(() => api.cobrancas(), []);
@@ -67,7 +70,7 @@ export function Financeiro() {
   return (
     <div className="container entrar">
       <div className="sec-head">
-        <h2>Financeiro</h2>
+        <h2>Financeiro<Olho /></h2>
         {dono && rel && (
           <button className="btn btn-secondary btn-sm" onClick={() => setVerRelatorio(true)}>
             Relatório de {rel.mesPorExtenso.split(' de ')[0]}
@@ -77,12 +80,12 @@ export function Financeiro() {
 
       {dono && resumo && (
         <div className="fin__cartoes escalonar">
-          <Cartao rotulo="Recebido no mês" valor={formatarBRL(resumo.receitaMesCentavos!)}
+          <Cartao rotulo="Recebido no mês" valor={dinheiro(resumo.receitaMesCentavos!)}
                   sub={variacao?.texto} tomSub={variacao?.tom} />
-          <Cartao rotulo="A receber" valor={formatarBRL(resumo.inadimplenciaCentavos!)} tom="danger"
+          <Cartao rotulo="A receber" valor={dinheiro(resumo.inadimplenciaCentavos!)} tom="danger"
                   sub={`${resumo.vencidos} ${resumo.vencidos === 1 ? 'aluno vencido' : 'alunos vencidos'}`} />
-          <Cartao rotulo="Recebido hoje" valor={formatarBRL(resumo.recebidoHojeCentavos!)} tom="ok" />
-          <Cartao rotulo="Ticket médio" valor={formatarBRL(rel?.ticketMedioCentavos ?? 0)}
+          <Cartao rotulo="Recebido hoje" valor={dinheiro(resumo.recebidoHojeCentavos!)} tom="ok" />
+          <Cartao rotulo="Ticket médio" valor={dinheiro(rel?.ticketMedioCentavos ?? 0)}
                   sub={rel ? `${rel.pagamentos} ${rel.pagamentos === 1 ? 'pagamento' : 'pagamentos'} no mês` : undefined} />
         </div>
       )}
@@ -92,7 +95,7 @@ export function Financeiro() {
       <Painel
         titulo="Cobranças em aberto"
         resumo={emAberto.length
-          ? `${emAberto.length} ${emAberto.length === 1 ? 'pessoa' : 'pessoas'}, ${formatarBRL(totalAberto)}`
+          ? `${emAberto.length} ${emAberto.length === 1 ? 'pessoa' : 'pessoas'}, ${dinheiro(totalAberto)}`
           : 'Ninguém em aberto'}
         alerta={atrasadas.length ? `${atrasadas.length} vencida${atrasadas.length === 1 ? '' : 's'}` : undefined}
         quantidade={emAberto.length}
@@ -110,7 +113,7 @@ export function Financeiro() {
                   {`, ${formatarData(c.vencimento)}`}
                 </div>
               </div>
-              <strong className={atrasada ? 'valor-danger' : ''}>{formatarBRL(c.valorCentavos)}</strong>
+              <strong className={atrasada ? 'valor-danger' : ''}>{dinheiro(c.valorCentavos)}</strong>
               <button className="btn btn-sm btn-secondary" onClick={() => abrirPagamento(c.alunoId)}>Receber</button>
             </div>
           );
@@ -130,7 +133,7 @@ export function Financeiro() {
                 {formatarData(p.dataPagamento)}, {FORMA[p.forma] ?? p.forma}{p.observacao ? `, ${p.observacao}` : ''}
               </div>
             </div>
-            <strong className="valor-ok">+{formatarBRL(p.valorCentavos)}</strong>
+            <strong className="valor-ok">+{dinheiro(p.valorCentavos)}</strong>
           </div>
         ))}
       </Painel>
@@ -146,7 +149,7 @@ export function Financeiro() {
                 detalhe: `${s.pagamentos} ${s.pagamentos === 1 ? 'pagamento' : 'pagamentos'}`,
                 destaque: s.mes === rel.mes,
               }))}
-              formatar={formatarBRL}
+              formatar={dinheiro}
             />
           </section>
 
@@ -180,7 +183,7 @@ export function Financeiro() {
               : p.destaque && <span className="plano__tag">Popular</span>}
             <div className="plano__nome">{p.nome}</div>
             <div className="plano__preco">
-              {formatarBRL(p.precoCentavos)}<small>{sufixoDuracao(p)}</small>
+              {dinheiro(p.precoCentavos)}<small>{sufixoDuracao(p)}</small>
             </div>
             {p.beneficios.map((b) => <div key={b} className="plano__item">{b}</div>)}
             {dono && (

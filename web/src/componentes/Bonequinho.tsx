@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ALTURA_DO_APARELHO, ALTURA_DO_SUPORTE, MEIA_LARGURA_DO_SUPORTE,
+  ALTURA_DO_APARELHO, ALTURA_DO_SUPORTE, LARGURA_DA_VISTA, MEIA_LARGURA_DO_SUPORTE,
   CENAS, CHAO_Y, MS_PEGAR, MOMENTO_DA_PEGADA, PARADO, PEGAR,
   arcoDaCorda, assentarNoChao, comAtraso, esqueletoDe, faseDaCorda, poseDosQuadros, poseNoTempo,
   type Pose, type Ponto,
@@ -39,6 +39,25 @@ function anguloDoPunho(cotovelo: Ponto, mao: Ponto): number {
 
 type Fase = { tipo: 'pegando' | 'treinando'; cena: number };
 
+/**
+ * A camera girando.
+ *
+ * Alguns exercicios so se leem de perfil (remada curvada, terra, avanco) e
+ * outros so de frente (polichinelo, elevacao lateral). Em vez de escolher um
+ * angulo so e deixar metade dos exercicios errados, a camera DA A VOLTA entre
+ * um exercicio e outro -- enquanto ele esta pegando o aparelho.
+ *
+ * O giro e feito espremendo a largura do desenho ate ele ficar de fio e
+ * abrindo de novo: e o mesmo recurso que desenho animado usa para virar um
+ * personagem, e o olho lê como a camera tendo dado a volta. Quando o angulo
+ * nao muda, nao ha giro nenhum.
+ */
+function larguraDoGiro(pegando: boolean, t: number, mudaDeAngulo: boolean): number {
+  if (!pegando || !mudaDeAngulo) return 1;
+  const u = Math.max(0, (t - 0.5) * 2);           // so na segunda metade
+  return 1 - 0.92 * Math.sin(Math.PI * u);
+}
+
 export function Bonequinho() {
   const [fase, setFase] = useState<Fase>(() => ({ tipo: primeiraEhPegar(0) ? 'pegando' : 'treinando', cena: 0 }));
   const [pose, setPose] = useState<Pose>(PARADO);
@@ -48,6 +67,8 @@ export function Bonequinho() {
   const poseRef = useRef<Pose>(pose);
 
   const cena = CENAS[fase.cena];
+  const anterior = CENAS[(fase.cena - 1 + CENAS.length) % CENAS.length];
+  const giraCamera = anterior.vista !== cena.vista;
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -93,7 +114,8 @@ export function Bonequinho() {
 
   // assentar no chão é o que impede o boneco de agachar no ar: ele desce o
   // corpo inteiro até o pé de apoio encostar na linha desenhada abaixo
-  const e = assentarNoChao(esqueletoDe(pose), pose.voo);
+  // de lado o ombro aponta para quem olha: a largura do corpo quase some
+  const e = assentarNoChao(esqueletoDe(pose, undefined, LARGURA_DA_VISTA[cena.vista]), pose.voo);
   const osso = (a: Ponto, b: Ponto, chave: string) => (
     <line key={chave} className="bn__osso" x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
   );
@@ -113,6 +135,7 @@ export function Bonequinho() {
   const giroD = noChao ? 90 : anguloDoPunho(e.cotoveloD, e.maoD);
   const fio = arcoDaCorda(e, faseDaCorda(ciclo));
 
+  const largura = larguraDoGiro(fase.tipo === 'pegando', ciclo, giraCamera);
   const legenda = fase.tipo === 'pegando'
     ? `Pegando o aparelho para ${cena.nome.toLowerCase()}`
     : `Treinando: ${cena.nome.toLowerCase()}`;
@@ -123,6 +146,8 @@ export function Bonequinho() {
         {/* o chão é a referência: o boneco é assentado NELE, não o contrário */}
         <line className="bn__chao" x1="3" y1={CHAO_Y} x2="61" y2={CHAO_Y} />
 
+        {/* tudo menos o chão gira junto: o piso não acompanha a câmera */}
+        <g transform={`translate(32 0) scale(${largura.toFixed(3)} 1) translate(-32 0)`}>
         {/* pernas atrás do tronco, cada uma saindo do seu lado do quadril */}
         {osso(e.quadrilE, e.joelhoE, 'coxaE')}
         {osso(e.joelhoE, e.peE, 'canelaE')}
@@ -188,6 +213,7 @@ export function Bonequinho() {
               <rect className="bn__celular" x="-1.7" y="-2.6" width="3.4" height="5.2" rx="1" />
             </g>
           )}
+        </g>
         </g>
       </svg>
     </div>

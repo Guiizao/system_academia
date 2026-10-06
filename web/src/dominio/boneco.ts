@@ -48,10 +48,14 @@ export interface Pose {
 
 export type Aparelho = 'barra' | 'halteres' | 'nenhum' | 'garrafa' | 'celular' | 'corda';
 
+/** De que ângulo a câmera olha este exercício. */
+export type Vista = 'frente' | 'lado';
+
 export interface Cena {
   id: string;
   nome: string;
   aparelho: Aparelho;
+  vista: Vista;
   /** onde o aparelho fica: 'maos' acompanha as mãos, 'ombros' nas costas, 'chao' parado */
   presoEm: 'maos' | 'ombros' | 'chao';
   /** um ciclo do movimento, em ms */
@@ -82,6 +86,29 @@ function frente(m: Meio = {}, resto: Partial<Pose> = {}): Pose {
     ...EM_PE,
     ombroE: ombro, cotoveloE: cotovelo, ombroD: -ombro, cotoveloD: -cotovelo,
     coxaE: coxa, joelhoE: joelho, coxaD: -coxa, joelhoD: -joelho,
+    ...resto,
+  };
+}
+
+/**
+ * Pose de PERFIL, para quando a câmera gira. Aqui os dois braços fazem o mesmo
+ * movimento — espelhar, de lado, mandaria um para a frente e o outro para trás,
+ * e o boneco pareceria fazer dois exercícios ao mesmo tempo. O membro de trás
+ * sai alguns graus atrasado, só para o olho separar os dois.
+ *
+ * De perfil o boneco olha para a ESQUERDA da tela (`tronco` positivo joga os
+ * ombros para -x). Daí as duas regras de sinal: cotovelo NEGATIVO dobra o
+ * braço (a mão sobe pela frente) e joelho POSITIVO dobra a perna (o calcanhar
+ * vai para trás).
+ */
+function lado(m: Meio = {}, resto: Partial<Pose> = {}): Pose {
+  const { ombro = 6, cotovelo = -8, coxa = 4, joelho = 4 } = m;
+  return {
+    ...EM_PE,
+    ombroE: ombro, cotoveloE: cotovelo,
+    ombroD: ombro - 9, cotoveloD: cotovelo + 6,
+    coxaE: coxa, joelhoE: joelho,
+    coxaD: coxa - 7, joelhoD: joelho + 4,
     ...resto,
   };
 }
@@ -121,7 +148,7 @@ export const CENAS: readonly Cena[] = [
   {
     // Agachamento: a barra atravessa os ombros e as mãos a seguram por fora,
     // com o cotovelo apontando para baixo.
-    id: 'agachamento', nome: 'Agachamento', aparelho: 'barra', presoEm: 'ombros',
+    id: 'agachamento', nome: 'Agachamento', aparelho: 'barra', vista: 'frente', presoEm: 'ombros',
     cicloMs: 2000, repeticoes: 4,
     quadros: [
       frente({ ombro: 140, cotovelo: -100, coxa: 8, joelho: -6 }),
@@ -134,7 +161,7 @@ export const CENAS: readonly Cena[] = [
   {
     // Rosca: o ombro fica PARADO e só o cotovelo fecha, até a mão chegar na
     // altura do ombro. Ombro que sobe junto vira arremesso, não rosca.
-    id: 'rosca', nome: 'Rosca direta', aparelho: 'halteres', presoEm: 'maos',
+    id: 'rosca', nome: 'Rosca direta', aparelho: 'halteres', vista: 'frente', presoEm: 'maos',
     cicloMs: 1500, repeticoes: 5,
     quadros: [
       frente({ ombro: 10, cotovelo: 6 }),
@@ -147,7 +174,7 @@ export const CENAS: readonly Cena[] = [
   {
     // Desenvolvimento: embaixo a barra fica na altura do queixo com o cotovelo
     // aberto; em cima os braços esticam quase juntos sobre a cabeça.
-    id: 'desenvolvimento', nome: 'Desenvolvimento', aparelho: 'barra', presoEm: 'maos',
+    id: 'desenvolvimento', nome: 'Desenvolvimento', aparelho: 'barra', vista: 'frente', presoEm: 'maos',
     cicloMs: 1800, repeticoes: 4,
     quadros: [
       frente({ ombro: 66, cotovelo: 82 }),
@@ -158,36 +185,37 @@ export const CENAS: readonly Cena[] = [
     ],
   },
   {
-    // Remada ALTA, não curvada: de frente, a curvada viraria um boneco tombado
-    // de lado. Aqui a barra sobe rente ao corpo até o queixo, com o cotovelo
-    // indo para cima e para fora — que é o que se vê de frente.
-    id: 'remada', nome: 'Remada alta', aparelho: 'barra', presoEm: 'maos',
-    cicloMs: 1600, repeticoes: 4,
+    // Remada CURVADA, de perfil: é o ângulo em que a dobradiça de quadril
+    // aparece. De frente ela precisaria do tronco inclinado, que neste desenho
+    // leria como tombar de lado -- foi por isso que ela tinha virado remada alta.
+    id: 'remada', nome: 'Remada curvada', aparelho: 'barra', vista: 'lado', presoEm: 'maos',
+    cicloMs: 1800, repeticoes: 4,
     quadros: [
-      frente({ ombro: 7, cotovelo: 5 }),
-      frente({ ombro: 46, cotovelo: 66 }),
-      frente({ ombro: 96, cotovelo: 116 }),
-      frente({ ombro: 44, cotovelo: 62 }),
-      frente({ ombro: 7, cotovelo: 5 }),
+      lado({ ombro: 5, cotovelo: -8, coxa: 12, joelho: 14 }, { tronco: 56, quadril: 2 }),
+      lado({ ombro: 64, cotovelo: -80, coxa: 12, joelho: 14 }, { tronco: 55, quadril: 2 }),
+      lado({ ombro: 118, cotovelo: -148, coxa: 12, joelho: 14 }, { tronco: 54, quadril: 2 }),
+      lado({ ombro: 60, cotovelo: -76, coxa: 12, joelho: 14 }, { tronco: 55, quadril: 2 }),
+      lado({ ombro: 5, cotovelo: -8, coxa: 12, joelho: 14 }, { tronco: 56, quadril: 2 }),
     ],
   },
   {
-    // Terra: braço reto o tempo todo — braço dobrado em terra é erro de
-    // academia. De frente é o joelho e o quadril que contam a história.
-    id: 'terra', nome: 'Levantamento terra', aparelho: 'barra', presoEm: 'maos',
-    cicloMs: 2200, repeticoes: 3,
+    // Terra, de perfil: o quadril vai para TRÁS, a canela fica quase em pé e o
+    // braço não dobra -- braço dobrado em terra é erro de academia. De frente
+    // isto virava um agachamento de braço esticado.
+    id: 'terra', nome: 'Levantamento terra', aparelho: 'barra', vista: 'lado', presoEm: 'maos',
+    cicloMs: 2400, repeticoes: 3,
     quadros: [
-      frente({ ombro: 5, cotovelo: 3, coxa: 5, joelho: -3 }),
-      frente({ ombro: 9, cotovelo: 2, coxa: 24, joelho: -24 }, { quadril: 2 }),
-      frente({ ombro: 13, cotovelo: 2, coxa: 44, joelho: -44 }, { quadril: 4, tronco: 2 }),
-      frente({ ombro: 9, cotovelo: 2, coxa: 22, joelho: -22 }, { quadril: 2 }),
-      frente({ ombro: 5, cotovelo: 3, coxa: 5, joelho: -3 }),
+      lado({ ombro: 3, cotovelo: -4, coxa: 2, joelho: 2 }, { tronco: 3 }),
+      lado({ ombro: 2, cotovelo: -4, coxa: 15, joelho: -11 }, { tronco: 32, quadril: 2 }),
+      lado({ ombro: 1, cotovelo: -3, coxa: 26, joelho: -20 }, { tronco: 58, quadril: 4 }),
+      lado({ ombro: 2, cotovelo: -4, coxa: 13, joelho: -9 }, { tronco: 30, quadril: 2 }),
+      lado({ ombro: 3, cotovelo: -4, coxa: 2, joelho: 2 }, { tronco: 3 }),
     ],
   },
   {
     // Elevação lateral: braço quase ESTICADO subindo até a horizontal. Cotovelo
     // dobrado em 90 faria uma trave de gol, não uma elevação.
-    id: 'elevacao', nome: 'Elevação lateral', aparelho: 'halteres', presoEm: 'maos',
+    id: 'elevacao', nome: 'Elevação lateral', aparelho: 'halteres', vista: 'frente', presoEm: 'maos',
     cicloMs: 1700, repeticoes: 4,
     quadros: [
       frente({ ombro: 14, cotovelo: 8 }),
@@ -198,20 +226,21 @@ export const CENAS: readonly Cena[] = [
     ],
   },
   {
-    // Tríceps: o braço fica QUIETO apontando para cima e só o antebraço cai
-    // atrás da cabeça. É o cotovelo parado que faz o exercício ser tríceps.
-    id: 'triceps', nome: 'Tríceps francês', aparelho: 'halteres', presoEm: 'maos',
-    cicloMs: 1700, repeticoes: 5,
+    // Tríceps francês, de perfil: o braço fica QUIETO apontando para cima e o
+    // antebraço cai atrás da cabeça. De frente não dava para ver que ele cai
+    // para TRÁS -- parecia abrir para os lados.
+    id: 'triceps', nome: 'Tríceps francês', aparelho: 'halteres', vista: 'lado', presoEm: 'maos',
+    cicloMs: 1800, repeticoes: 5,
     quadros: [
-      frente({ ombro: 171, cotovelo: 5 }),
-      frente({ ombro: 170, cotovelo: -78 }),
-      frente({ ombro: 169, cotovelo: -148 }, { cabeca: 4 }),
-      frente({ ombro: 170, cotovelo: -74 }),
-      frente({ ombro: 171, cotovelo: 5 }),
+      lado({ ombro: 172, cotovelo: -6 }),
+      lado({ ombro: 171, cotovelo: -76 }),
+      lado({ ombro: 170, cotovelo: -142 }, { cabeca: 4 }),
+      lado({ ombro: 171, cotovelo: -72 }),
+      lado({ ombro: 172, cotovelo: -6 }),
     ],
   },
   {
-    id: 'panturrilha', nome: 'Panturrilha', aparelho: 'halteres', presoEm: 'maos',
+    id: 'panturrilha', nome: 'Panturrilha', aparelho: 'halteres', vista: 'frente', presoEm: 'maos',
     cicloMs: 1200, repeticoes: 7,
     quadros: [
       frente({ ombro: 10, cotovelo: 6 }),
@@ -222,7 +251,7 @@ export const CENAS: readonly Cena[] = [
   {
     // Polichinelo: braços e pernas abrem juntos. O joelho acompanha a coxa
     // para a canela ficar em pé e os pés não cruzarem um no outro.
-    id: 'polichinelo', nome: 'Polichinelo', aparelho: 'nenhum', presoEm: 'chao',
+    id: 'polichinelo', nome: 'Polichinelo', aparelho: 'nenhum', vista: 'frente', presoEm: 'chao',
     cicloMs: 820, repeticoes: 8,
     quadros: [
       frente({ ombro: 6, cotovelo: 4, coxa: 4, joelho: -2 }),
@@ -233,7 +262,7 @@ export const CENAS: readonly Cena[] = [
   {
     // Corda: braço colado no corpo, antebraço para fora, e quem gira é o
     // punho. A corda em si é desenhada no componente, girando com o ciclo.
-    id: 'corda', nome: 'Pular corda', aparelho: 'corda', presoEm: 'maos',
+    id: 'corda', nome: 'Pular corda', aparelho: 'corda', vista: 'frente', presoEm: 'maos',
     cicloMs: 760, repeticoes: 10,
     quadros: [
       frente({ ombro: 20, cotovelo: 72, coxa: 4, joelho: -6 }),
@@ -242,31 +271,34 @@ export const CENAS: readonly Cena[] = [
     ],
   },
   {
-    // Corrida de frente: um joelho sobe enquanto o outro desce, e o braço
-    // oposto acompanha. Vem escrito porque aqui a assimetria É o exercício.
-    id: 'corrida', nome: 'Corrida no lugar', aparelho: 'nenhum', presoEm: 'chao',
+    // Corrida, de perfil: é a única cena em que os braços fazem coisas opostas
+    // de verdade -- braço e perna cruzados, como na corrida mesmo.
+    id: 'corrida', nome: 'Corrida no lugar', aparelho: 'nenhum', vista: 'lado', presoEm: 'chao',
     cicloMs: 700, repeticoes: 10,
     quadros: [
-      { ...EM_PE, ombroE: 30, cotoveloE: 96, ombroD: -16, cotoveloD: -60, coxaE: 14, joelhoE: -6, coxaD: -40, joelhoD: 78 },
-      { ...EM_PE, ombroE: 16, cotoveloE: 60, ombroD: -30, cotoveloD: -96, coxaE: 40, joelhoE: -78, coxaD: -14, joelhoD: 6 },
-      { ...EM_PE, ombroE: 30, cotoveloE: 96, ombroD: -16, cotoveloD: -60, coxaE: 14, joelhoE: -6, coxaD: -40, joelhoD: 78 },
+      { ...EM_PE, tronco: 6, ombroE: -44, cotoveloE: -88, ombroD: 40, cotoveloD: -70, coxaE: -42, joelhoE: 62, coxaD: 24, joelhoD: 18 },
+      { ...EM_PE, tronco: 6, ombroE: 40, cotoveloE: -70, ombroD: -44, cotoveloD: -88, coxaE: 24, joelhoE: 18, coxaD: -42, joelhoD: 62 },
+      { ...EM_PE, tronco: 6, ombroE: -44, cotoveloE: -88, ombroD: 40, cotoveloD: -70, coxaE: -42, joelhoE: 62, coxaD: 24, joelhoD: 18 },
     ],
   },
   {
-    // Avanço de frente: uma perna abre e dobra, a outra fica atrás com o
-    // calcanhar levantado. Os braços só penduram com o peso.
-    id: 'afundo', nome: 'Avanço', aparelho: 'halteres', presoEm: 'maos',
-    cicloMs: 2000, repeticoes: 4,
+    // Avanço, de perfil: uma perna vai para a FRENTE e dobra em 90, a outra
+    // fica atrás com o calcanhar levantado. De frente as duas pernas apareciam
+    // só abrindo para os lados, que é outro exercício.
+    id: 'afundo', nome: 'Avanço', aparelho: 'halteres', vista: 'lado', presoEm: 'maos',
+    cicloMs: 2200, repeticoes: 4,
     quadros: [
-      frente({ ombro: 10, cotovelo: 6, coxa: 5, joelho: -3 }),
-      frente({ ombro: 11, cotovelo: 6 }, { quadril: 5, coxaE: 34, joelhoE: -34, coxaD: -22, joelhoD: 44 }),
-      frente({ ombro: 10, cotovelo: 6, coxa: 5, joelho: -3 }),
+      lado({ ombro: 6, cotovelo: -6, coxa: 3, joelho: 2 }),
+      lado({ ombro: 7, cotovelo: -7 }, { quadril: 3, tronco: 4, coxaE: -20, joelhoE: 22, coxaD: 16, joelhoD: 18 }),
+      lado({ ombro: 7, cotovelo: -7 }, { quadril: 6, tronco: 6, coxaE: -36, joelhoE: 38, coxaD: 30, joelhoD: 34 }),
+      lado({ ombro: 7, cotovelo: -7 }, { quadril: 3, tronco: 4, coxaE: -18, joelhoE: 20, coxaD: 14, joelhoD: 16 }),
+      lado({ ombro: 6, cotovelo: -6, coxa: 3, joelho: 2 }),
     ],
   },
 
   /* ─── as pausas: é o que faz parecer gente, não motor ─── */
   {
-    id: 'descanso', nome: 'Descansando', aparelho: 'nenhum', presoEm: 'chao',
+    id: 'descanso', nome: 'Descansando', aparelho: 'nenhum', vista: 'frente', presoEm: 'chao',
     cicloMs: 2800, repeticoes: 1,
     quadros: [
       frente({ ombro: 13, cotovelo: 20 }),
@@ -277,7 +309,7 @@ export const CENAS: readonly Cena[] = [
   {
     // Só UMA mão sobe com a garrafa; a outra fica solta. Por isso o lado
     // direito vem escrito, em vez de sair espelhado.
-    id: 'agua', nome: 'Bebendo água', aparelho: 'garrafa', presoEm: 'maos',
+    id: 'agua', nome: 'Bebendo água', aparelho: 'garrafa', vista: 'frente', presoEm: 'maos',
     cicloMs: 2800, repeticoes: 1,
     quadros: [
       frente({ ombro: 11, cotovelo: 8 }),
@@ -288,7 +320,7 @@ export const CENAS: readonly Cena[] = [
   },
   {
     // As duas mãos seguram o celular na frente do corpo e a cabeça desce.
-    id: 'celular', nome: 'Olhando o celular', aparelho: 'celular', presoEm: 'maos',
+    id: 'celular', nome: 'Olhando o celular', aparelho: 'celular', vista: 'frente', presoEm: 'maos',
     cicloMs: 3200, repeticoes: 1,
     quadros: [
       frente({ ombro: 26, cotovelo: 96 }, { cabeca: 14 }),
@@ -302,28 +334,50 @@ const PAUSAS = ['descanso', 'agua', 'celular'];
 export const EXERCICIOS = CENAS.filter((c) => !PAUSAS.includes(c.id));
 
 /**
- * Suaviza a entrada e a saída de cada quadro. O cosseno sobe e desce com
- * derivada zero nas pontas, então a emenda entre dois quadros não tem o
- * tranco que a parábola de antes deixava passar.
+ * Interpolação Catmull-Rom entre os quadros.
+ *
+ * A versão anterior suavizava CADA TRECHO separado (cosseno de 0 a 1 entre um
+ * quadro e o seguinte). Com cinco quadros por ciclo isso fazia a velocidade
+ * cair a zero cinco vezes por repetição: o movimento parava, arrancava, parava
+ * -- era a animação "travada", e não falta de quadros por segundo.
+ *
+ * Catmull-Rom olha os quadros VIZINHOS para calcular a inclinação em cada
+ * ponto, então a curva passa pelos quadros sem perder velocidade no caminho.
+ * Ela ainda desacelera sozinha onde o movimento realmente vira (o fundo do
+ * agachamento, o topo da rosca), porque ali os vizinhos estão dos dois lados.
+ *
+ * Os índices dão a volta: como o último quadro é igual ao primeiro, a emenda
+ * do fim para o começo fica tão lisa quanto o meio.
  */
-const suave = (t: number) => (1 - Math.cos(Math.PI * Math.min(Math.max(t, 0), 1))) / 2;
-
-const entre = (a: number, b: number, t: number) => a + (b - a) * t;
+function catmull(p0: number, p1: number, p2: number, p3: number, t: number): number {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return 0.5 * (
+    2 * p1
+    + (p2 - p0) * t
+    + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2
+    + (3 * p1 - 3 * p2 + p3 - p0) * t3
+  );
+}
 
 /** Pose de uma lista de quadros no instante `t` (0 a 1). */
 export function poseDosQuadros(quadros: readonly Pose[], t: number): Pose {
-  const total = quadros.length - 1;
-  const pos = Math.min(Math.max(t, 0), 1) * total;
-  // o corte antigo (0.999999) fazia t=1 parar um fio antes do último quadro
-  const i = Math.min(Math.floor(pos), total - 1);
-  const f = suave(pos - i);
-  const a = quadros[i];
-  const b = quadros[Math.min(i + 1, total)];
+  const distintos = quadros.length - 1;        // o último repete o primeiro
+  if (distintos < 1) return { ...quadros[0] };
+
+  const pos = Math.min(Math.max(t, 0), 1) * distintos;
+  const i = Math.min(Math.floor(pos), distintos - 1);
+  const f = pos - i;
+  const nos = (k: number) => quadros[((k % distintos) + distintos) % distintos];
+  const [a, b, c, d] = [nos(i - 1), nos(i), nos(i + 1), nos(i + 2)];
 
   const saida = {} as Pose;
   for (const chave of Object.keys(EM_PE) as Array<keyof Pose>) {
-    saida[chave] = entre(a[chave], b[chave], f);
+    saida[chave] = catmull(a[chave], b[chave], c[chave], d[chave], f);
   }
+  // em t=0 e t=1 a conta tem de devolver o quadro exato, sem arredondar por fora
+  if (pos === 0) return { ...quadros[0] };
+  if (pos === distintos) return { ...quadros[distintos] };
   return saida;
 }
 
@@ -367,26 +421,36 @@ const TAMANHO = { tronco: 13, braco: 7, antebraco: 7, coxa: 8, canela: 8, pescoc
 const MEIO_OMBROS = 2.8;
 const MEIO_QUADRIL = 2;
 
+/** Quanto da largura do corpo se vê em cada vista. De lado, quase nada. */
+export const LARGURA_DA_VISTA: Record<Vista, number> = { frente: 1, lado: 0.3 };
+
 /** Ângulo 0 aponta para baixo; positivo gira para a direita da tela. */
 function desloca(p: Ponto, grau: number, tamanho: number): Ponto {
   const r = (grau * Math.PI) / 180;
   return { x: p.x + Math.sin(r) * tamanho, y: p.y + Math.cos(r) * tamanho };
 }
 
-/** Converte os ângulos em pontos para desenhar. */
-export function esqueletoDe(p: Pose, base: Ponto = { x: 32, y: 30 }): Esqueleto {
+/**
+ * Converte os ângulos em pontos para desenhar.
+ *
+ * `larguraDoCorpo` encolhe a linha dos ombros e a do quadril quando a câmera
+ * está de lado: de perfil o ombro aponta para quem olha, então desenhá-lo na
+ * largura cheia faria o boneco parecer de três quartos, não de lado.
+ */
+export function esqueletoDe(p: Pose, base: Ponto = { x: 32, y: 30 }, larguraDoCorpo = 1): Esqueleto {
   const quadril = { x: base.x, y: base.y + p.quadril };
   const ombro = desloca(quadril, 180 + p.tronco, TAMANHO.tronco);
   const cabeca = desloca(ombro, 180 + p.tronco + p.cabeca, TAMANHO.pescoco);
 
   // a linha dos ombros acompanha a inclinação do tronco (90° à frente dele)
   const giro = ((p.tronco + 90) * Math.PI) / 180;
-  const ox = Math.sin(giro) * MEIO_OMBROS;
-  const oy = Math.cos(giro) * MEIO_OMBROS;
+  const ox = Math.sin(giro) * MEIO_OMBROS * larguraDoCorpo;
+  const oy = Math.cos(giro) * MEIO_OMBROS * larguraDoCorpo;
   const ombroE = { x: ombro.x + ox, y: ombro.y + oy };
   const ombroD = { x: ombro.x - ox, y: ombro.y - oy };
-  const quadrilE = { x: quadril.x + MEIO_QUADRIL, y: quadril.y };
-  const quadrilD = { x: quadril.x - MEIO_QUADRIL, y: quadril.y };
+  const meioQuadril = MEIO_QUADRIL * larguraDoCorpo;
+  const quadrilE = { x: quadril.x + meioQuadril, y: quadril.y };
+  const quadrilD = { x: quadril.x - meioQuadril, y: quadril.y };
 
   const cotoveloE = desloca(ombroE, p.ombroE, TAMANHO.braco);
   const maoE = desloca(cotoveloE, p.ombroE + p.cotoveloE, TAMANHO.antebraco);

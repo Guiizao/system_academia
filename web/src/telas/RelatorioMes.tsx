@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSessao } from '../sessao';
 import { Modal } from '../componentes/Modal';
 import { BarrasVerticais, BarrasHorizontais } from '../componentes/Grafico';
-import { formatarBRL } from '../dominio';
+import { Olho, useValores } from '../componentes/Valores';
 import { mesCurto, variacaoTexto } from '../dominio/grafico';
 import { linkGrupoWhatsapp } from '../dominio/whatsapp';
 import type { RelatorioMes as Relatorio } from '../tipos';
@@ -16,6 +16,8 @@ const ROTULO_FORMA: Record<string, string> = {
  * O texto e o mesmo que o servidor monta -- tela e WhatsApp nunca divergem.
  */
 export function RelatorioMes({ relatorio, aoFechar }: { relatorio: Relatorio; aoFechar: () => void }) {
+  // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
+  const { formatar: dinheiro } = useValores();
   const { avisar } = useSessao();
   const [copiado, setCopiado] = useState(false);
   const variacao = variacaoTexto(relatorio.variacaoPct);
@@ -28,10 +30,10 @@ export function RelatorioMes({ relatorio, aoFechar }: { relatorio: Relatorio; ao
 
   return (
     <Modal titulo={`Relatório de ${relatorio.mesPorExtenso}`} aoFechar={aoFechar} largo>
-      <div className="rel__numeros">
-        <div className="rel__num"><span>Recebido</span><strong>{formatarBRL(relatorio.receitaCentavos)}</strong></div>
+      <div className="rel__numeros"><Olho className="olho--canto" />
+        <div className="rel__num"><span>Recebido</span><strong>{dinheiro(relatorio.receitaCentavos)}</strong></div>
         <div className="rel__num"><span>Pagamentos</span><strong>{relatorio.pagamentos}</strong></div>
-        <div className="rel__num"><span>Ticket médio</span><strong>{formatarBRL(relatorio.ticketMedioCentavos)}</strong></div>
+        <div className="rel__num"><span>Ticket médio</span><strong>{dinheiro(relatorio.ticketMedioCentavos)}</strong></div>
       </div>
       {variacao && <p className={`rel__variacao t-${variacao.tom}`}>{variacao.texto}</p>}
 
@@ -43,7 +45,7 @@ export function RelatorioMes({ relatorio, aoFechar }: { relatorio: Relatorio; ao
           detalhe: `${s.pagamentos} ${s.pagamentos === 1 ? 'pagamento' : 'pagamentos'}`,
           destaque: s.mes === relatorio.mes,
         }))}
-        formatar={formatarBRL}
+        formatar={dinheiro}
       />
 
       {relatorio.formas.length > 0 && (
@@ -55,7 +57,7 @@ export function RelatorioMes({ relatorio, aoFechar }: { relatorio: Relatorio; ao
               valor: f.totalCentavos,
               detalhe: `${f.quantidade} ${f.quantidade === 1 ? 'pagamento' : 'pagamentos'}`,
             }))}
-            formatar={formatarBRL}
+            formatar={dinheiro}
           />
         </>
       )}

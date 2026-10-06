@@ -30,17 +30,26 @@ describe('roteiro', () => {
   });
 });
 
-describe('ele trabalha de frente', () => {
+describe('a camera escolhe o angulo de cada exercicio', () => {
   /*
-   * De perfil um braco cobre o outro: o desenho vira um risco so e as juntas
-   * aparecem uma dentro da outra. Entao o lado direito e o espelho do
-   * esquerdo -- menos onde o movimento e mesmo assimetrico: correr (bracos
-   * alternados) e beber agua (so uma mao sobe).
+   * Metade dos exercicios so se le de um angulo: polichinelo e elevacao
+   * lateral precisam de FRENTE, remada curvada e terra precisam de PERFIL.
+   * Com tudo de frente, a remada virava um boneco tombado de lado; com tudo
+   * de perfil, um braco cobria o outro. Entao cada cena declara a sua vista.
    */
+  const frontais = () => CENAS.filter((c) => c.vista === 'frente');
+  const laterais = () => CENAS.filter((c) => c.vista === 'lado');
+  /* correr e beber agua sao assimetricos de verdade, em qualquer angulo */
   const ASSIMETRICOS = ['corrida', 'agua'];
 
-  it('os dois bracos sao espelho um do outro', () => {
-    for (const cena of CENAS.filter((c) => !ASSIMETRICOS.includes(c.id))) {
+  it('toda cena diz de que angulo esta sendo vista', () => {
+    for (const c of CENAS) expect(['frente', 'lado'], `cena ${c.id}`).toContain(c.vista);
+    expect(frontais().length, 'tem exercicio de frente').toBeGreaterThan(5);
+    expect(laterais().length, 'e tem exercicio de perfil').toBeGreaterThan(2);
+  });
+
+  it('de frente os dois bracos sao espelho um do outro', () => {
+    for (const cena of frontais().filter((c) => !ASSIMETRICOS.includes(c.id))) {
       for (const q of cena.quadros) {
         expect(q.ombroD, `${cena.id} ombro`).toBe(-q.ombroE);
         expect(q.cotoveloD, `${cena.id} cotovelo`).toBe(-q.cotoveloE);
@@ -48,11 +57,31 @@ describe('ele trabalha de frente', () => {
     }
   });
 
-  it('o tronco quase nao inclina: de frente, inclinar lê como tombar de lado', () => {
-    for (const cena of CENAS) {
+  it('de perfil os dois bracos vao para o MESMO lado', () => {
+    // espelhar de perfil manda um braco para a frente e o outro para tras:
+    // o boneco parecia fazer dois exercicios ao mesmo tempo
+    for (const cena of laterais().filter((c) => !ASSIMETRICOS.includes(c.id))) {
+      for (const q of cena.quadros) {
+        const juntos = (a: number, b: number) => Math.sign(a) === Math.sign(b) || Math.abs(a - b) <= 12;
+        expect(juntos(q.ombroE, q.ombroD), `${cena.id}: ombro ${q.ombroE} vs ${q.ombroD}`).toBe(true);
+        expect(juntos(q.cotoveloE, q.cotoveloD), `${cena.id}: cotovelo`).toBe(true);
+      }
+    }
+  });
+
+  it('de frente o tronco quase nao inclina: inclinar ali le como tombar de lado', () => {
+    for (const cena of frontais()) {
       for (const q of cena.quadros) {
         expect(Math.abs(q.tronco), `${cena.id} tronco`).toBeLessThanOrEqual(6);
       }
+    }
+  });
+
+  it('a dobradica de quadril so aparece de perfil, que e onde ela se ve', () => {
+    for (const id of ['remada', 'terra']) {
+      const cena = CENAS.find((c) => c.id === id)!;
+      expect(cena.vista, `${id} precisa ser de perfil`).toBe('lado');
+      expect(Math.max(...cena.quadros.map((q) => q.tronco)), `${id} curva o tronco`).toBeGreaterThan(40);
     }
   });
 
@@ -75,9 +104,10 @@ describe('as juntas nao ficam uma dentro da outra', () => {
     expect(dist(e.quadrilE, e.quadrilD), 'linha do quadril').toBeGreaterThan(3);
   });
 
-  it('em nenhuma pose as duas maos se sobrepoem', () => {
-    // maos coladas uma na outra viravam um borrao, e o aparelho sumia dentro
-    for (const cena of CENAS) {
+  it('de frente, as duas maos nunca se sobrepoem', () => {
+    // maos coladas uma na outra viravam um borrao, e o aparelho sumia dentro.
+    // De perfil elas ficam perto de proposito: uma esta atras da outra.
+    for (const cena of CENAS.filter((c) => c.vista === 'frente')) {
       for (const t of [0, 0.25, 0.5, 0.75]) {
         const e = esqueletoDe(poseNoTempo(cena, t));
         expect(dist(e.maoE, e.maoD), `${cena.id} em t=${t}`).toBeGreaterThan(1.5);
@@ -85,8 +115,8 @@ describe('as juntas nao ficam uma dentro da outra', () => {
     }
   });
 
-  it('nenhum cotovelo cai em cima do outro', () => {
-    for (const cena of CENAS) {
+  it('de frente, nenhum cotovelo cai em cima do outro', () => {
+    for (const cena of CENAS.filter((c) => c.vista === 'frente')) {
       for (const t of [0, 0.25, 0.5, 0.75]) {
         const e = esqueletoDe(poseNoTempo(cena, t));
         expect(dist(e.cotoveloE, e.cotoveloD), `${cena.id} em t=${t}`).toBeGreaterThan(1.5);
@@ -290,6 +320,17 @@ describe('cada exercicio parece o exercicio', () => {
     for (const q of CENAS.find((c) => c.id === 'terra')!.quadros) {
       expect(Math.abs(q.cotoveloE), 'cotovelo quase reto').toBeLessThan(10);
     }
+  });
+
+  it('o movimento nao PARA no meio da repeticao', () => {
+    // era a animacao travada: suavizando cada trecho sozinho, a velocidade
+    // caia a zero em todo quadro intermediario. Agora so desacelera onde o
+    // movimento realmente vira.
+    const cena = CENAS.find((c) => c.id === 'rosca')!;
+    const vel = (t: number) => Math.abs(poseNoTempo(cena, t + 0.004).cotoveloE - poseNoTempo(cena, t).cotoveloE);
+    // 0.25 cai exatamente em cima do quadro do meio da subida
+    expect(vel(0.25), 'passa pelo quadro do meio sem parar').toBeGreaterThan(0.2);
+    expect(vel(0.5), 'mas desacelera no topo').toBeLessThan(vel(0.25));
   });
 });
 

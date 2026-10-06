@@ -65,6 +65,8 @@ async function desenhar(s) {
   $('qr').src = rede ? await window.df.qr(rede) : '';
   $('qr').style.visibility = rede ? 'visible' : 'hidden';
 
+  desenharInternet(s.tunel ?? { estado: 'desligado' }, s.rodando);
+
   $('backups').innerHTML = '';
   if (!s.backups.length) $('backups').innerHTML = '<li>Nenhum backup ainda</li>';
   for (const b of s.backups) {
@@ -77,6 +79,48 @@ async function desenhar(s) {
     $('backups').appendChild(li);
   }
 }
+
+/**
+ * O acesso de fora da academia. Enquanto esta ligado, a tela de entrar fica
+ * acessivel da internet para quem tiver o endereco -- por isso o aviso fica
+ * visivel junto com o link, e nao escondido numa ajuda.
+ */
+async function desenharInternet(t, rodando) {
+  const ligado = t.estado === 'no-ar';
+  const ligando = t.estado === 'ligando';
+  const btn = $('btn-internet');
+  btn.textContent = ligando ? 'Ligando…' : ligado ? 'Tirar da internet' : 'Colocar na internet';
+  btn.className = 'btn ' + (ligado ? 'btn-perigo' : 'btn-primario');
+  btn.disabled = ligando || !rodando;
+
+  $('internet-nota').textContent = !rodando
+    ? 'Inicie o servidor primeiro.'
+    : ligando
+      ? 'Abrindo a ligação com a Cloudflare. Leva alguns segundos.'
+      : ligado
+        ? 'O sistema está acessível de qualquer lugar pelo endereço abaixo.'
+        : 'Fora do Wi-Fi da academia, o endereço acima não funciona. Ligue aqui para o sistema ganhar um endereço da internet.';
+
+  $('internet-link').hidden = !ligado;
+  if (ligado) {
+    $('url-internet').textContent = t.url;
+    $('qr-internet').src = await window.df.qr(t.url);
+  }
+
+  const erro = $('erro-internet');
+  erro.hidden = !t.erro;
+  if (t.erro) erro.textContent = t.erro;
+}
+
+$('btn-internet').onclick = (e) => executar(
+  e.target,
+  () => (ultimoEstado?.tunel?.estado === 'no-ar' ? window.df.fecharTunel() : window.df.abrirTunel()),
+);
+$('btn-copiar-internet').onclick = async (e) => {
+  await navigator.clipboard.writeText($('url-internet').textContent);
+  avisar('Endereço copiado');
+  e.target.blur();
+};
 
 $('btn-abrir').onclick = () => window.df.abrirSistema();
 $('btn-alternar').onclick = (e) => executar(e.target, () => (ultimoEstado?.rodando ? window.df.parar() : window.df.iniciar()));

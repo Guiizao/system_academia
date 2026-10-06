@@ -11,6 +11,9 @@ contextBridge.exposeInMainWorld('df', {
   backup: () => ipcRenderer.invoke('backup'),
   abrirPasta: (qual) => ipcRenderer.invoke('abrir-pasta', qual),
   qr: (url) => ipcRenderer.invoke('qr', url),
+  // colocar o sistema na internet (tunel da Cloudflare)
+  abrirTunel: () => ipcRenderer.invoke('tunel:abrir'),
+  fecharTunel: () => ipcRenderer.invoke('tunel:fechar'),
   iniciarComWindows: (ligado) => ipcRenderer.invoke('iniciar-com-windows', ligado),
   primeiroAcesso: (dados) => ipcRenderer.invoke('primeiro-acesso', dados),
   dadosDemo: () => ipcRenderer.invoke('dados-demo'),

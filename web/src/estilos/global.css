@@ -204,3 +204,18 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
 .aviso-whatsapp__botoes { display: flex; gap: 8px; flex-wrap: wrap; }
 .form-nota--quem { margin: -4px 0 14px; color: var(--muted); }
 .form-nota--atencao { color: var(--warn); }
+
+/* ─── olho de esconder os valores ───────────────────────────
+   Fica colado no título ou no canto do bloco. É sempre o MESMO botão,
+   mexendo na mesma escolha: esconder no Início esconde no Financeiro. */
+.olho {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  color: var(--muted); vertical-align: middle; margin-left: 8px;
+  transition: background-color var(--rapido), color var(--rapido);
+}
+.olho:hover { background: var(--surface-2); color: var(--text); }
+.olho[aria-pressed="true"] { color: var(--accent); }
+/* dentro de um bloco de números, o olho vai para o canto de cima */
+.olho--canto { position: absolute; top: 6px; right: 6px; margin: 0; }
+.rel__numeros, .tabela { position: relative; }

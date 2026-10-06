@@ -134,3 +134,18 @@ body { font-family: 'Manrope', 'Segoe UI', system-ui, sans-serif; color: var(--t
   body:has(#cartao-config:not([hidden])) { height: auto; min-height: 100vh; overflow: auto; display: block; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+
+/* ─── acesso de fora da academia (tunel da Cloudflare) ─── */
+.internet { border-top: 1px solid var(--borda); margin-top: 14px; padding-top: 14px; }
+.internet__topo { display: flex; align-items: flex-start; gap: 14px; justify-content: space-between; }
+.internet__topo strong { font-size: 13.5px; display: block; margin-bottom: 3px; }
+.internet__topo .btn { flex-shrink: 0; }
+.internet__link { display: flex; gap: 14px; align-items: flex-start; margin-top: 12px; }
+.internet__link img { width: 104px; height: 104px; border-radius: 8px; background: #fff; padding: 5px; flex-shrink: 0; }
+.internet__link code {
+  display: block; font-size: 12px; word-break: break-all; color: var(--texto);
+  background: var(--fundo-2); border: 1px solid var(--borda); border-radius: 7px;
+  padding: 7px 9px; margin-bottom: 8px; font-family: ui-monospace, Consolas, monospace;
+}
+/* o aviso anda junto com o link: quem copia o endereco precisa ler isto */
+.aviso-internet { border-left: 2px solid var(--perigo); padding-left: 9px; margin-top: 8px; }

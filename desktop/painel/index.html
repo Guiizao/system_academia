@@ -82,6 +82,30 @@
         <p class="nota">O sistema funciona normalmente <b>neste computador</b> — é só usar
           <b>Abrir o sistema</b>. Quando o notebook entrar no Wi-Fi, o endereço e o QR code aparecem aqui sozinhos.</p>
       </div>
+
+      <div class="internet" id="internet">
+        <div class="internet__topo">
+          <div>
+            <strong>Acesso de fora da academia</strong>
+            <p class="nota" id="internet-nota">Fora do Wi-Fi da academia, o endereço acima não funciona.
+              Ligue aqui para o sistema ganhar um endereço da internet.</p>
+          </div>
+          <button class="btn" id="btn-internet">Colocar na internet</button>
+        </div>
+        <div class="internet__link" id="internet-link" hidden>
+          <img id="qr-internet" alt="QR code do endereço da internet" />
+          <div>
+            <code id="url-internet"></code>
+            <div class="acoes">
+              <button class="btn btn-leve" id="btn-copiar-internet">Copiar endereço</button>
+            </div>
+            <p class="nota aviso-internet">Enquanto estiver ligado, <b>qualquer pessoa com este endereço
+              chega na tela de entrar</b> — o que segura a porta é o e-mail e a senha. O endereço muda toda
+              vez que você liga. Desligue quando não precisar mais.</p>
+          </div>
+        </div>
+        <div class="erro" id="erro-internet" hidden></div>
+      </div>
     </section>
 
     <section class="cartao">

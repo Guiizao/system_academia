@@ -3,8 +3,9 @@ import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao, pode } from '../sessao';
 import type { Aluno } from '../tipos';
+import { Olho, useValores } from '../componentes/Valores';
 import {
-  iniciais, formatarTelefone, formatarBRL, formatarData, tempoRelativo,
+  iniciais, formatarTelefone, formatarData, tempoRelativo,
   calcularIMC, categoriaIMC, CLASSE_STATUS, ROTULO_STATUS, avisoStatus, ROTULO_NIVEL,
 } from '../dominio';
 import { estadoDoCheckin } from '../dominio/checkin';
@@ -185,18 +186,20 @@ function AbaTreino({ alunoId }: { alunoId: number }) {
 }
 
 function AbaPagamentos({ alunoId }: { alunoId: number }) {
+  // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
+  const { formatar: dinheiro } = useValores();
   const { dados, carregando } = useDados(() => api.pagamentosDoAluno(alunoId), [alunoId]);
   if (carregando) return <EsqueletoLinhas />;
   if (!dados?.length) return <div className="vazio">Sem pagamentos registrados.</div>;
   return (
-    <div className="tabela">
+    <div className="tabela"><Olho className="olho--canto" />
       {dados.map((p) => (
         <div key={p.id} className="tabela__linha">
           <div>
             <div className="tabela__forte">{p.observacao ?? 'Pagamento'}</div>
             <div className="tabela__fraco">{formatarData(p.dataPagamento)}, {ROTULO_FORMA[p.forma] ?? p.forma}</div>
           </div>
-          <strong className="valor-ok">{formatarBRL(p.valorCentavos)}</strong>
+          <strong className="valor-ok">{dinheiro(p.valorCentavos)}</strong>
         </div>
       ))}
     </div>

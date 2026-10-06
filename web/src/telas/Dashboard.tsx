@@ -4,7 +4,8 @@ import { useDados } from '../dados/useDados';
 import { BarrasVerticais } from '../componentes/Grafico';
 import { mesCurto } from '../dominio/grafico';
 import { useSessao } from '../sessao';
-import { formatarBRL, iniciais, tempoRelativo, CLASSE_STATUS, ROTULO_STATUS, avisoStatus } from '../dominio';
+import { Olho, useValores } from '../componentes/Valores';
+import { iniciais, tempoRelativo, CLASSE_STATUS, ROTULO_STATUS, avisoStatus } from '../dominio';
 import type { Tela } from '../componentes/Shell';
 import { IconeMais, IconeCheckin, IconeFinanceiro, IconeAgenda, IconeWhats } from '../componentes/Icones';
 import './Dashboard.css';
@@ -15,6 +16,8 @@ function saudacao(): string {
 }
 
 export function Dashboard({ aoNavegar, aoAbrirAluno }: { aoNavegar: (t: Tela) => void; aoAbrirAluno: (id: number) => void }) {
+  // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
+  const { formatar: dinheiro } = useValores();
   const { usuario } = useSessao();
   const { dados: r, erro } = useDados(() => api.dashboard(), [], { aCadaMs: 30_000 });
   // serie do grafico: so o dono recebe numero de dinheiro consolidado
@@ -51,11 +54,11 @@ export function Dashboard({ aoNavegar, aoAbrirAluno }: { aoNavegar: (t: Tela) =>
 
           {temFinanceiro && (
             <div className="painel receita">
-              <span className="painel__rot">Receita do mês</span>
-              <span className="receita__valor num">{formatarBRL(r.receitaMesCentavos!)}</span>
+              <span className="painel__rot">Receita do mês<Olho /></span>
+              <span className="receita__valor num">{dinheiro(r.receitaMesCentavos!)}</span>
               <div className="receita__linha">
-                <div><span>Recebido hoje</span><strong className="num">{formatarBRL(r.recebidoHojeCentavos!)}</strong></div>
-                <div><span>Em atraso</span><strong className={`num ${r.inadimplenciaCentavos ? 't-danger' : ''}`}>{formatarBRL(r.inadimplenciaCentavos!)}</strong></div>
+                <div><span>Recebido hoje</span><strong className="num">{dinheiro(r.recebidoHojeCentavos!)}</strong></div>
+                <div><span>Em atraso</span><strong className={`num ${r.inadimplenciaCentavos ? 't-danger' : ''}`}>{dinheiro(r.inadimplenciaCentavos!)}</strong></div>
               </div>
             </div>
           )}
@@ -71,7 +74,7 @@ export function Dashboard({ aoNavegar, aoAbrirAluno }: { aoNavegar: (t: Tela) =>
                   detalhe: `${m.pagamentos} ${m.pagamentos === 1 ? 'pagamento' : 'pagamentos'}`,
                   destaque: m.mes === rel.mes,
                 }))}
-                formatar={formatarBRL}
+                formatar={dinheiro}
               />
             </div>
           )}
