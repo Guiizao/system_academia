@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DARK FISIC | Sistema de Gestão</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:#245BFF; --blue-dim:#1745C7; --blue-glow:rgba(36,91,255,.18);
+  --cadet:#3A4750; --tide:#313841; --surface:#262D35; --deep:#1C2228;
+  --text:#E8ECF0; --muted:#7A8A96;
+  --ok:#22C55E; --warn:#F59E0B; --danger:#EF4444; --purple:#8B5CF6;
+  --r:14px; --rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--text);max-width:430px;margin:0 auto;overflow-x:hidden;position:relative}
+
+/* ─── TOPBAR ───────────────────────────────── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;background:var(--deep);position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.05)}
+.logo{font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer}
+.logo span{color:var(--blue);text-shadow:0 0 14px rgba(36,91,255,.28)}
+.topbar-right{display:flex;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--cadet);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .15s}
+.icon-btn:active{background:var(--blue)}
+.icon-btn svg{width:17px;height:17px}
+.notif-dot{position:relative}
+.notif-dot::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid var(--deep)}
+
+/* ─── SCREENS ──────────────────────────────── */
+.screen{display:none;padding-bottom:90px;min-height:calc(100vh - 60px)}
+.screen.active{display:block}
+
+/* ─── BOTTOM NAV ───────────────────────────── */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--tide);border-top:1px solid rgba(255,255,255,.06);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 0 7px;cursor:pointer;border:none;background:none;color:var(--muted);transition:color .15s;font-size:10px;gap:3px;font-family:inherit}
+.nav-item svg{width:21px;height:21px}
+.nav-item.active{color:var(--blue)}
+.nav-item span{font-weight:500}
+
+/* ─── TYPOGRAPHY ───────────────────────────── */
+.sec-head{padding:18px 18px 8px;display:flex;justify-content:space-between;align-items:center}
+.sec-head h2{font-size:17px;font-weight:700}
+.sec-head-sub{font-size:12px;color:var(--muted)}
+.link-btn{font-size:13px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:500}
+
+/* ─── CARDS ────────────────────────────────── */
+.card{background:var(--tide);border-radius:var(--r);padding:16px;margin:0 14px 12px}
+.card-inner{background:var(--cadet);border-radius:var(--rs);padding:12px;margin-bottom:10px}
+
+/* ─── BADGE ────────────────────────────────── */
+.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;flex-shrink:0}
+.b-ok{background:rgba(34,197,94,.15);color:var(--ok)}
+.b-warn{background:rgba(245,158,11,.15);color:var(--warn)}
+.b-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.b-blue{background:var(--blue-glow);color:var(--blue)}
+.b-purple{background:rgba(139,92,246,.15);color:var(--purple)}
+
+/* ─── AVATAR ───────────────────────────────── */
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--blue-glow);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--blue);font-size:14px;flex-shrink:0}
+
+/* ─── MODAL ────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);width:100%;max-width:430px;border-radius:22px 22px 0 0;padding:20px 18px 30px;max-height:92vh;overflow-y:auto;animation:slideUp .22s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:34px;height:4px;background:var(--cadet);border-radius:2px;margin:0 auto 18px}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:18px}
+
+/* ─── FORM ─────────────────────────────────── */
+.field{margin-bottom:13px}
+.field label{font-size:12px;color:var(--muted);margin-bottom:5px;display:block;font-weight:500}
+.field input,.field select,.field textarea{width:100%;background:var(--tide);border:1px solid rgba(255,255,255,.08);border-radius:var(--rs);padding:11px 13px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
+.field select option{background:var(--tide)}
+.field textarea{resize:vertical;min-height:72px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* ─── BUTTONS ──────────────────────────────── */
+.btn{width:100%;padding:13px;border-radius:var(--rs);border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;transition:opacity .15s}
+.btn:active{opacity:.82}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-secondary{background:var(--tide);color:var(--text);border:1px solid rgba(255,255,255,.1)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.btn-ghost{background:none;color:var(--muted)}
+.btn-sm{padding:8px 16px;width:auto;font-size:13px;border-radius:20px}
+
+/* ─── FAB ──────────────────────────────────── */
+.fab{position:fixed;bottom:78px;right:18px;width:52px;height:52px;border-radius:50%;background:var(--blue);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(26,107,234,.45);z-index:150;transition:transform .15s}
+.fab:active{transform:scale(.92)}
+.fab svg{width:22px;height:22px;color:#fff}
+
+/* ─── TOAST ────────────────────────────────── */
+.toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--cadet);color:var(--text);font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;opacity:0;transition:all .22s;z-index:500;white-space:nowrap;pointer-events:none;border:1px solid rgba(255,255,255,.1)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success-toast{background:var(--ok);color:#fff;border:none}
+.toast.danger-toast{background:var(--danger);color:#fff;border:none}
+
+/* ─── SEARCH ───────────────────────────────── */
+.search-wrap{margin:8px 14px 4px;position:relative}
+.search-wrap input{width:100%;background:var(--tide);border:1px solid rgba(255,255,255,.08);border-radius:var(--rs);padding:10px 14px 10px 38px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);width:17px;height:17px}
+
+/* ─── CHIPS ────────────────────────────────── */
+.chips{display:flex;gap:7px;padding:7px 14px 3px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:500;white-space:nowrap;cursor:pointer;border:1px solid rgba(255,255,255,.09);background:var(--tide);color:var(--muted);transition:all .14s;font-family:inherit}
+.chip.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ─── TAB BAR ──────────────────────────────── */
+.tab-bar{display:flex;border-bottom:1px solid rgba(255,255,255,.06);padding:0 14px}
+.tab-btn{flex:1;padding:10px 0;text-align:center;font-size:13px;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-family:inherit}
+.tab-btn.on{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* ─── PROGRESS ─────────────────────────────── */
+.prog-wrap{margin-bottom:9px}
+.prog-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}
+.prog-bar{height:5px;background:var(--cadet);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:var(--blue);border-radius:3px}
+
+/* ─── AI TYPING ────────────────────────────── */
+.typing-dots span{display:inline-block;width:6px;height:6px;background:var(--blue);border-radius:50%;margin:0 2px;animation:bounce 1.1s infinite}
+.typing-dots span:nth-child(2){animation-delay:.18s}
+.typing-dots span:nth-child(3){animation-delay:.36s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}
+.ai-box{background:var(--deep);border-radius:var(--rs);padding:13px;margin-top:12px;font-size:13px;line-height:1.65;display:none}
+.ai-box.show{display:block}
+
+/* ─── DASHBOARD SPECIFIC ───────────────────── */
+.hello{padding:14px 18px 6px}
+.hello .greeting{font-size:13px;color:var(--muted);margin-bottom:2px}
+.hello h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.stats3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:8px 14px 0}
+.stat-box{background:var(--tide);border-radius:var(--rs);padding:13px 10px;text-align:center}
+.stat-box .num{font-size:24px;font-weight:800;color:var(--blue);line-height:1}
+.stat-box .lbl{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3}
+.rev-card{background:linear-gradient(135deg,var(--blue-dim),var(--blue));border-radius:var(--r);padding:18px;margin:10px 14px}
+.rev-card .rl{font-size:12px;opacity:.8;margin-bottom:5px}
+.rev-card .rv{font-size:32px;font-weight:800;letter-spacing:-1px}
+.rev-card .rs2{font-size:11px;opacity:.7;margin-top:3px}
+.rev-card .rrow{display:flex;gap:14px;margin-top:12px}
+.rev-mini .rm-l{font-size:10px;opacity:.7}
+.rev-mini .rm-v{font-size:15px;font-weight:700;margin-top:2px}
+.checkin-item{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.checkin-item:last-child{border-bottom:none}
+.ci-info{flex:1}
+.ci-info .name{font-size:14px;font-weight:500}
+.ci-info .time{font-size:11px;color:var(--muted);margin-top:1px}
+.alert-card{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);padding:14px;margin:0 14px 12px}
+.alert-card .ah{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--warn);margin-bottom:8px}
+.alert-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.alert-row:last-child{border-bottom:none}
+
+/* ─── ALUNOS ───────────────────────────────── */
+.aluno-item{display:flex;align-items:center;gap:11px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .12s}
+.aluno-item:active{background:var(--tide)}
+.ai-info{flex:1;min-width:0}
+.ai-info .name{font-size:14px;font-weight:600}
+.ai-info .meta{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-right{text-align:right;flex-shrink:0}
+.ai-right .pname{font-size:11px;color:var(--muted);margin-bottom:3px}
+
+/* ─── PERFIL ───────────────────────────────── */
+.perfil-hero{background:linear-gradient(180deg,var(--tide) 0%,var(--deep) 100%);padding:18px;text-align:center}
+.perfil-av-big{width:68px;height:68px;border-radius:50%;background:var(--blue-glow);border:3px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:var(--blue);margin:0 auto 10px}
+.perfil-nome{font-size:20px;font-weight:800}
+.perfil-sub{font-size:12px;color:var(--blue);margin-top:3px;font-weight:600}
+.medidas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px}
+.m-box{background:var(--tide);border-radius:var(--rs);padding:11px 8px;text-align:center}
+.m-box .mv{font-size:18px;font-weight:700}
+.m-box .mu{font-size:10px;color:var(--muted)}
+.m-box .ml2{font-size:10px;color:var(--muted);margin-top:4px;display:block}
+
+/* ─── TREINOS ──────────────────────────────── */
+.ficha-card{background:var(--tide);border-radius:var(--r);margin:0 14px 12px;overflow:hidden}
+.ficha-head{padding:13px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.05)}
+.fh-name{font-size:14px;font-weight:700}
+.fh-date{font-size:11px;color:var(--muted);margin-top:2px}
+.ex-item{display:flex;align-items:center;gap:10px;padding:9px 14px}
+.ex-num{width:26px;height:26px;border-radius:50%;background:var(--cadet);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0}
+.ex-info{flex:1}
+.ex-name{font-size:13px;font-weight:600}
+.ex-det{font-size:11px;color:var(--muted);margin-top:1px}
+.ex-maq{font-size:10px;background:rgba(58,71,80,.8);color:var(--muted);padding:3px 7px;border-radius:4px;flex-shrink:0}
+.ficha-actions{display:flex;gap:8px;padding:10px 14px 14px}
+
+/* ─── PLANOS ───────────────────────────────── */
+.plano-card{margin:0 14px 10px;background:var(--tide);border-radius:var(--r);padding:16px;border:1px solid rgba(255,255,255,.07);position:relative}
+.plano-card.destaque{border-color:rgba(26,107,234,.5);background:linear-gradient(145deg,var(--tide) 60%,rgba(26,107,234,.07))}
+.plano-tag{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;background:var(--blue);color:#fff;padding:3px 8px;border-radius:20px}
+.plano-nome{font-size:16px;font-weight:800}
+.plano-preco{margin:8px 0}
+.plano-preco .cifrao{font-size:12px;font-weight:600;vertical-align:top;margin-top:4px;display:inline-block}
+.plano-preco .valor{font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--blue);line-height:1}
+.plano-preco .periodo{font-size:12px;color:var(--muted)}
+.plano-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-bottom:7px}
+.plano-item svg{width:14px;height:14px;flex-shrink:0}
+.pag-item{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04)}
+.pag-icon{width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pag-info{flex:1}
+.pag-nome{font-size:13px;font-weight:600}
+.pag-data{font-size:11px;color:var(--muted);margin-top:2px}
+.pag-val{font-size:14px;font-weight:700}
+
+/* ─── AGENDA ───────────────────────────────── */
+.cal-strip{display:flex;gap:6px;padding:6px 14px 10px;overflow-x:auto;scrollbar-width:none}
+.cal-strip::-webkit-scrollbar{display:none}
+.cal-day{display:flex;flex-direction:column;align-items:center;padding:9px 10px;border-radius:10px;cursor:pointer;flex-shrink:0;min-width:44px;background:var(--tide);transition:all .15s}
+.cal-day.today{background:var(--blue);color:#fff}
+.cal-day .cd-dow{font-size:10px;font-weight:600;opacity:.7;margin-bottom:4px}
+.cal-day .cd-num{font-size:16px;font-weight:800}
+.cal-day .cd-dot{width:5px;height:5px;border-radius:50%;background:var(--warn);margin-top:4px}
+.cal-day.today .cd-dot{background:#fff}
+.aula-item{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}
+.aula-item:active{background:var(--tide)}
+.aula-hora{font-size:12px;font-weight:700;color:var(--blue);width:44px;flex-shrink:0;text-align:center}
+.aula-bar{width:3px;height:36px;background:var(--blue);border-radius:2px;flex-shrink:0;opacity:.4}
+.aula-info{flex:1}
+.aula-nome{font-size:14px;font-weight:600}
+.aula-det{font-size:11px;color:var(--muted);margin-top:2px}
+.aula-vagas{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+
+/* ─── CONFIGURAÇÕES ────────────────────────── */
+.config-section{padding:14px 14px 4px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px}
+.config-item{display:flex;align-items:center;gap:12px;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .12s}
+.config-item:active{background:var(--tide)}
+.config-icon{width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.config-icon svg{width:17px;height:17px}
+.config-label{flex:1}
+.config-label .cl-title{font-size:14px;font-weight:500}
+.config-label .cl-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.config-arrow svg{width:16px;height:16px;color:var(--muted)}
+.toggle{width:42px;height:24px;border-radius:12px;background:var(--cadet);position:relative;cursor:pointer;border:none;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--blue)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle.on::after{transform:translateX(18px)}
+
+/* ─── RELATÓRIO ────────────────────────────── */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:8px 14px 0}
+.rg-box{background:var(--tide);border-radius:var(--rs);padding:14px 12px}
+.rg-box .rg-label{font-size:11px;color:var(--muted);margin-bottom:6px}
+.rg-box .rg-val{font-size:22px;font-weight:800;color:var(--text)}
+.rg-box .rg-sub{font-size:11px;margin-top:3px}
+.rg-box .rg-sub.up{color:var(--ok)}
+.rg-box .rg-sub.dn{color:var(--danger)}
+.bar-chart{padding:14px;background:var(--tide);border-radius:var(--r);margin:0 14px 12px}
+.bar-chart .bc-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.bc-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bc-label{font-size:11px;color:var(--muted);width:28px;text-align:right;flex-shrink:0}
+.bc-bar-wrap{flex:1;height:16px;background:var(--cadet);border-radius:4px;overflow:hidden}
+.bc-bar{height:100%;background:var(--blue);border-radius:4px;transition:width .5s}
+.bc-val{font-size:11px;color:var(--muted);width:32px;text-align:right;flex-shrink:0}
+
+/* ─── NOTIFICAÇÕES ─────────────────────────── */
+.notif-item{display:flex;gap:11px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}
+.notif-item.unread{background:rgba(26,107,234,.04)}
+.notif-dot2{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:4px}
+.notif-dot2.read{background:transparent}
+.notif-content .nt{font-size:13px;font-weight:500;line-height:1.4}
+.notif-content .nd{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ─── AGENDAMENTO AULA ─────────────────────── */
+.aula-capacidade{display:flex;align-items:center;gap:8px;margin-top:10px}
+.aula-prog-bar{flex:1;height:8px;background:var(--cadet);border-radius:4px;overflow:hidden}
+.aula-prog-fill{height:100%;border-radius:4px;background:var(--blue)}
+.aluno-select-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}
+.aluno-select-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue)}
+
+/* ═══ DARK FISIC · MOTION & PREMIUM UI ═══ */
+:root{--ease:cubic-bezier(.22,1,.36,1)}
+body{background:radial-gradient(circle at 50% -10%,rgba(36,91,255,.10),transparent 32%),var(--deep)}
+.screen.active{animation:screenIn .34s var(--ease) both}
+@keyframes screenIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card,.stat-box,.rev-card,.alert-card,.plano-card,.ficha-card,.bar-chart,.aluno-item,.aula-item,.config-item{transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s ease}
+.card:hover,.stat-box:hover,.plano-card:hover,.ficha-card:hover,.bar-chart:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.18)}
+.btn,.icon-btn,.fab,.chip,.nav-item,.toggle{transition:transform .18s var(--ease),background .18s ease,box-shadow .18s ease,opacity .18s ease}
+.btn:hover,.icon-btn:hover,.fab:hover{transform:translateY(-1px)}
+.btn-primary:hover,.fab:hover{box-shadow:0 8px 24px rgba(36,91,255,.28)}
+.ripple{position:relative;overflow:hidden}
+.ripple-effect{position:absolute;border-radius:50%;transform:scale(0);animation:ripple .55s ease-out;background:rgba(255,255,255,.28);pointer-events:none}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+.reveal{animation:reveal .5s var(--ease) both}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.count-up{font-variant-numeric:tabular-nums}
+.quick-actions{padding:8px 14px 2px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.quick-action{border:1px solid rgba(255,255,255,.07);background:var(--tide);border-radius:12px;padding:11px 5px;color:var(--text);font-family:inherit;cursor:pointer;text-align:center}
+.quick-action .qa-icon{width:30px;height:30px;border-radius:9px;background:var(--blue-glow);color:var(--blue);display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+.quick-action .qa-icon svg{width:16px;height:16px}
+.quick-action span{font-size:10px;font-weight:600;color:var(--muted)}
+.ops-card{margin:10px 14px 12px;background:linear-gradient(145deg,var(--tide),rgba(36,91,255,.07));border:1px solid rgba(36,91,255,.16);border-radius:var(--r);padding:15px}
+.ops-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ops-head strong{font-size:13px}.live{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--ok);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(34,197,94,.4);animation:pulseLive 1.8s infinite}
+@keyframes pulseLive{70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.ops-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ops-kpi{background:rgba(0,0,0,.13);border-radius:9px;padding:10px}.ops-kpi b{display:block;font-size:17px}.ops-kpi small{font-size:10px;color:var(--muted)}
+.progress-shine{position:relative;overflow:hidden}.progress-shine:after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 2.4s infinite}@keyframes shine{45%,100%{transform:translateX(100%)}}
+.empty-state{padding:28px 18px;text-align:center;color:var(--muted)}
+.empty-state strong{display:block;color:var(--text);margin-bottom:5px}
+.modal{box-shadow:0 -12px 40px rgba(0,0,0,.25)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- ══ TOPBAR ════════════════════════════════ -->
+<div class="topbar">
+  <div class="logo" onclick="navigate('home')" id="logo-text">DARK<span> FISIC</span></div>
+  <div class="topbar-right">
+    <button class="icon-btn notif-dot" id="btn-notif" onclick="openModal('modal-notif')" title="Notificações">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <button class="icon-btn" onclick="navigate('config')" title="Configurações">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TELA: HOME / DASHBOARD
+════════════════════════════════════════════ -->
+<div class="screen active" id="screen-home">
+  <div class="hello">
+    <p class="greeting">Bom dia, João</p>
+    <h1 id="dash-academia-name">DARK FISIC</h1>
+  </div>
+
+  <div class="stats3">
+    <div class="stat-box">
+      <div class="num" id="stat-ativos">0</div>
+      <div class="lbl">Ativos</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="stat-checkins">8</div>
+      <div class="lbl">Check-ins hoje</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="stat-vencendo">0</div>
+      <div class="lbl">A vencer</div>
+    </div>
+  </div>
+
+  <div class="quick-actions reveal">
+    <button class="quick-action ripple" onclick="openModal('modal-novo-aluno')"><div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div><span>Novo aluno</span></button>
+    <button class="quick-action ripple" onclick="openModal('modal-checkin')"><div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"/></svg></div><span>Check-in</span></button>
+    <button class="quick-action ripple" onclick="openModal('modal-cobranca')"><div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><span>Pagamento</span></button>
+    <button class="quick-action ripple" onclick="openModal('modal-nova-aula')"><div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div><span>Nova aula</span></button>
+  </div>
+
+  <div class="rev-card">
+    <div class="rl">Receita — setembro 2026</div>
+    <div class="rv" id="dash-receita">R$ 0</div>
+    <div class="rs2">↑ 12% vs mês anterior</div>
+    <div class="rrow">
+      <div class="rev-mini">
+        <div class="rm-l">Mensalidades</div>
+        <div class="rm-v" id="dash-mensal">R$ 0</div>
+      </div>
+      <div class="rev-mini">
+        <div class="rm-l">Inadimplência</div>
+        <div class="rm-v" id="dash-inadim" style="color:var(--danger)">R$ 0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ops-card reveal">
+    <div class="ops-head"><strong>Operação de hoje</strong><span class="live"><i></i>Ao vivo</span></div>
+    <div class="ops-grid">
+      <div class="ops-kpi"><b id="ops-checkins">8</b><small>check-ins</small></div>
+      <div class="ops-kpi"><b id="ops-aulas">0</b><small>aulas</small></div>
+      <div class="ops-kpi"><b id="ops-ocupacao">0%</b><small>ocupação</small></div>
+    </div>
+  </div>
+
+  <!-- Alertas vencendo -->
+  <div class="alert-card" id="dash-alertas" style="display:none">
+    <div class="ah">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Planos a vencer em 5 dias
+    </div>
+    <div id="dash-alert-list"></div>
+  </div>
+
+  <div class="sec-head">
+    <h2>Check-ins recentes</h2>
+    <button class="link-btn" onclick="navigate('alunos')">Ver todos</button>
+  </div>
+  <div style="padding:0 14px" id="dash-checkins">
+    <div class="checkin-item"><div class="avatar">RM</div><div class="ci-info"><div class="name">Rafael Moura</div><div class="time">Há 4 min · Musculação</div></div><span class="badge b-ok">Ativo</span></div>
+    <div class="checkin-item"><div class="avatar">JP</div><div class="ci-info"><div class="name">Juliana Pereira</div><div class="time">Há 12 min · Cardio</div></div><span class="badge b-ok">Ativo</span></div>
+    <div class="checkin-item"><div class="avatar">TS</div><div class="ci-info"><div class="name">Thiago Santos</div><div class="time">Há 28 min · Funcional</div></div><span class="badge b-warn">3 dias</span></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TELA: ALUNOS
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-alunos">
+  <div class="sec-head">
+    <h2>Alunos</h2>
+    <span class="sec-head-sub" id="alunos-count">0 cadastrados</span>
+  </div>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Buscar por nome ou telefone…" oninput="renderAlunos(this.value)">
+  </div>
+  <div class="chips" id="filter-chips">
+    <div class="chip on" onclick="setChip(this,'todos')">Todos</div>
+    <div class="chip" onclick="setChip(this,'ativo')">Ativos</div>
+    <div class="chip" onclick="setChip(this,'vencendo')">A vencer</div>
+    <div class="chip" onclick="setChip(this,'vencido')">Vencidos</div>
+    <div class="chip" onclick="setChip(this,'inativo')">Inativos</div>
+  </div>
+  <div id="alunos-list"></div>
+  <button class="fab" onclick="openModal('modal-novo-aluno')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TELA: TREINOS / FICHAS
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-treinos">
+  <div class="sec-head">
+    <h2>Fichas de Treino</h2>
+    <button class="link-btn" onclick="openModal('modal-gerar-treino')">+ Gerar</button>
+  </div>
+
+  <div class="card" style="border:1px solid rgba(26,107,234,.3)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span style="font-size:13px;font-weight:700;color:var(--blue)">Geração inteligente</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.5">Informe as medidas corporais e o sistema gera uma ficha personalizada com exercícios, máquinas e séries adequadas ao perfil.</p>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="openModal('modal-gerar-treino')">Gerar nova ficha</button>
+  </div>
+
+  <div id="fichas-list"></div>
+
+  <button class="fab" onclick="openModal('modal-gerar-treino')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TELA: AGENDA
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-agenda">
+  <div class="sec-head">
+    <h2>Agenda de Aulas</h2>
+    <button class="link-btn" onclick="openModal('modal-nova-aula')">+ Aula</button>
+  </div>
+
+  <!-- calendário strip -->
+  <div class="cal-strip" id="cal-strip"></div>
+
+  <div class="sec-head" style="padding-top:4px">
+    <h2 id="agenda-day-label" style="font-size:14px;font-weight:600;color:var(--muted)">Hoje</h2>
+  </div>
+  <div id="agenda-list"></div>
+
+  <button class="fab" onclick="openModal('modal-nova-aula')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TELA: FINANCEIRO
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-financeiro">
+  <div class="sec-head">
+    <h2>Financeiro</h2>
+    <button class="link-btn" onclick="openModal('modal-cobranca')">Cobrar</button>
+  </div>
+
+  <!-- Resumo mês -->
+  <div class="report-grid">
+    <div class="rg-box">
+      <div class="rg-label">Receita mês</div>
+      <div class="rg-val" id="fin-receita">R$0</div>
+      <div class="rg-sub up" id="fin-receita-sub">↑ 12%</div>
+    </div>
+    <div class="rg-box">
+      <div class="rg-label">Inadimplência</div>
+      <div class="rg-val" id="fin-inadim">R$0</div>
+      <div class="rg-sub dn" id="fin-inadim-sub">-- alunos</div>
+    </div>
+    <div class="rg-box">
+      <div class="rg-label">Recebido hoje</div>
+      <div class="rg-val" id="fin-hoje">R$0</div>
+      <div class="rg-sub up">0 pagamentos</div>
+    </div>
+    <div class="rg-box">
+      <div class="rg-label">Alunos ativos</div>
+      <div class="rg-val" id="fin-ativos">0</div>
+      <div class="rg-sub" style="color:var(--muted)">Pagantes</div>
+    </div>
+  </div>
+
+  <!-- Gráfico de barras por plano -->
+  <div class="bar-chart" style="margin-top:12px">
+    <div class="bc-title">Distribuição por plano</div>
+    <div class="bc-row"><div class="bc-label">Básico</div><div class="bc-bar-wrap"><div class="bc-bar" id="bc-basico" style="width:0%"></div></div><div class="bc-val" id="bc-basico-v">0</div></div>
+    <div class="bc-row"><div class="bc-label">Plus</div><div class="bc-bar-wrap"><div class="bc-bar" id="bc-plus" style="width:0%"></div></div><div class="bc-val" id="bc-plus-v">0</div></div>
+    <div class="bc-row"><div class="bc-label">Trim.</div><div class="bc-bar-wrap"><div class="bc-bar" id="bc-trim" style="width:0%;background:var(--purple)"></div></div><div class="bc-val" id="bc-trim-v">0</div></div>
+    <div class="bc-row"><div class="bc-label">Anual</div><div class="bc-bar-wrap"><div class="bc-bar" id="bc-anual" style="width:0%;background:var(--ok)"></div></div><div class="bc-val" id="bc-anual-v">0</div></div>
+  </div>
+
+  <!-- Planos disponíveis -->
+  <div class="sec-head"><h2>Planos</h2><button class="link-btn" onclick="openModal('modal-edit-planos')">Gerenciar</button></div>
+
+  <div class="plano-card">
+    <div class="plano-nome">Básico</div>
+    <div class="plano-preco"><span class="cifrao">R$</span><span class="valor">89</span><span class="periodo">/mês</span></div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Musculação + Cardio</div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Horário 6h–20h</div>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="openModal('modal-novo-aluno')">Adicionar aluno</button>
+  </div>
+
+  <div class="plano-card destaque">
+    <div class="plano-tag">Popular</div>
+    <div class="plano-nome">Plus</div>
+    <div class="plano-preco"><span class="cifrao">R$</span><span class="valor">139</span><span class="periodo">/mês</span></div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Acesso completo + Aulas</div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ficha de treino personalizada</div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Avaliação corporal mensal</div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Acesso 24h</div>
+    <button class="btn btn-primary" style="margin-top:8px" onclick="openModal('modal-novo-aluno')">Adicionar aluno</button>
+  </div>
+
+  <div class="plano-card">
+    <div class="plano-nome">Trimestral</div>
+    <div class="plano-preco"><span class="cifrao">R$</span><span class="valor">369</span><span class="periodo">/3 meses</span></div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Tudo do Plus</div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Desconto de 12%</div>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="openModal('modal-novo-aluno')">Adicionar aluno</button>
+  </div>
+
+  <div class="plano-card">
+    <div class="plano-nome">Anual</div>
+    <div class="plano-preco"><span class="cifrao">R$</span><span class="valor">99</span><span class="periodo">/mês · cobrado anual</span></div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Tudo do Plus</div>
+    <div class="plano-item" style="color:var(--text)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>2 meses grátis</div>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="openModal('modal-novo-aluno')">Adicionar aluno</button>
+  </div>
+
+  <div class="sec-head"><h2>Pagamentos recentes</h2></div>
+  <div id="fin-pag-list"></div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TELA: CONFIGURAÇÕES
+════════════════════════════════════════════ -->
+<div class="screen" id="screen-config">
+  <div class="sec-head"><h2>Configurações</h2></div>
+
+  <div class="config-section">Academia</div>
+  <div class="config-item" onclick="openModal('modal-config-academia')">
+    <div class="config-icon" style="background:var(--blue-glow)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" width="17" height="17"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+    <div class="config-label"><div class="cl-title">Dados da Academia</div><div class="cl-sub" id="cfg-nome-sub">Nome, CNPJ, endereço</div></div>
+    <div class="config-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+  <div class="config-item" onclick="openModal('modal-config-horarios')">
+    <div class="config-icon" style="background:rgba(139,92,246,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" width="17" height="17"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <div class="config-label"><div class="cl-title">Horários de Funcionamento</div><div class="cl-sub">Seg–Sex 6h–22h · Sáb 8h–18h</div></div>
+    <div class="config-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+  <div class="config-item" onclick="openModal('modal-config-planos')">
+    <div class="config-icon" style="background:rgba(34,197,94,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" width="17" height="17"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+    <div class="config-label"><div class="cl-title">Planos e Preços</div><div class="cl-sub">4 planos cadastrados</div></div>
+    <div class="config-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+  <div class="config-item" onclick="openModal('modal-config-equipamentos')">
+    <div class="config-icon" style="background:rgba(245,158,11,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" width="17" height="17"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+    <div class="config-label"><div class="cl-title">Equipamentos / Máquinas</div><div class="cl-sub">Cadastro de aparelhos da academia</div></div>
+    <div class="config-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+
+  <div class="config-section">Professores</div>
+  <div class="config-item" onclick="openModal('modal-professores')">
+    <div class="config-icon" style="background:var(--blue-glow)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" width="17" height="17"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <div class="config-label"><div class="cl-title">Equipe</div><div class="cl-sub">Professores e personal trainers</div></div>
+    <div class="config-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+
+  <div class="config-section">Sistema</div>
+  <div class="config-item">
+    <div class="config-icon" style="background:rgba(34,197,94,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" width="17" height="17"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.59 3.44 2 2 0 0 1 3.56 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.09 6.09l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg></div>
+    <div class="config-label"><div class="cl-title">WhatsApp de cobrança</div><div class="cl-sub">Envio automático de aviso</div></div>
+    <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+  </div>
+  <div class="config-item">
+    <div class="config-icon" style="background:rgba(139,92,246,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" width="17" height="17"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+    <div class="config-label"><div class="cl-title">Notificações push</div><div class="cl-sub">Alertas de vencimento</div></div>
+    <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+  </div>
+  <div class="config-item" onclick="openModal('modal-relatorio')">
+    <div class="config-icon" style="background:rgba(245,158,11,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" width="17" height="17"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <div class="config-label"><div class="cl-title">Relatório Mensal</div><div class="cl-sub">Exportar dados em PDF</div></div>
+    <div class="config-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+  <div class="config-item">
+    <div class="config-icon" style="background:rgba(239,68,68,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" width="17" height="17"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div class="config-label"><div class="cl-title">Alterar senha</div><div class="cl-sub">Segurança da conta</div></div>
+    <div class="config-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+
+  <div style="padding:16px 14px 6px">
+    <button class="btn btn-secondary ripple" onclick="exportarBackup()">Exportar backup dos dados</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost" onclick="resetDemo()">Restaurar demonstração</button>
+  </div>
+  <div style="padding:8px 14px 10px">
+    <button class="btn btn-danger ripple" onclick="showToast('Sessão encerrada','danger')">Sair da conta</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     BOTTOM NAV
+════════════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="navigate('home')" id="nav-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Início</span>
+  </button>
+  <button class="nav-item" onclick="navigate('alunos')" id="nav-alunos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Alunos</span>
+  </button>
+  <button class="nav-item" onclick="navigate('treinos')" id="nav-treinos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11M6.5 12h11M6.5 17.5h6"/><rect x="2" y="3" width="20" height="18" rx="2"/></svg>
+    <span>Treinos</span>
+  </button>
+  <button class="nav-item" onclick="navigate('agenda')" id="nav-agenda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Agenda</span>
+  </button>
+  <button class="nav-item" onclick="navigate('financeiro')" id="nav-financeiro">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    <span>Financeiro</span>
+  </button>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     MODAL: NOTIFICAÇÕES
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-notif" onclick="handleOC(event,'modal-notif')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="modal-title" style="margin:0">Notificações</div>
+      <button class="link-btn" onclick="markAllRead()">Marcar lidas</button>
+    </div>
+    <div class="notif-item unread">
+      <div class="notif-dot2"></div>
+      <div class="notif-content"><div class="nt">Thiago Santos — plano vence em 3 dias</div><div class="nd">Hoje · 08:00</div></div>
+    </div>
+    <div class="notif-item unread">
+      <div class="notif-dot2"></div>
+      <div class="notif-content"><div class="nt">Carla Alves — plano vencido há 8 dias</div><div class="nd">Ontem · 09:15</div></div>
+    </div>
+    <div class="notif-item">
+      <div class="notif-dot2 read"></div>
+      <div class="notif-content"><div class="nt">Rafael Moura fez check-in às 06h42</div><div class="nd">Hoje · 06:42</div></div>
+    </div>
+    <div class="notif-item">
+      <div class="notif-dot2 read"></div>
+      <div class="notif-content"><div class="nt">Pagamento recebido — Marcos Lima R$139</div><div class="nd">01/09 · 10:00</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: NOVO ALUNO
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-novo-aluno" onclick="handleOC(event,'modal-novo-aluno')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Cadastrar Aluno</div>
+
+    <div class="tab-bar" style="margin-bottom:16px">
+      <button class="tab-btn on" onclick="switchFormTab(this,'ftab-pessoal')">Pessoal</button>
+      <button class="tab-btn" onclick="switchFormTab(this,'ftab-medidas')">Medidas</button>
+      <button class="tab-btn" onclick="switchFormTab(this,'ftab-plano')">Plano</button>
+    </div>
+
+    <!-- Tab 1: Pessoal -->
+    <div id="ftab-pessoal">
+      <div class="field"><label>Nome completo *</label><input type="text" id="n-nome" placeholder="Ex.: João Silva"></div>
+      <div class="row2">
+        <div class="field"><label>Data de nascimento</label><input type="date" id="n-nasc"></div>
+        <div class="field"><label>Sexo</label>
+          <select id="n-sexo"><option value="">—</option><option>Masculino</option><option>Feminino</option><option>Outro</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Telefone / WhatsApp *</label><input type="tel" id="n-tel" placeholder="(11) 9 9999-9999"></div>
+      <div class="field"><label>E-mail</label><input type="email" id="n-email" placeholder="joao@email.com"></div>
+      <div class="field"><label>CPF</label><input type="text" id="n-cpf" placeholder="000.000.000-00"></div>
+      <div class="field"><label>Endereço</label><input type="text" id="n-end" placeholder="Rua, número, bairro"></div>
+      <div class="field"><label>Observações / Restrições médicas</label><textarea id="n-obs" placeholder="Ex.: problema no joelho direito, hipertensão…"></textarea></div>
+      <button class="btn btn-primary" onclick="switchFormTab(document.querySelectorAll('#modal-novo-aluno .tab-btn')[1],'ftab-medidas')">Próximo →</button>
+    </div>
+
+    <!-- Tab 2: Medidas -->
+    <div id="ftab-medidas" style="display:none">
+      <div class="row2">
+        <div class="field"><label>Peso (kg)</label><input type="number" id="n-peso" placeholder="70" step="0.1"></div>
+        <div class="field"><label>Altura (m)</label><input type="number" id="n-altura" placeholder="1.75" step="0.01"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Circ. braço (cm)</label><input type="number" id="n-braco" placeholder="32"></div>
+        <div class="field"><label>Circ. peito (cm)</label><input type="number" id="n-peito" placeholder="98"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Circ. cintura (cm)</label><input type="number" id="n-cintura" placeholder="82"></div>
+        <div class="field"><label>Circ. quadril (cm)</label><input type="number" id="n-quadril" placeholder="96"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Circ. coxa (cm)</label><input type="number" id="n-coxa" placeholder="58"></div>
+        <div class="field"><label>Larg. ombros (cm)</label><input type="number" id="n-ombros" placeholder="44"></div>
+      </div>
+      <div class="field"><label>% Gordura estimada</label><input type="number" id="n-gord" placeholder="18" step="0.1"></div>
+      <div class="field"><label>Objetivo principal</label>
+        <select id="n-obj"><option>Hipertrofia</option><option>Emagrecimento</option><option>Definição muscular</option><option>Condicionamento</option><option>Saúde geral</option><option>Reabilitação</option></select>
+      </div>
+      <div class="field"><label>Nível de experiência</label>
+        <select id="n-nivel"><option>Iniciante</option><option>Intermediário</option><option>Avançado</option></select>
+      </div>
+      <div class="row2" style="margin-top:4px">
+        <button class="btn btn-secondary" onclick="switchFormTab(document.querySelectorAll('#modal-novo-aluno .tab-btn')[0],'ftab-pessoal')">← Voltar</button>
+        <button class="btn btn-primary" onclick="switchFormTab(document.querySelectorAll('#modal-novo-aluno .tab-btn')[2],'ftab-plano')">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- Tab 3: Plano -->
+    <div id="ftab-plano" style="display:none">
+      <div class="field"><label>Plano *</label>
+        <select id="n-plano">
+          <option value="Básico">Básico — R$89/mês</option>
+          <option value="Plus">Plus — R$139/mês</option>
+          <option value="Trimestral">Trimestral — R$369/3 meses</option>
+          <option value="Anual">Anual — R$99/mês (R$1.188/ano)</option>
+        </select>
+      </div>
+      <div class="field"><label>Data de início *</label><input type="date" id="n-inicio" value="2026-09-02"></div>
+      <div class="field"><label>Forma de pagamento</label>
+        <select id="n-pag"><option>PIX</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Dinheiro</option><option>Boleto</option></select>
+      </div>
+      <div class="field"><label>Status inicial</label>
+        <select id="n-status"><option value="ativo">Ativo</option><option value="pendente">Pendente pagamento</option></select>
+      </div>
+      <div style="background:var(--deep);border-radius:var(--rs);padding:12px;margin-bottom:14px;font-size:13px;color:var(--muted);line-height:1.6">
+        <strong style="color:var(--text)">Resumo:</strong><br>
+        Ao salvar, o aluno será cadastrado e um link de cobrança será gerado automaticamente via WhatsApp.
+      </div>
+      <div class="row2">
+        <button class="btn btn-secondary" onclick="switchFormTab(document.querySelectorAll('#modal-novo-aluno .tab-btn')[1],'ftab-medidas')">← Voltar</button>
+        <button class="btn btn-primary" onclick="cadastrarAluno()">Cadastrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: PERFIL DO ALUNO
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-perfil" onclick="handleOC(event,'modal-perfil')">
+  <div class="modal" style="padding:0 0 24px">
+    <div style="padding:14px 18px 0"><div class="modal-handle"></div></div>
+
+    <div class="perfil-hero">
+      <div class="perfil-av-big" id="p-av">RM</div>
+      <div class="perfil-nome" id="p-nome">—</div>
+      <div class="perfil-sub" id="p-plano">—</div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:10px">
+        <span class="badge" id="p-status-badge">—</span>
+        <span class="badge b-blue" id="p-nivel-badge">—</span>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn on" onclick="switchPTab(this,'pt-medidas')">Medidas</button>
+      <button class="tab-btn" onclick="switchPTab(this,'pt-treino')">Treino</button>
+      <button class="tab-btn" onclick="switchPTab(this,'pt-pag')">Pagamentos</button>
+      <button class="tab-btn" onclick="switchPTab(this,'pt-hist')">Histórico</button>
+    </div>
+
+    <!-- Medidas -->
+    <div id="pt-medidas" style="padding:0 14px">
+      <div class="medidas-grid">
+        <div class="m-box"><div class="mv" id="p-peso">—</div><div class="mu">kg</div><span class="ml2">Peso</span></div>
+        <div class="m-box"><div class="mv" id="p-altura">—</div><div class="mu">m</div><span class="ml2">Altura</span></div>
+        <div class="m-box"><div class="mv" id="p-imc">—</div><div class="mu">IMC</div><span class="ml2" id="p-imc-cat">—</span></div>
+        <div class="m-box"><div class="mv" id="p-braco">—</div><div class="mu">cm</div><span class="ml2">Braço</span></div>
+        <div class="m-box"><div class="mv" id="p-cintura">—</div><div class="mu">cm</div><span class="ml2">Cintura</span></div>
+        <div class="m-box"><div class="mv" id="p-quadril">—</div><div class="mu">cm</div><span class="ml2">Quadril</span></div>
+      </div>
+      <div style="padding:0 0 12px">
+        <div class="prog-wrap"><div class="prog-lbl"><span>Frequência mensal</span><span id="p-freq">—</span></div><div class="prog-bar"><div class="prog-fill" id="p-freq-bar" style="width:0%"></div></div></div>
+      </div>
+      <div class="row2">
+        <button class="btn btn-secondary" onclick="closeModal('modal-perfil');openModal('modal-gerar-treino')">Gerar treino</button>
+        <button class="btn btn-primary" onclick="abrirEditarAluno()">Editar dados</button>
+      </div>
+      <div style="height:10px"></div>
+      <button class="btn btn-danger" onclick="excluirAlunoAtual()">Excluir aluno</button>
+    </div>
+
+    <!-- Treino -->
+    <div id="pt-treino" style="display:none;padding:12px 14px">
+      <div id="p-fichas-list"><p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Nenhuma ficha gerada ainda.</p></div>
+      <button class="btn btn-primary" onclick="closeModal('modal-perfil');openModal('modal-gerar-treino')">Gerar nova ficha</button>
+    </div>
+
+    <!-- Pagamentos -->
+    <div id="pt-pag" style="display:none">
+      <div id="p-pag-list"></div>
+      <div style="padding:12px 14px">
+        <button class="btn btn-primary" onclick="registrarPagamento()">Registrar pagamento</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-secondary" onclick="enviarCobrancaWA()">Enviar cobrança WhatsApp</button>
+      </div>
+    </div>
+
+    <!-- Histórico de check-ins -->
+    <div id="pt-hist" style="display:none;padding:12px 14px">
+      <div id="p-hist-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: GERAR TREINO
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-gerar-treino" onclick="handleOC(event,'modal-gerar-treino')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Gerar Ficha Personalizada</div>
+
+    <div class="field"><label>Aluno</label>
+      <select id="ai-aluno-sel"></select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Peso (kg)</label><input type="number" id="ai-peso" placeholder="70"></div>
+      <div class="field"><label>Altura (m)</label><input type="number" id="ai-alt" placeholder="1.75" step="0.01"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Circ. braço (cm)</label><input type="number" id="ai-braco" placeholder="32"></div>
+      <div class="field"><label>Circ. peito (cm)</label><input type="number" id="ai-peito" placeholder="98"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Circ. cintura (cm)</label><input type="number" id="ai-cintura" placeholder="82"></div>
+      <div class="field"><label>Circ. quadril (cm)</label><input type="number" id="ai-quadril" placeholder="96"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Circ. coxa (cm)</label><input type="number" id="ai-coxa" placeholder="58"></div>
+      <div class="field"><label>Larg. ombros (cm)</label><input type="number" id="ai-ombros" placeholder="44"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Objetivo</label>
+        <select id="ai-obj"><option>Hipertrofia</option><option>Emagrecimento</option><option>Definição muscular</option><option>Condicionamento</option><option>Reabilitação leve</option></select>
+      </div>
+      <div class="field"><label>Nível</label>
+        <select id="ai-nivel"><option>Iniciante</option><option selected>Intermediário</option><option>Avançado</option></select>
+      </div>
+    </div>
+
+    <div class="ai-box" id="ai-resp-box"></div>
+
+    <div style="height:10px"></div>
+    <button class="btn btn-primary" id="btn-gerar" onclick="gerarTreino()">Gerar ficha agora</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-gerar-treino')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: NOVA AULA
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-nova-aula" onclick="handleOC(event,'modal-nova-aula')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Cadastrar Aula</div>
+    <div class="field"><label>Nome da aula *</label><input type="text" id="aula-nome" placeholder="Ex.: Spinning, Funcional, Pilates"></div>
+    <div class="row2">
+      <div class="field"><label>Horário *</label><input type="time" id="aula-hora" value="07:00"></div>
+      <div class="field"><label>Duração (min)</label><input type="number" id="aula-dur" placeholder="60" value="60"></div>
+    </div>
+    <div class="field"><label>Dia da semana</label>
+      <select id="aula-dia"><option>Segunda-feira</option><option>Terça-feira</option><option>Quarta-feira</option><option>Quinta-feira</option><option>Sexta-feira</option><option>Sábado</option><option>Domingo</option></select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Professor</label><input type="text" id="aula-prof" placeholder="Ex.: Pedro Lima"></div>
+      <div class="field"><label>Vagas máx.</label><input type="number" id="aula-vagas" placeholder="20" value="20"></div>
+    </div>
+    <div class="field"><label>Local / Sala</label><input type="text" id="aula-local" placeholder="Sala de spinning, Área funcional…"></div>
+    <button class="btn btn-primary" onclick="salvarAula()">Salvar aula</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-nova-aula')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: CONFIG ACADEMIA
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-config-academia" onclick="handleOC(event,'modal-config-academia')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Dados da Academia</div>
+    <div class="field"><label>Nome da academia *</label><input type="text" id="cfg-nome" placeholder="Ex.: PowerFit Academia" value="DARK FISIC"></div>
+    <div class="field"><label>CNPJ</label><input type="text" id="cfg-cnpj" placeholder="00.000.000/0000-00"></div>
+    <div class="field"><label>Endereço</label><input type="text" id="cfg-end" placeholder="Rua, número, cidade/UF"></div>
+    <div class="field"><label>Telefone</label><input type="tel" id="cfg-tel" placeholder="(11) 3333-4444"></div>
+    <div class="field"><label>WhatsApp para cobranças</label><input type="tel" id="cfg-wa" placeholder="(11) 9 9999-8888"></div>
+    <div class="field"><label>Instagram</label><input type="text" id="cfg-ig" placeholder="@academia"></div>
+    <div class="field"><label>Responsável / Proprietário</label><input type="text" id="cfg-resp" placeholder="João" value="João"></div>
+    <button class="btn btn-primary" onclick="salvarConfigAcademia()">Salvar dados</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-config-academia')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: HORÁRIOS
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-config-horarios" onclick="handleOC(event,'modal-config-horarios')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Horários de Funcionamento</div>
+    <div id="horarios-list">
+      <!-- gerado por JS -->
+    </div>
+    <button class="btn btn-primary" onclick="salvarHorarios()">Salvar horários</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-config-horarios')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: EQUIPAMENTOS
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-config-equipamentos" onclick="handleOC(event,'modal-config-equipamentos')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Equipamentos / Máquinas</div>
+    <div id="equip-list" style="margin-bottom:14px"></div>
+    <div class="row2">
+      <input type="text" id="equip-input" placeholder="Nome do equipamento" style="background:var(--tide);border:1px solid rgba(255,255,255,.08);border-radius:var(--rs);padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%">
+      <button class="btn btn-primary" onclick="addEquipamento()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: PROFESSORES
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-professores" onclick="handleOC(event,'modal-professores')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Equipe</div>
+    <div id="prof-list" style="margin-bottom:14px"></div>
+    <div class="field"><label>Nome</label><input type="text" id="prof-nome" placeholder="Pedro Lima"></div>
+    <div class="row2">
+      <div class="field"><label>Especialidade</label><input type="text" id="prof-esp" placeholder="Musculação"></div>
+      <div class="field"><label>CREF</label><input type="text" id="prof-cref" placeholder="000000-G/SP"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addProfessor()">Adicionar professor</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-professores')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: RELATÓRIO
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-relatorio" onclick="handleOC(event,'modal-relatorio')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Relatório Mensal</div>
+    <div id="rel-content" style="font-size:13px;line-height:1.8;color:var(--muted)"></div>
+    <div style="height:14px"></div>
+    <button class="btn btn-primary" onclick="showToast('PDF gerado com sucesso.','success');closeModal('modal-relatorio')">Exportar PDF</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-relatorio')">Fechar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL: COBRANÇA MANUAL
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-cobranca" onclick="handleOC(event,'modal-cobranca')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Registrar Cobrança</div>
+    <div class="field"><label>Aluno</label><select id="cob-aluno"></select></div>
+    <div class="row2">
+      <div class="field"><label>Valor (R$)</label><input type="number" id="cob-valor" placeholder="139"></div>
+      <div class="field"><label>Forma</label><select id="cob-forma"><option>PIX</option><option>Cartão</option><option>Dinheiro</option><option>Boleto</option></select></div>
+    </div>
+    <div class="field"><label>Data pagamento</label><input type="date" id="cob-data" value="2026-09-02"></div>
+    <div class="field"><label>Referência</label><input type="text" id="cob-ref" placeholder="Set/2026 · Plano Plus"></div>
+    <button class="btn btn-primary" onclick="registrarCobranca()">Salvar pagamento</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-cobranca')">Cancelar</button>
+  </div>
+</div>
+
+<!-- AULA DETAIL MODAL -->
+<div class="overlay" id="modal-aula-det" onclick="handleOC(event,'modal-aula-det')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="aula-det-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<!-- ═══ MODAL: CHECK-IN ═══ -->
+<div class="overlay" id="modal-checkin" onclick="handleOC(event,'modal-checkin')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Registrar check-in</div>
+    <div class="field"><label>Aluno *</label><select id="checkin-aluno"></select></div>
+    <div class="field"><label>Atividade</label><select id="checkin-atividade"><option>Musculação</option><option>Cardio</option><option>Funcional</option><option>Spinning</option><option>Pilates</option><option>Yoga</option></select></div>
+    <button class="btn btn-primary ripple" onclick="registrarCheckin()">Confirmar entrada</button>
+    <div style="height:7px"></div><button class="btn btn-ghost" onclick="closeModal('modal-checkin')">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//   ESTADO GLOBAL
+// ══════════════════════════════════════════════
+const STATE = {
+  academia: { nome: 'DARK FISIC', responsavel: 'João' },
+  alunos: [
+    { id:1, nome:'Rafael Moura', tel:'(11) 9 8000-1111', email:'rafael@email.com', cpf:'111.222.333-01', sexo:'Masculino', nasc:'1993-04-12', peso:80, altura:1.78, braco:35, peito:98, cintura:82, quadril:96, coxa:60, ombros:46, gord:15, obj:'Hipertrofia', nivel:'Intermediário', plano:'Plus', status:'ativo', inicio:'2026-09-02', obs:'', freq:19 },
+    { id:2, nome:'Juliana Pereira', tel:'(11) 9 8000-2222', email:'juliana@email.com', cpf:'111.222.333-02', sexo:'Feminino', nasc:'1997-07-23', peso:58, altura:1.65, braco:26, peito:86, cintura:66, quadril:92, coxa:52, ombros:38, gord:22, obj:'Emagrecimento', nivel:'Iniciante', plano:'Básico', status:'ativo', inicio:'2026-08-01', obs:'', freq:14 },
+    { id:3, nome:'Thiago Santos', tel:'(11) 9 8000-3333', email:'thiago@email.com', cpf:'111.222.333-03', sexo:'Masculino', nasc:'1989-11-05', peso:92, altura:1.82, braco:40, peito:106, cintura:90, quadril:100, coxa:64, ombros:50, gord:20, obj:'Condicionamento', nivel:'Avançado', plano:'Trimestral', status:'vencendo', inicio:'2026-06-07', obs:'Problema leve no ombro direito', freq:22 },
+    { id:4, nome:'Carla Alves', tel:'(11) 9 8000-4444', email:'carla@email.com', cpf:'111.222.333-04', sexo:'Feminino', nasc:'1995-02-18', peso:65, altura:1.70, braco:28, peito:88, cintura:70, quadril:98, coxa:54, ombros:40, gord:25, obj:'Definição muscular', nivel:'Intermediário', plano:'Básico', status:'vencido', inicio:'2026-07-25', obs:'', freq:6 },
+    { id:5, nome:'Marcos Lima', tel:'(11) 9 8000-5555', email:'marcos@email.com', cpf:'111.222.333-05', sexo:'Masculino', nasc:'1985-08-30', peso:75, altura:1.75, braco:33, peito:96, cintura:84, quadril:98, coxa:58, ombros:44, gord:18, obj:'Saúde geral', nivel:'Intermediário', plano:'Anual', status:'ativo', inicio:'2026-01-01', obs:'Hipertensão controlada', freq:20 },
+    { id:6, nome:'Ana Costa', tel:'(11) 9 8000-6666', email:'ana@email.com', cpf:'111.222.333-06', sexo:'Feminino', nasc:'2000-03-15', peso:55, altura:1.60, braco:24, peito:82, cintura:62, quadril:88, coxa:50, ombros:36, gord:21, obj:'Saúde geral', nivel:'Iniciante', plano:'Plus', status:'ativo', inicio:'2026-09-01', obs:'', freq:11 },
+  ],
+  fichas: [
+    { alunoId:1, tipo:'Hipertrofia A', data:'28/08/2026', exercicios:[{n:'Supino Reto',det:'4x12 · 90s',maq:'Barra livre'},{n:'Crucifixo Inclinado',det:'3x15 · 60s',maq:'Halteres'},{n:'Desenvolvimento',det:'4x10 · 90s',maq:'Smith'},{n:'Tríceps Pulley',det:'3x15 · 45s',maq:'Cabo'}] },
+    { alunoId:2, tipo:'Definição B', data:'01/09/2026', exercicios:[{n:'Leg Press 45°',det:'4x20 · 45s',maq:'Leg Press'},{n:'Cadeira Extensora',det:'3x18 · 45s',maq:'Cadeira Ext.'},{n:'Glúteo no Cabo',det:'4x15 · 30s',maq:'Cabo'}] },
+  ],
+  aulas: [
+    { id:1, nome:'Spinning', hora:'06:30', dur:60, dia:'Segunda-feira', prof:'Pedro Lima', vagas:20, inscritos:14, local:'Sala de Spinning' },
+    { id:2, nome:'Funcional', hora:'07:00', dur:45, dia:'Segunda-feira', prof:'Ana Martins', vagas:15, inscritos:9, local:'Área Funcional' },
+    { id:3, nome:'Yoga', hora:'09:00', dur:60, dia:'Terça-feira', prof:'Carla Ramos', vagas:12, inscritos:12, local:'Sala 2' },
+    { id:4, nome:'Pilates', hora:'18:00', dur:50, dia:'Quarta-feira', prof:'Fernanda Luz', vagas:10, inscritos:6, local:'Sala de Pilates' },
+    { id:5, nome:'Spinning', hora:'19:00', dur:60, dia:'Quinta-feira', prof:'Pedro Lima', vagas:20, inscritos:18, local:'Sala de Spinning' },
+  ],
+  pagamentos: [
+    { alunoId:1, valor:139, forma:'PIX', data:'02/09/2026', ref:'Set/2026 · Plus' },
+    { alunoId:5, valor:1188, forma:'Cartão', data:'01/09/2026', ref:'Anual 2026 · Anual' },
+    { alunoId:6, valor:139, forma:'PIX', data:'01/09/2026', ref:'Set/2026 · Plus' },
+    { alunoId:2, valor:89, forma:'PIX', data:'01/09/2026', ref:'Set/2026 · Básico' },
+  ],
+  professores: [
+    { nome:'Pedro Lima', esp:'Spinning / Cardio', cref:'123456-G/SP' },
+    { nome:'Ana Martins', esp:'Funcional', cref:'234567-G/SP' },
+    { nome:'Fernanda Luz', esp:'Pilates', cref:'345678-G/SP' },
+  ],
+  equipamentos: ['Barra livre','Halteres','Smith','Cabo (polia)','Leg Press 45°','Cadeira Extensora','Cadeira Flexora','Pec Deck','Lat Pull','Supino Reto','Cadeira Abdutora','Cadeira Adutora','Esteira','Bike ergométrica','Elíptico'],
+  horarios: {
+    'Segunda-feira':{ ab:true, ini:'06:00', fim:'22:00' },
+    'Terça-feira'  :{ ab:true, ini:'06:00', fim:'22:00' },
+    'Quarta-feira' :{ ab:true, ini:'06:00', fim:'22:00' },
+    'Quinta-feira' :{ ab:true, ini:'06:00', fim:'22:00' },
+    'Sexta-feira'  :{ ab:true, ini:'06:00', fim:'22:00' },
+    'Sábado'       :{ ab:true, ini:'08:00', fim:'18:00' },
+    'Domingo'      :{ ab:false, ini:'', fim:'' },
+  },
+  currentFilter: 'todos',
+  currentAlunoId: null,
+  calSelectedDay: new Date().getDay(),
+  checkins: [
+    { alunoId:1, atividade:'Musculação', hora:'06:42' },
+    { alunoId:2, atividade:'Cardio', hora:'06:34' },
+    { alunoId:3, atividade:'Funcional', hora:'06:18' },
+  ],
+};
+
+const PLANO_PRECOS = { Básico:89, Plus:139, Trimestral:369/3, Anual:99 };
+const DIAS = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+let nextId = 10;
+
+// ══════════════════════════════════════════════
+//   PERSISTÊNCIA + MICROINTERAÇÕES
+// ══════════════════════════════════════════════
+function saveState(){
+  try{ localStorage.setItem('darkFisicState',JSON.stringify(STATE)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('darkFisicState');
+    if(!raw)return;
+    const saved=JSON.parse(raw);
+    Object.assign(STATE,saved);
+  }catch(e){}
+}
+function animateValue(el,end,duration=650){
+  if(!el)return;
+  const target=Number(end)||0,start=Number(String(el.textContent).replace(/\\D/g,''))||0;
+  if(target===start){el.textContent=String(target);return;}
+  const t0=performance.now();
+  function tick(now){const p=Math.min(1,(now-t0)/duration),e=1-Math.pow(1-p,3);el.textContent=Math.round(start+(target-start)*e);if(p<1)requestAnimationFrame(tick)}
+  requestAnimationFrame(tick);
+}
+function bindMotion(){
+  document.querySelectorAll('.ripple').forEach(el=>{
+    if(el.dataset.rippleBound)return;el.dataset.rippleBound='1';
+    el.addEventListener('click',function(ev){
+      const r=document.createElement('span');r.className='ripple-effect';const rect=this.getBoundingClientRect(),size=Math.max(rect.width,rect.height);r.style.width=r.style.height=size+'px';r.style.left=(ev.clientX-rect.left-size/2)+'px';r.style.top=(ev.clientY-rect.top-size/2)+'px';this.appendChild(r);setTimeout(()=>r.remove(),600);
+    });
+  });
+}
+function populateCheckin(){
+  const el=document.getElementById('checkin-aluno');if(!el)return;
+  el.innerHTML=STATE.alunos.map(a=>`<option value="${a.id}">${a.nome}</option>`).join('');
+}
+function registrarCheckin(){
+  const alunoId=parseInt(document.getElementById('checkin-aluno').value);const atividade=document.getElementById('checkin-atividade').value;
+  const a=STATE.alunos.find(x=>x.id===alunoId);if(!a)return;
+  const now=new Date(),hora=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  STATE.checkins.unshift({alunoId,atividade,hora});a.freq=(a.freq||0)+1;
+  closeModal('modal-checkin');saveState();renderDash();showToast('Check-in registrado.','success');
+}
+function resetDemo(){
+  if(!confirm('Restaurar os dados da demonstração? As alterações locais serão apagadas.'))return;
+  localStorage.removeItem('darkFisicState');location.reload();
+}
+function exportarBackup(){
+  const blob=new Blob([JSON.stringify(STATE,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dark-fisic-backup.json';a.click();URL.revokeObjectURL(url);showToast('Backup exportado.','success');
+}
+
+// ══════════════════════════════════════════════
+//   NAVEGAÇÃO
+// ══════════════════════════════════════════════
+function navigate(tab) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const s=document.getElementById('screen-'+tab);
+  const n=document.getElementById('nav-'+tab);
+  if(s) s.classList.add('active');
+  if(n) n.classList.add('active');
+  if(tab==='home') renderDash();
+  if(tab==='alunos') { renderAlunos(); }
+  if(tab==='treinos') { renderFichas(); populateAlunoSelects(); }
+  if(tab==='agenda') { renderCal(); renderAgenda(); }
+  if(tab==='financeiro') { renderFinanceiro(); }
+}
+
+// ══════════════════════════════════════════════
+//   MODAIS
+// ══════════════════════════════════════════════
+function openModal(id) {
+  if(id==='modal-checkin') populateCheckin();
+  if(id==='modal-config-horarios') renderHorariosForm();
+  if(id==='modal-config-equipamentos') renderEquipamentos();
+  if(id==='modal-professores') renderProfessores();
+  if(id==='modal-relatorio') renderRelatorio();
+  if(id==='modal-novo-aluno') resetNovoAluno();
+  if(id==='modal-gerar-treino') populateAlunoSelects();
+  if(id==='modal-cobranca') populateCobAluno();
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow='';
+}
+function handleOC(e,id) { if(e.target===document.getElementById(id)) closeModal(id); }
+
+// ══════════════════════════════════════════════
+//   TOAST
+// ══════════════════════════════════════════════
+function showToast(msg, type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+(type==='success'?'success-toast':type==='danger'?'danger-toast':'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// ══════════════════════════════════════════════
+//   DASHBOARD
+// ══════════════════════════════════════════════
+function renderDash() {
+  const ativos = STATE.alunos.filter(a=>a.status==='ativo').length;
+  const vencendo = STATE.alunos.filter(a=>a.status==='vencendo').length;
+  const vencidos = STATE.alunos.filter(a=>a.status==='vencido');
+
+  animateValue(document.getElementById('stat-ativos'),ativos);
+  animateValue(document.getElementById('stat-vencendo'),vencendo);
+  const hojeCheckins=STATE.checkins||[];
+  const aulasHoje=STATE.aulas.filter(a=>DIAS.indexOf(a.dia)===new Date().getDay()).length;
+  const totalVagas=STATE.aulas.filter(a=>DIAS.indexOf(a.dia)===new Date().getDay()).reduce((s,a)=>s+a.vagas,0);
+  const ocup=totalVagas?Math.round(STATE.aulas.filter(a=>DIAS.indexOf(a.dia)===new Date().getDay()).reduce((s,a)=>s+a.inscritos,0)/totalVagas*100):0;
+  animateValue(document.getElementById('ops-checkins'),hojeCheckins.length);
+  animateValue(document.getElementById('ops-aulas'),aulasHoje);
+  document.getElementById('ops-ocupacao').textContent=ocup+'%';
+
+  // receita
+  const receita = STATE.pagamentos.reduce((s,p)=>s+p.valor,0);
+  const inadim  = vencidos.reduce((s,a)=>s+PLANO_PRECOS[a.plano],0);
+  document.getElementById('dash-receita').textContent = 'R$ '+receita.toLocaleString('pt-BR');
+  document.getElementById('dash-mensal').textContent  = 'R$ '+receita.toLocaleString('pt-BR');
+  document.getElementById('dash-inadim').textContent  = 'R$ '+inadim.toLocaleString('pt-BR');
+
+  // nome da academia no topbar logo e dashboard
+  document.getElementById('dash-academia-name').textContent = STATE.academia.nome;
+  updateLogo();
+
+  // alertas
+  const alertList = document.getElementById('dash-alert-list');
+  const alertCard = document.getElementById('dash-alertas');
+  const vend = STATE.alunos.filter(a=>a.status==='vencendo');
+  if(vend.length) {
+    alertCard.style.display='block';
+    alertList.innerHTML = vend.map(a=>`<div class="alert-row"><span>${a.nome}</span><button class="btn btn-sm btn-secondary" style="color:var(--warn)" onclick="showToast('Cobrança enviada por WhatsApp.','success')">Cobrar</button></div>`).join('');
+  } else {
+    alertCard.style.display='none';
+  }
+  const ciEl=document.getElementById('dash-checkins');
+  ciEl.innerHTML=(STATE.checkins||[]).slice(0,5).map(c=>{const a=STATE.alunos.find(x=>x.id===c.alunoId);return a?`<div class="checkin-item reveal"><div class="avatar">${iniciais(a.nome)}</div><div class="ci-info"><div class="name">${a.nome}</div><div class="time">${c.hora} · ${c.atividade}</div></div>${statusLabel(a.status)}</div>`:''}).join('') || '<div class="empty-state"><strong>Nenhum check-in</strong>Registre a primeira entrada do dia.</div>';
+  bindMotion();
+}
+
+function updateLogo() {
+  const nome = STATE.academia.nome;
+  const parts = nome.split(' ');
+  document.getElementById('logo-text').innerHTML = parts[0]+'<span>'+(parts.slice(1).join(' ')||'')+'</span>';
+}
+
+// ══════════════════════════════════════════════
+//   ALUNOS
+// ══════════════════════════════════════════════
+function iniciais(nome) {
+  return nome.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function statusLabel(s) {
+  if(s==='ativo')    return '<span class="badge b-ok">Ativo</span>';
+  if(s==='vencendo') return '<span class="badge b-warn">Vencendo</span>';
+  if(s==='vencido')  return '<span class="badge b-danger">Vencido</span>';
+  return '<span class="badge" style="background:var(--cadet);color:var(--muted)">Inativo</span>';
+}
+
+function renderAlunos(search='') {
+  const q = search.toLowerCase();
+  let list = STATE.alunos.filter(a => {
+    const match = a.nome.toLowerCase().includes(q) || a.tel.includes(q);
+    if(!match) return false;
+    if(STATE.currentFilter==='todos') return true;
+    return a.status===STATE.currentFilter;
+  });
+
+  document.getElementById('alunos-count').textContent = list.length+' cadastrado'+(list.length!==1?'s':'');
+
+  const el = document.getElementById('alunos-list');
+  if(!list.length) {
+    el.innerHTML='<p style="text-align:center;color:var(--muted);font-size:13px;padding:30px">Nenhum aluno encontrado.</p>';
+    return;
+  }
+  el.innerHTML = list.map(a=>`
+    <div class="aluno-item" onclick="openPerfil(${a.id})">
+      <div class="avatar">${iniciais(a.nome)}</div>
+      <div class="ai-info">
+        <div class="name">${a.nome}</div>
+        <div class="meta">${a.peso?a.peso+' kg · ':''}${a.altura?a.altura+' m · ':''}${a.obj||'—'}</div>
+      </div>
+      <div class="ai-right">
+        <div class="pname">${a.plano}</div>
+        ${statusLabel(a.status)}
+      </div>
+    </div>
+  `).join('');
+}
+
+function setChip(el, filter) {
+  document.querySelectorAll('#filter-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  STATE.currentFilter = filter;
+  renderAlunos();
+}
+
+// ── NOVO ALUNO ──
+function resetNovoAluno() {
+  ['n-nome','n-tel','n-email','n-cpf','n-end','n-obs','n-peso','n-altura','n-braco','n-peito','n-cintura','n-quadril','n-coxa','n-ombros','n-gord'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  switchFormTab(document.querySelectorAll('#modal-novo-aluno .tab-btn')[0],'ftab-pessoal');
+}
+
+function switchFormTab(btn, targetId) {
+  document.querySelectorAll('#modal-novo-aluno .tab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  ['ftab-pessoal','ftab-medidas','ftab-plano'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById(targetId).style.display='block';
+}
+
+function cadastrarAluno() {
+  const nome = document.getElementById('n-nome').value.trim();
+  const tel  = document.getElementById('n-tel').value.trim();
+  if(!nome || !tel) { showToast('Nome e telefone são obrigatórios','danger'); return; }
+
+  const novo = {
+    id: nextId++,
+    nome, tel,
+    email:    document.getElementById('n-email').value,
+    cpf:      document.getElementById('n-cpf').value,
+    sexo:     document.getElementById('n-sexo').value,
+    nasc:     document.getElementById('n-nasc').value,
+    obs:      document.getElementById('n-obs').value,
+    peso:     parseFloat(document.getElementById('n-peso').value)||0,
+    altura:   parseFloat(document.getElementById('n-altura').value)||0,
+    braco:    parseFloat(document.getElementById('n-braco').value)||0,
+    peito:    parseFloat(document.getElementById('n-peito').value)||0,
+    cintura:  parseFloat(document.getElementById('n-cintura').value)||0,
+    quadril:  parseFloat(document.getElementById('n-quadril').value)||0,
+    coxa:     parseFloat(document.getElementById('n-coxa').value)||0,
+    ombros:   parseFloat(document.getElementById('n-ombros').value)||0,
+    gord:     parseFloat(document.getElementById('n-gord').value)||0,
+    obj:      document.getElementById('n-obj').value,
+    nivel:    document.getElementById('n-nivel').value,
+    plano:    document.getElementById('n-plano').value,
+    status:   document.getElementById('n-status').value,
+    inicio:   document.getElementById('n-inicio').value,
+    freq: 0,
+  };
+
+  STATE.alunos.push(novo);
+  closeModal('modal-novo-aluno');
+  renderAlunos();
+  renderDash();
+  showToast('Aluno cadastrado com sucesso.','success');
+}
+
+// ── PERFIL ──
+function openPerfil(id) {
+  const a = STATE.alunos.find(x=>x.id===id);
+  if(!a) return;
+  STATE.currentAlunoId = id;
+
+  document.getElementById('p-av').textContent = iniciais(a.nome);
+  document.getElementById('p-nome').textContent = a.nome;
+  document.getElementById('p-plano').textContent = a.plano+' · '+a.tel;
+  document.getElementById('p-status-badge').textContent = {ativo:'Ativo',vencendo:'Vencendo',vencido:'Vencido',inativo:'Inativo'}[a.status];
+  document.getElementById('p-status-badge').className = 'badge '+{ativo:'b-ok',vencendo:'b-warn',vencido:'b-danger',inativo:''}[a.status];
+  document.getElementById('p-nivel-badge').textContent = a.nivel||'—';
+
+  document.getElementById('p-peso').textContent   = a.peso||'—';
+  document.getElementById('p-altura').textContent = a.altura||'—';
+  document.getElementById('p-braco').textContent  = a.braco||'—';
+  document.getElementById('p-cintura').textContent= a.cintura||'—';
+  document.getElementById('p-quadril').textContent= a.quadril||'—';
+
+  if(a.peso && a.altura) {
+    const imc = (a.peso/(a.altura*a.altura)).toFixed(1);
+    document.getElementById('p-imc').textContent = imc;
+    const cat = imc<18.5?'Abaixo do peso':imc<25?'Normal':imc<30?'Sobrepeso':'Obesidade';
+    document.getElementById('p-imc-cat').textContent = cat;
+  }
+
+  const freq = a.freq||0;
+  document.getElementById('p-freq').textContent = freq+'/22 dias';
+  document.getElementById('p-freq-bar').style.width = Math.min(100,Math.round(freq/22*100))+'%';
+
+  // fichas
+  const fichas = STATE.fichas.filter(f=>f.alunoId===id);
+  const fList = document.getElementById('p-fichas-list');
+  fList.innerHTML = fichas.length ? fichas.map(f=>`
+    <div class="card-inner" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700">${f.tipo}</span>
+        <span style="font-size:11px;color:var(--muted)">${f.data}</span>
+      </div>
+      ${f.exercicios.map((e,i)=>`<div class="ex-item" style="padding:5px 0"><div class="ex-num">${i+1}</div><div class="ex-info"><div class="ex-name">${e.n}</div><div class="ex-det">${e.det} · ${e.maq}</div></div></div>`).join('')}
+    </div>
+  `).join('') : '<p style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Nenhuma ficha gerada.</p>';
+
+  // pagamentos
+  const pags = STATE.pagamentos.filter(p=>p.alunoId===id);
+  document.getElementById('p-pag-list').innerHTML = pags.length ? pags.map(p=>`
+    <div class="pag-item">
+      <div class="pag-icon" style="background:rgba(34,197,94,.12)">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--ok)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <div class="pag-info"><div class="pag-nome">${p.ref}</div><div class="pag-data">${p.data} · ${p.forma}</div></div>
+      <div class="pag-val" style="color:var(--ok)">R$${p.valor}</div>
+    </div>
+  `).join('') : '<p style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Sem pagamentos registrados.</p>';
+
+  // histórico mock
+  document.getElementById('p-hist-list').innerHTML = [
+    { d:'02/09 06:42', m:'Check-in · Musculação' },
+    { d:'01/09 07:15', m:'Check-in · Musculação' },
+    { d:'30/08 06:58', m:'Check-in · Funcional' },
+    { d:'29/08 08:00', m:'Aula de Spinning' },
+  ].map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px"><span>${h.m}</span><span style="color:var(--muted);font-size:11px">${h.d}</span></div>`).join('');
+
+  switchPTab(document.querySelectorAll('#modal-perfil .tab-btn')[0],'pt-medidas');
+  openModal('modal-perfil');
+}
+
+function switchPTab(btn, targetId) {
+  document.querySelectorAll('#modal-perfil .tab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  ['pt-medidas','pt-treino','pt-pag','pt-hist'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById(targetId).style.display = targetId==='pt-medidas' ? 'block' : 'block';
+  document.getElementById(targetId).style.display = 'block';
+}
+
+function excluirAlunoAtual() {
+  const id = STATE.currentAlunoId;
+  if(!id) return;
+  STATE.alunos = STATE.alunos.filter(a=>a.id!==id);
+  closeModal('modal-perfil');
+  renderAlunos();
+  renderDash();
+  saveState(); showToast('Aluno excluído','danger');
+}
+
+function abrirEditarAluno() {
+  const a = STATE.alunos.find(x=>x.id===STATE.currentAlunoId);
+  if(!a) return;
+  closeModal('modal-perfil');
+  openModal('modal-novo-aluno');
+  setTimeout(()=>{
+    document.getElementById('n-nome').value = a.nome;
+    document.getElementById('n-tel').value  = a.tel;
+    document.getElementById('n-email').value= a.email||'';
+    document.getElementById('n-cpf').value  = a.cpf||'';
+    document.getElementById('n-peso').value = a.peso||'';
+    document.getElementById('n-altura').value = a.altura||'';
+    document.getElementById('n-braco').value  = a.braco||'';
+    document.getElementById('n-peito').value  = a.peito||'';
+    document.getElementById('n-cintura').value= a.cintura||'';
+    document.getElementById('n-quadril').value= a.quadril||'';
+    document.getElementById('n-coxa').value   = a.coxa||'';
+    document.getElementById('n-ombros').value = a.ombros||'';
+    document.getElementById('n-obs').value    = a.obs||'';
+  },100);
+}
+
+function registrarPagamento() {
+  const a = STATE.alunos.find(x=>x.id===STATE.currentAlunoId);
+  if(!a) return;
+  const preco = PLANO_PRECOS[a.plano] || 0;
+  STATE.pagamentos.unshift({ alunoId:a.id, valor:preco, forma:'PIX', data:'02/09/2026', ref:'Set/2026 · '+a.plano });
+  if(a.status!=='ativo') a.status='ativo';
+  saveState(); showToast('Pagamento de R$'+preco+' registrado.','success');
+  openPerfil(a.id);
+}
+
+function enviarCobrancaWA() {
+  showToast('Cobrança enviada via WhatsApp.','success');
+}
+
+// ── SELECTS DE ALUNO ──
+function populateAlunoSelects() {
+  ['ai-aluno-sel','cob-aluno'].forEach(sid=>{
+    const el=document.getElementById(sid); if(!el) return;
+    el.innerHTML = STATE.alunos.map(a=>`<option value="${a.id}">${a.nome}</option>`).join('');
+  });
+}
+
+// ══════════════════════════════════════════════
+//   FICHAS / TREINOS
+// ══════════════════════════════════════════════
+function renderFichas() {
+  const el = document.getElementById('fichas-list');
+  if(!STATE.fichas.length) { el.innerHTML=''; return; }
+  el.innerHTML = STATE.fichas.map((f,fi)=>{
+    const a = STATE.alunos.find(x=>x.id===f.alunoId);
+    return `
+    <div class="ficha-card">
+      <div class="ficha-head">
+        <div><div class="fh-name">${a?a.nome:'—'}</div><div class="fh-date">${f.data}</div></div>
+        <span class="badge b-blue">${f.tipo}</span>
+      </div>
+      <div>
+        ${f.exercicios.map((e,i)=>`
+          <div class="ex-item">
+            <div class="ex-num">${i+1}</div>
+            <div class="ex-info"><div class="ex-name">${e.n}</div><div class="ex-det">${e.det}</div></div>
+            <span class="ex-maq">${e.maq}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="ficha-actions">
+        <button class="btn btn-secondary" style="font-size:12px" onclick="openModal('modal-gerar-treino')">Atualizar</button>
+        <button class="btn btn-danger" style="font-size:12px" onclick="excluirFicha(${fi})">Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function excluirFicha(i) {
+  STATE.fichas.splice(i,1);
+  renderFichas();
+  saveState(); showToast('Ficha excluída');
+}
+
+// ── GERAR TREINO IA ──
+async function gerarTreino() {
+  const btn  = document.getElementById('btn-gerar');
+  const box  = document.getElementById('ai-resp-box');
+  const sel  = document.getElementById('ai-aluno-sel');
+  const aId  = parseInt(sel.value);
+  const a    = STATE.alunos.find(x=>x.id===aId);
+
+  const peso    = document.getElementById('ai-peso').value    || (a&&a.peso)    || 70;
+  const altura  = document.getElementById('ai-alt').value     || (a&&a.altura)  || 1.75;
+  const braco   = document.getElementById('ai-braco').value   || (a&&a.braco)   || 32;
+  const peito   = document.getElementById('ai-peito').value   || (a&&a.peito)   || 96;
+  const cintura = document.getElementById('ai-cintura').value || (a&&a.cintura) || 82;
+  const quadril = document.getElementById('ai-quadril').value || (a&&a.quadril) || 96;
+  const coxa    = document.getElementById('ai-coxa').value    || (a&&a.coxa)    || 58;
+  const ombros  = document.getElementById('ai-ombros').value  || (a&&a.ombros)  || 44;
+  const obj     = document.getElementById('ai-obj').value;
+  const nivel   = document.getElementById('ai-nivel').value;
+  const nome    = a ? a.nome : 'Aluno';
+
+  const h=parseFloat(altura), p=parseFloat(peso);
+  const imc = h?(p/(h*h)).toFixed(1):'—';
+
+  btn.disabled=true; btn.textContent='Gerando…';
+  box.classList.add('show');
+  box.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+  const prompt=`Você é personal trainer especialista em academias. Monte uma ficha de treino personalizada para o aluno "${nome}".
+
+Dados:
+- Peso: ${peso}kg | Altura: ${altura}m | IMC: ${imc}
+- Circunferências (cm): braço ${braco}, peito ${peito}, cintura ${cintura}, quadril ${quadril}, coxa ${coxa}, ombros ${ombros}
+- Objetivo: ${obj} | Nível: ${nivel}
+
+Responda em português com:
+1. Análise das proporções corporais (2-3 linhas)
+2. Treino A e Treino B (4-5 exercícios cada), com: nome, séries×repetições, intervalo, equipamento/máquina
+3. Frequência semanal recomendada
+4. Dica nutricional breve
+
+Seja direto e prático.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b=>b.text||'').join('')||'Erro ao gerar.';
+    const fmt = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+    box.innerHTML = `<p>${fmt}</p><div style="height:12px"></div><button class="btn btn-secondary" style="font-size:13px" onclick="salvarFichaIA('${nome}',${aId})">Salvar ficha na lista</button>`;
+  } catch(e) {
+    box.innerHTML='<p style="color:var(--danger)">Erro de conexão. Tente novamente.</p>';
+  }
+  btn.disabled=false; btn.textContent='Gerar novamente';
+}
+
+function salvarFichaIA(nome, alunoId) {
+  STATE.fichas.push({
+    alunoId,
+    tipo: 'IA · '+document.getElementById('ai-obj').value,
+    data: '02/09/2026',
+    exercicios: [
+      {n:'Gerado pela IA',det:'Ver ficha acima',maq:'Conforme ficha'},
+    ]
+  });
+  closeModal('modal-gerar-treino');
+  navigate('treinos');
+  saveState(); showToast('Ficha salva.','success');
+}
+
+// ══════════════════════════════════════════════
+//   AGENDA
+// ══════════════════════════════════════════════
+function renderCal() {
+  const strip = document.getElementById('cal-strip');
+  const today = new Date();
+  const dows  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html = '';
+  for(let i=-1;i<6;i++){
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    const isToday = i===0;
+    const hasDot = STATE.aulas.some(a => DIAS.indexOf(a.dia) === d.getDay());
+    html += `<div class="cal-day${isToday?' today':''}" onclick="selectDay(this,${d.getDay()})">
+      <span class="cd-dow">${dows[d.getDay()]}</span>
+      <span class="cd-num">${d.getDate()}</span>
+      ${hasDot?'<div class="cd-dot"></div>':''}
+    </div>`;
+  }
+  strip.innerHTML = html;
+}
+
+function selectDay(el, dow) {
+  document.querySelectorAll('.cal-day').forEach(d=>d.classList.remove('today'));
+  el.classList.add('today');
+  STATE.calSelectedDay = dow;
+  document.getElementById('agenda-day-label').textContent = DIAS[dow]||'Hoje';
+  renderAgenda();
+}
+
+function renderAgenda() {
+  const dow = STATE.calSelectedDay;
+  const dia = DIAS[dow];
+  const aulas = STATE.aulas.filter(a=>a.dia===dia).sort((a,b)=>a.hora>b.hora?1:-1);
+  const el = document.getElementById('agenda-list');
+  if(!aulas.length){
+    el.innerHTML='<p style="text-align:center;color:var(--muted);font-size:13px;padding:30px">Sem aulas neste dia.</p>';
+    return;
+  }
+  el.innerHTML = aulas.map(a=>{
+    const pct = Math.round(a.inscritos/a.vagas*100);
+    const vagasColor = a.inscritos>=a.vagas?'var(--danger)':a.inscritos/a.vagas>0.8?'var(--warn)':'var(--ok)';
+    return `<div class="aula-item" onclick="openAulaDet(${a.id})">
+      <div class="aula-hora">${a.hora}</div>
+      <div class="aula-bar"></div>
+      <div class="aula-info">
+        <div class="aula-nome">${a.nome}</div>
+        <div class="aula-det">${a.prof} · ${a.local} · ${a.dur}min</div>
+        <div class="aula-capacidade" style="margin-top:6px">
+          <div class="aula-prog-bar"><div class="aula-prog-fill" style="width:${pct}%"></div></div>
+          <span style="font-size:11px;color:${vagasColor};font-weight:600">${a.inscritos}/${a.vagas}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('agenda-day-label').textContent = dia;
+}
+
+function openAulaDet(id) {
+  const a = STATE.aulas.find(x=>x.id===id);
+  if(!a) return;
+  const livre = a.vagas - a.inscritos;
+  document.getElementById('aula-det-content').innerHTML = `
+    <div class="modal-handle"></div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:20px;font-weight:800">${a.nome}</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px">${DIAS[STATE.calSelectedDay]||a.dia} · ${a.hora} · ${a.dur}min</div>
+    </div>
+    <div class="card-inner" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--muted)">Professor</span><span>${a.prof}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--muted)">Local</span><span>${a.local}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Vagas livres</span><span style="color:${livre>0?'var(--ok)':'var(--danger)'};font-weight:700">${livre} de ${a.vagas}</span></div>
+    </div>
+    <button class="btn btn-primary" onclick="inscreverNaAula(${id})">Inscrever aluno</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-danger" onclick="excluirAula(${id})">Excluir aula</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-ghost" onclick="closeModal('modal-aula-det')">Fechar</button>
+  `;
+  openModal('modal-aula-det');
+}
+
+function inscreverNaAula(id) {
+  const a = STATE.aulas.find(x=>x.id===id);
+  if(!a) return;
+  if(a.inscritos>=a.vagas){ showToast('Aula sem vagas.','danger'); return; }
+  a.inscritos++;
+  closeModal('modal-aula-det');
+  renderAgenda();
+  saveState(); showToast('Aluno inscrito.','success');
+}
+
+function excluirAula(id) {
+  STATE.aulas = STATE.aulas.filter(a=>a.id!==id);
+  closeModal('modal-aula-det');
+  renderAgenda();
+  saveState(); showToast('Aula removida.');
+}
+
+function salvarAula() {
+  const nome = document.getElementById('aula-nome').value.trim();
+  if(!nome){ showToast('Nome da aula obrigatório','danger'); return; }
+  STATE.aulas.push({
+    id: nextId++,
+    nome,
+    hora:     document.getElementById('aula-hora').value,
+    dur:      parseInt(document.getElementById('aula-dur').value)||60,
+    dia:      document.getElementById('aula-dia').value,
+    prof:     document.getElementById('aula-prof').value||'—',
+    vagas:    parseInt(document.getElementById('aula-vagas').value)||20,
+    inscritos:0,
+    local:    document.getElementById('aula-local').value||'—',
+  });
+  closeModal('modal-nova-aula');
+  renderCal();
+  renderAgenda();
+  saveState(); showToast('Aula cadastrada.','success');
+}
+
+// ══════════════════════════════════════════════
+//   FINANCEIRO
+// ══════════════════════════════════════════════
+function renderFinanceiro() {
+  const receita = STATE.pagamentos.reduce((s,p)=>s+p.valor,0);
+  const vencidos = STATE.alunos.filter(a=>a.status==='vencido');
+  const inadim = vencidos.reduce((s,a)=>s+(PLANO_PRECOS[a.plano]||0),0);
+  const ativos = STATE.alunos.filter(a=>a.status==='ativo').length;
+
+  document.getElementById('fin-receita').textContent  = 'R$'+receita.toLocaleString('pt-BR');
+  document.getElementById('fin-inadim').textContent   = 'R$'+inadim.toLocaleString('pt-BR');
+  document.getElementById('fin-inadim-sub').textContent = vencidos.length+' aluno'+(vencidos.length!==1?'s':'');
+  document.getElementById('fin-hoje').textContent     = 'R$'+(STATE.pagamentos[0]?.valor||0);
+  document.getElementById('fin-ativos').textContent   = ativos;
+
+  // gráfico
+  const total = STATE.alunos.length||1;
+  const planos = ['Básico','Plus','Trimestral','Anual'];
+  const ids = ['bc-basico','bc-plus','bc-trim','bc-anual'];
+  const vids = ['bc-basico-v','bc-plus-v','bc-trim-v','bc-anual-v'];
+  planos.forEach((p,i)=>{
+    const cnt = STATE.alunos.filter(a=>a.plano===p).length;
+    document.getElementById(ids[i]).style.width = Math.round(cnt/total*100)+'%';
+    document.getElementById(vids[i]).textContent = cnt;
+  });
+
+  // lista de pagamentos
+  const el = document.getElementById('fin-pag-list');
+  el.innerHTML = STATE.pagamentos.map(p=>{
+    const a = STATE.alunos.find(x=>x.id===p.alunoId);
+    return `<div class="pag-item">
+      <div class="pag-icon" style="background:rgba(34,197,94,.12)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--ok)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+      <div class="pag-info"><div class="pag-nome">${a?a.nome:'—'}</div><div class="pag-data">${p.data} · ${p.forma} · ${p.ref}</div></div>
+      <div class="pag-val" style="color:var(--ok)">+R$${p.valor}</div>
+    </div>`;
+  }).join('');
+}
+
+function registrarCobranca() {
+  const aId = parseInt(document.getElementById('cob-aluno').value);
+  const val  = parseFloat(document.getElementById('cob-valor').value);
+  if(!val){ showToast('Informe o valor','danger'); return; }
+  STATE.pagamentos.unshift({
+    alunoId: aId,
+    valor: val,
+    forma: document.getElementById('cob-forma').value,
+    data:  document.getElementById('cob-data').value,
+    ref:   document.getElementById('cob-ref').value||'Pagamento avulso',
+  });
+  const a = STATE.alunos.find(x=>x.id===aId);
+  if(a) a.status='ativo';
+  closeModal('modal-cobranca');
+  renderFinanceiro();
+  renderDash();
+  saveState(); showToast('Pagamento registrado.','success');
+}
+
+// ══════════════════════════════════════════════
+//   CONFIGURAÇÕES
+// ══════════════════════════════════════════════
+function salvarConfigAcademia() {
+  const nome = document.getElementById('cfg-nome').value.trim();
+  if(!nome){ showToast('Nome obrigatório','danger'); return; }
+  STATE.academia.nome = nome;
+  STATE.academia.responsavel = document.getElementById('cfg-resp').value;
+  updateLogo();
+  document.getElementById('dash-academia-name').textContent = nome;
+  document.getElementById('cfg-nome-sub').textContent = nome;
+  closeModal('modal-config-academia');
+  saveState(); showToast('Dados salvos.','success');
+}
+
+function renderHorariosForm() {
+  const el = document.getElementById('horarios-list');
+  el.innerHTML = Object.entries(STATE.horarios).map(([dia,h])=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <button class="toggle ${h.ab?'on':''}" onclick="toggleHorario(this,'${dia}')" style="flex-shrink:0"></button>
+      <span style="font-size:13px;font-weight:500;width:110px">${dia.substring(0,3)}.</span>
+      <input type="time" value="${h.ini}" id="h-ini-${dia}" style="background:var(--tide);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;width:70px">
+      <span style="font-size:12px;color:var(--muted)">–</span>
+      <input type="time" value="${h.fim}" id="h-fim-${dia}" style="background:var(--tide);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;width:70px">
+    </div>
+  `).join('');
+}
+
+function toggleHorario(btn, dia) {
+  btn.classList.toggle('on');
+  STATE.horarios[dia].ab = btn.classList.contains('on');
+}
+
+function salvarHorarios() {
+  Object.keys(STATE.horarios).forEach(dia=>{
+    const ini = document.getElementById('h-ini-'+dia);
+    const fim = document.getElementById('h-fim-'+dia);
+    if(ini) STATE.horarios[dia].ini = ini.value;
+    if(fim) STATE.horarios[dia].fim = fim.value;
+  });
+  closeModal('modal-config-horarios');
+  saveState(); showToast('Horários salvos.','success');
+}
+
+function renderEquipamentos() {
+  const el = document.getElementById('equip-list');
+  el.innerHTML = STATE.equipamentos.map((e,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span style="font-size:13px">${e}</span>
+      <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;font-family:inherit" onclick="removeEquip(${i})">Remover</button>
+    </div>
+  `).join('');
+}
+
+function removeEquip(i) { STATE.equipamentos.splice(i,1); renderEquipamentos(); saveState(); showToast('Equipamento removido.'); }
+
+function addEquipamento() {
+  const v = document.getElementById('equip-input').value.trim();
+  if(!v) return;
+  STATE.equipamentos.push(v);
+  document.getElementById('equip-input').value='';
+  renderEquipamentos();
+  saveState(); showToast('Equipamento adicionado.','success');
+}
+
+function renderProfessores() {
+  const el = document.getElementById('prof-list');
+  el.innerHTML = STATE.professores.map((p,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div><div style="font-size:13px;font-weight:600">${p.nome}</div><div style="font-size:11px;color:var(--muted)">${p.esp} · CREF ${p.cref}</div></div>
+      <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px" onclick="removeProf(${i})">Remover</button>
+    </div>
+  `).join('');
+}
+
+function removeProf(i) { STATE.professores.splice(i,1); renderProfessores(); saveState(); showToast('Professor removido.'); }
+
+function addProfessor() {
+  const nome = document.getElementById('prof-nome').value.trim();
+  if(!nome){ showToast('Nome obrigatório','danger'); return; }
+  STATE.professores.push({ nome, esp:document.getElementById('prof-esp').value||'—', cref:document.getElementById('prof-cref').value||'—' });
+  document.getElementById('prof-nome').value=''; document.getElementById('prof-esp').value=''; document.getElementById('prof-cref').value='';
+  renderProfessores();
+  saveState(); showToast('Professor adicionado.','success');
+}
+
+function renderRelatorio() {
+  const ativos    = STATE.alunos.filter(a=>a.status==='ativo').length;
+  const vencidos  = STATE.alunos.filter(a=>a.status==='vencido').length;
+  const vencendo  = STATE.alunos.filter(a=>a.status==='vencendo').length;
+  const receita   = STATE.pagamentos.reduce((s,p)=>s+p.valor,0);
+  const inadim    = STATE.alunos.filter(a=>a.status==='vencido').reduce((s,a)=>s+(PLANO_PRECOS[a.plano]||0),0);
+
+  document.getElementById('rel-content').innerHTML = `
+    <div style="background:var(--tide);border-radius:var(--rs);padding:14px;margin-bottom:12px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text)">${STATE.academia.nome} — Setembro 2026</div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span>Total de alunos</span><strong>${STATE.alunos.length}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span>Ativos</span><strong style="color:var(--ok)">${ativos}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span>A vencer</span><strong style="color:var(--warn)">${vencendo}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span>Inadimplentes</span><strong style="color:var(--danger)">${vencidos}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span>Receita do mês</span><strong style="color:var(--blue)">R$ ${receita.toLocaleString('pt-BR')}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0"><span>Inadimplência (estimada)</span><strong style="color:var(--danger)">R$ ${inadim.toLocaleString('pt-BR')}</strong></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.7">
+      Fichas de treino geradas: ${STATE.fichas.length}<br>
+      Aulas cadastradas: ${STATE.aulas.length}<br>
+      Professores: ${STATE.professores.length}<br>
+      Equipamentos: ${STATE.equipamentos.length}
+    </div>
+  `;
+}
+
+// ── NOTIFICAÇÕES ──
+function markAllRead() {
+  document.querySelectorAll('.notif-item').forEach(n=>{ n.classList.remove('unread'); n.querySelector('.notif-dot2').classList.add('read'); });
+  document.getElementById('btn-notif').classList.remove('notif-dot');
+  showToast('Todas marcadas como lidas');
+}
+
+// ══════════════════════════════════════════════
+//   INIT
+// ══════════════════════════════════════════════
+loadState();
+bindMotion();
+renderDash();
+renderAlunos();
+renderCal();
+renderAgenda();
+</script>
+</body>
+</html>

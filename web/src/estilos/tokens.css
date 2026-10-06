@@ -1,0 +1,209 @@
+/* ═══════════════════════════════════════════════════════════
+   DARK FISIC — tokens
+
+   Visual de ferramenta de trabalho: superficies lisas, bordas finas,
+   um azul so (a marca) para acao e selecao. Verde, ambar e vermelho
+   aparecem apenas quando significam situacao -- nunca como enfeite.
+   Tema escuro por padrao; o claro fica em Configuracoes.
+   ═══════════════════════════════════════════════════════════ */
+@import '@fontsource-variable/manrope';
+
+:root, [data-tema='escuro'] {
+
+  color-scheme: dark;
+  --bg: #111318;          /* fundo do app */
+  --surface: #181B21;     /* paineis, cartoes, lateral */
+  --surface-2: #20242C;   /* hover, campos, destaque leve */
+  --surface-3: #2A2F39;   /* pressionado, trilhos */
+  --border: #2A2F38;
+  --border-forte: #3A404B;
+
+  --text: #E8EAEE;
+  --muted: #979EAB;
+  --fraco: #6B7280;
+
+  --accent: #5B85F5;      /* azul DARK FISIC */
+  --accent-hover: #7096F7;
+  /* texto escuro sobre o azul: branco aqui da 3.4 de contraste e cansa a
+     leitura do botao principal. No tema claro o azul e mais fundo e o
+     branco passa com folga. */
+  --accent-texto: #0B0F18;
+  --accent-suave: rgba(91, 133, 245, .14);
+
+  --ok: #3DBE83;     --ok-suave: rgba(61, 190, 131, .13);
+  --warn: #E2A33C;   --warn-suave: rgba(226, 163, 60, .13);
+  --danger: #EA5A62; --danger-suave: rgba(234, 90, 98, .13);
+  --purple: #9A88F2; --purple-suave: rgba(154, 136, 242, .14);
+
+  --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+  --sombra-cartao: none;
+  --fundo-modal: rgba(5, 6, 9, .62);
+}
+
+/* Cinza: o mesmo desenho do grafite, um degrau acima no cinza.
+   Para quem acha o padrao escuro demais sem querer tela branca. */
+[data-tema='cinza'] {
+  color-scheme: dark;
+  --bg: #1E2127;
+  --surface: #262A32;
+  --surface-2: #2C313A;
+  --surface-3: #363C47;
+  --border: #363B45;
+  --border-forte: #474E5A;
+
+  --text: #EDEFF3;
+  --muted: #A8AEBA;
+  --fraco: #7C838F;
+
+  --accent: #6C94F7;
+  --accent-hover: #87A8F9;
+  --accent-texto: #0C101A;
+  --accent-suave: rgba(108, 148, 247, .16);
+
+  --ok: #4ECB92;     --ok-suave: rgba(78, 203, 146, .14);
+  --warn: #EBB154;   --warn-suave: rgba(235, 177, 84, .14);
+  --danger: #F2737A; --danger-suave: rgba(242, 115, 122, .14);
+  --purple: #A897F5; --purple-suave: rgba(168, 151, 245, .15);
+
+  --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, .4), 0 2px 6px rgba(0, 0, 0, .26);
+  --sombra-cartao: none;
+  --fundo-modal: rgba(10, 12, 16, .6);
+}
+
+/* Meia-noite: azul profundo com verde-agua na acao. Mais "academia a noite"
+   que o grafite, sem apelar para neon. */
+[data-tema='meianoite'] {
+  color-scheme: dark;
+  --bg: #0E1522;
+  --surface: #162032;
+  --surface-2: #1C2740;
+  --surface-3: #25324F;
+  --border: #243150;
+  --border-forte: #334263;
+
+  --text: #E6EEF8;
+  --muted: #9DB0CB;
+  --fraco: #6E82A0;
+
+  --accent: #49C7CE;
+  --accent-hover: #6FD9DE;
+  --accent-texto: #06151B;
+  --accent-suave: rgba(73, 199, 206, .15);
+
+  --ok: #4FCB95;     --ok-suave: rgba(79, 203, 149, .14);
+  --warn: #E7B457;   --warn-suave: rgba(231, 180, 87, .15);
+  --danger: #F0757F; --danger-suave: rgba(240, 117, 127, .15);
+  --purple: #9E9BF6; --purple-suave: rgba(158, 155, 246, .16);
+
+  --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
+  --sombra-cartao: none;
+  --fundo-modal: rgba(4, 9, 18, .66);
+}
+
+/* Areia: claro quente. O branco puro estoura na recepcao com sol batendo. */
+[data-tema='areia'] {
+  color-scheme: light;
+  --bg: #F6F2EA;
+  --surface: #FFFDF9;
+  --surface-2: #F1EBE0;
+  --surface-3: #E6DECF;
+  --border: #E4DCCD;
+  --border-forte: #CDC2AE;
+
+  --text: #231D14;
+  --muted: #6A5F4F;
+  --fraco: #8E8273;
+
+  --accent: #A8551E;
+  --accent-hover: #8E4516;
+  --accent-texto: #FFFFFF;
+  --accent-suave: rgba(168, 85, 30, .12);
+
+  --ok: #166B46;     --ok-suave: rgba(22, 107, 70, .12);
+  --warn: #96610C;   --warn-suave: rgba(150, 97, 12, .13);
+  --danger: #B32D32; --danger-suave: rgba(179, 45, 50, .11);
+  --purple: #5B4BBE; --purple-suave: rgba(91, 75, 190, .12);
+
+  --sombra-flutuante: 0 12px 32px rgba(60, 45, 25, .16), 0 2px 6px rgba(60, 45, 25, .1);
+  --sombra-cartao: 0 1px 2px rgba(60, 45, 25, .06);
+  --fundo-modal: rgba(40, 30, 18, .4);
+}
+
+[data-tema='claro'] {
+  color-scheme: light;
+  --bg: #F3F4F6;
+  --surface: #FFFFFF;
+  --surface-2: #F1F3F6;
+  --surface-3: #E6E9EE;
+  --border: #E1E4E9;
+  --border-forte: #CDD2DA;
+
+  --text: #161920;
+  --muted: #5D6472;
+  --fraco: #8A909C;
+
+  --accent: #2F62E0;
+  --accent-hover: #2552C4;
+  --accent-texto: #FFFFFF;
+  --accent-suave: rgba(47, 98, 224, .10);
+
+  --ok: #15875A;     --ok-suave: rgba(21, 135, 90, .10);
+  --warn: #AD7412;   --warn-suave: rgba(173, 116, 18, .11);
+  --danger: #C8323E; --danger-suave: rgba(200, 50, 62, .09);
+  --purple: #6553D1; --purple-suave: rgba(101, 83, 209, .10);
+
+  --sombra-flutuante: 0 12px 32px rgba(20, 25, 35, .14), 0 2px 6px rgba(20, 25, 35, .08);
+  --sombra-cartao: 0 1px 2px rgba(20, 25, 35, .05);
+  --fundo-modal: rgba(20, 24, 32, .38);
+}
+
+:root {
+  /* nomes antigos usados em estilos inline dos componentes */
+  --blue: var(--accent);
+
+  /* raios por hierarquia */
+  --r: 12px;    /* paineis */
+  --rs: 8px;    /* campos, botoes, cartoes internos */
+  --rp: 6px;    /* etiquetas */
+
+  --fonte: 'Manrope Variable', 'Segoe UI', system-ui, sans-serif;
+
+  /* movimento: curto e com desaceleracao; nada fica "flutuando" */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --rapido: 120ms;
+  --medio: 200ms;
+
+  /* barra de titulo do app de PC (0 no navegador e no celular) */
+  --barra-janela: 0px;
+
+  /* Régua de espaçamento: TODO bloco de tela usa estas duas medidas.
+     Antes cada tela tinha a sua margem (0, 14px, 18px) e os cartões ficavam
+     desalinhados entre si. */
+  --gutter: 18px;   /* recuo lateral do conteúdo */
+  --gap: 14px;      /* respiro entre blocos */
+
+  --sidebar-w: 232px;
+  --sidebar-w-icones: 68px;
+  --topbar-h: 56px;
+  --bottomnav-h: 62px;
+  --largura-mobile: 480px;
+  --lista-w: 380px;
+}
+
+.com-barra-janela { --barra-janela: 34px; }
+
+/* ─── escala de texto ─────────────────────────────────────
+   Oito degraus, e nada fora deles. Antes eram 21 tamanhos espalhados pelos
+   arquivos (13px aqui, 13.5 ali, 14.5 acolá): de perto ninguém nota, mas de
+   longe a tela toda parece desencontrada. Não varia com o tema -- por isso
+   fica aqui, e não dentro de :root junto das cores. */
+html {
+  --txt-xs: 11.5px;
+  --txt-sm: 12.5px;
+  --txt-base: 13.5px;
+  --txt-md: 15px;
+  --txt-lg: 17px;
+  --txt-xl: 22px;
+  --txt-2xl: 26px;
+  --txt-3xl: 32px;
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Logo DARK FISIC: D branco + F azul, como "DARK" branco + "FISIC" azul no nome.
+       Inclinacao de 10 graus: movimento. Fonte unica: scripts/gerar-icones.cjs gera
+       todos os icones daqui (Windows, bandeja, celular, favicon). -->
+  <rect width="64" height="64" rx="14" fill="#16181D"/>
+  <rect x=".75" y=".75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#2E333D" stroke-width="1.5"/>
+  <g transform="translate(32 32) scale(.88) skewX(-10) translate(-32 -32)">
+    <path d="M8 16H16A16 16 0 0 1 16 48H8Z M16 24A8 8 0 0 1 16 40Z" fill="#F2F4F7" fill-rule="evenodd"/>
+    <path d="M36 16H56V24H44V28H52V36H44V48H36Z" fill="#5B85F5"/>
+  </g>
+</svg>

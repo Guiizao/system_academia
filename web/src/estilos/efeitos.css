@@ -1,0 +1,90 @@
+/* ─── Efeitos opcionais ───────────────────────────────────
+   Cada bloco só vale quando a classe `ef-*` está no <html>. O visual base
+   fica sóbrio sem nenhum deles; quem quiser a tela mais viva liga em
+   Configurações. Nada aqui muda cor de marca nem inventa brilho de neon:
+   é movimento e profundidade, não enfeite.
+
+   O bloco de `prefers-reduced-motion` no fim desliga tudo o que se move,
+   independente do que a pessoa escolheu -- a preferência do aparelho ganha. */
+
+/* 1. Cartões com relevo ─────────────────────────────────
+   O cartão sob o cursor sobe 2px e ganha sombra. Diz "isto aqui é um bloco
+   inteiro", o que ajuda em tela cheia de caixa. */
+html.ef-relevo .card,
+html.ef-relevo .plano,
+html.ef-relevo .previa {
+  transition: transform var(--rapido) var(--ease), box-shadow var(--rapido) var(--ease),
+              border-color var(--rapido) var(--ease);
+}
+html.ef-relevo .card:hover,
+html.ef-relevo .plano:hover,
+html.ef-relevo .previa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .45);
+  border-color: var(--border-forte);
+}
+
+/* 2. Realce do que está em foco ─────────────────────────
+   Linha sob o cursor e campo em edição ficam destacados. Vale também para
+   quem anda pelo teclado: o anel de foco fica visível de longe. */
+html.ef-foco-vivo .lista-linha:hover,
+html.ef-foco-vivo .aluno-item:hover,
+html.ef-foco-vivo tbody tr:hover {
+  background: var(--surface-2);
+}
+html.ef-foco-vivo .campo input:focus,
+html.ef-foco-vivo .campo select:focus,
+html.ef-foco-vivo .campo textarea:focus {
+  box-shadow: 0 0 0 3px var(--accent-suave), 0 0 0 1px var(--accent);
+}
+html.ef-foco-vivo :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 3. Listas em cascata ──────────────────────────────────
+   Os itens chegam em sequência. Só os 8 primeiros: com 111 alunos na lista,
+   animar todos custaria caro e faria a tela PARECER lenta. */
+html.ef-cascata .escalonar > * { animation: entrar 220ms var(--ease) backwards; }
+html.ef-cascata .escalonar > *:nth-child(1) { animation-delay: 0ms; }
+html.ef-cascata .escalonar > *:nth-child(2) { animation-delay: 60ms; }
+html.ef-cascata .escalonar > *:nth-child(3) { animation-delay: 120ms; }
+html.ef-cascata .escalonar > *:nth-child(4) { animation-delay: 180ms; }
+html.ef-cascata .escalonar > *:nth-child(5) { animation-delay: 240ms; }
+html.ef-cascata .escalonar > *:nth-child(6) { animation-delay: 300ms; }
+html.ef-cascata .escalonar > *:nth-child(7) { animation-delay: 360ms; }
+html.ef-cascata .escalonar > *:nth-child(8) { animation-delay: 420ms; }
+html.ef-cascata .escalonar > *:nth-child(n+9) { animation: none; }
+
+/* 4. Fundo com respiro ──────────────────────────────────
+   Um clarão enorme e quase invisível que atravessa o fundo em 40s. Fica
+   atrás de tudo (z-index -1) e não intercepta clique. */
+html.ef-respiro body::before {
+  content: '';
+  position: fixed; inset: -20vmax;
+  z-index: -1; pointer-events: none;
+  background: radial-gradient(42vmax 42vmax at 30% 20%,
+              color-mix(in srgb, var(--accent) 11%, transparent), transparent 70%);
+  animation: respirar 40s ease-in-out infinite;
+}
+@keyframes respirar {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: .75; }
+  50%      { transform: translate3d(6vmax, 4vmax, 0) scale(1.15); opacity: 1; }
+}
+
+/* 5. Transição entre telas ──────────────────────────────
+   A tela nova entra deslizando de baixo em vez de piscar. */
+html.ef-troca-de-tela .tela-troca { animation: entrar-tela 260ms var(--ease) backwards; }
+@keyframes entrar-tela {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* A preferência do aparelho vence a escolha de efeitos: quem pediu menos
+   movimento no Windows não recebe movimento nenhum, tenha ligado o que tiver. */
+@media (prefers-reduced-motion: reduce) {
+  html.ef-respiro body::before { animation: none; }
+  html.ef-relevo .card:hover,
+  html.ef-relevo .plano:hover,
+  html.ef-relevo .previa:hover { transform: none; }
+}

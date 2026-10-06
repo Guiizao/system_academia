@@ -1,0 +1,35 @@
+# ─── Dados de aluno: NUNCA saem do notebook ────────────────────────
+# Nome, telefone, medida, pagamento. O combinado do projeto e que isso
+# fica so na maquina da academia -- nada disso sobe para lugar nenhum.
+api/dados/
+api/backups/
+*.db
+*.db-wal
+*.db-shm
+desktop/instalador/atualizacao/alunos-planilha.json
+*.env
+.env
+
+# ─── Dependencias ──────────────────────────────────────────────────
+node_modules/
+
+# ─── Saidas de build (se refazem com npm run build) ────────────────
+api/dist/
+web/dist/
+desktop/app/
+*.tsbuildinfo
+
+# ─── Pacotes prontos: pesados e descartaveis ───────────────────────
+# O instalador 0.1.1 sozinho tem 121 MB. Tudo isso volta rodando
+# desktop/scripts/preparar.mjs + gerar-atualizacao.mjs.
+desktop/instalador/
+desktop/referencia-0.1.1/
+*.zip
+*.exe
+*.blockmap
+
+# ─── Lixo do sistema ───────────────────────────────────────────────
+Thumbs.db
+desktop.ini
+.DS_Store
+*.log

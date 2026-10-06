@@ -1,0 +1,1 @@
+ALTER TABLE `plano` ADD `duracao_dias` integer;

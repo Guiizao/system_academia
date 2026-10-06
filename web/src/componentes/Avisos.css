@@ -1,0 +1,21 @@
+.avisos { display: flex; flex-direction: column; margin: 0 -8px; }
+.aviso-item {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: baseline; text-align: left;
+  padding: 11px 8px; border-radius: var(--rs); width: 100%; position: relative;
+  transition: background-color var(--rapido);
+  animation: entrar var(--medio) var(--ease) backwards;
+}
+.aviso-item + .aviso-item::before { content: ''; position: absolute; top: 0; left: 8px; right: 8px; border-top: 1px solid var(--border); }
+.aviso-item:not(:disabled):hover { background: var(--surface-2); }
+.aviso-item .ponto { grid-row: span 2; transform: translateY(-1px); }
+.aviso-item__titulo { font-size: var(--txt-md); font-weight: 650; }
+.aviso-item__detalhe { font-size: var(--txt-base); color: var(--muted); grid-column: 2; }
+
+/* barra de ação dos avisos: contagem + marcar como visto */
+.avisos__barra {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 0 0 10px; margin-bottom: 4px; border-bottom: 1px solid var(--border);
+  font-size: var(--txt-base); font-weight: 650; color: var(--text);
+}
+.avisos__barra small { color: var(--muted); font-weight: 600; }
+.avisos__acoes { display: flex; gap: 6px; }

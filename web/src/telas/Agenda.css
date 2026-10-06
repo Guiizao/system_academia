@@ -1,0 +1,71 @@
+/* ─── dias da semana ─── */
+.tira-dias { display: flex; gap: 6px; padding: 2px 14px 12px; overflow-x: auto; scrollbar-width: none; }
+.tira-dias::-webkit-scrollbar { display: none; }
+.shell--desktop .tira-dias { padding: 2px 0 12px; }
+.dia {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 0;
+  border-radius: var(--r); flex-shrink: 0; min-width: 54px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); transition: background-color var(--rapido), border-color var(--rapido), color var(--rapido), transform var(--rapido);
+}
+.dia:hover { border-color: var(--border-forte); }
+.dia:active { transform: scale(.96); }
+.dia.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.dia__dow { font-size: var(--txt-sm); font-weight: 650; opacity: .7; text-transform: capitalize; }
+.dia__num { font-size: var(--txt-lg); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.3; }
+
+/* ─── aulas ─── */
+.aulas { padding: 0 14px; }
+.shell--desktop .aulas { padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+.aula {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-bottom: 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sombra-cartao);
+  animation: entrar var(--medio) var(--ease) backwards;
+}
+.shell--desktop .aula { margin-bottom: 0; }
+.aula:nth-child(2) { animation-delay: 30ms; } .aula:nth-child(3) { animation-delay: 60ms; } .aula:nth-child(4) { animation-delay: 90ms; }
+.aula__hora { font-size: var(--txt-lg); font-weight: 800; font-variant-numeric: tabular-nums; width: 48px; flex-shrink: 0; }
+.aula__barra { width: 1px; align-self: stretch; background: var(--border); flex-shrink: 0; }
+.aula__info { flex: 1; min-width: 0; }
+.aula__nome { font-size: var(--txt-md); font-weight: 700; }
+.aula__det { font-size: var(--txt-sm); color: var(--muted); margin-top: 1px; }
+.aula__cap { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.aula__trilho { flex: 1; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.aula__fill { height: 100%; border-radius: 3px; transform-origin: left; animation: encher 600ms var(--ease) backwards; }
+@keyframes encher { from { transform: scaleX(0); } }
+
+button.aula { width: 100%; text-align: left; color: inherit; transition: border-color var(--rapido), background-color var(--rapido), transform var(--rapido); }
+button.aula:not(:disabled):hover { border-color: var(--border-forte); background: var(--surface-2); }
+button.aula:not(:disabled):active { transform: scale(.99); }
+button.aula:disabled { cursor: not-allowed; opacity: .7; }
+
+.fichas-grade { padding: 0 14px; }
+.shell--desktop .fichas-grade { padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 14px; align-items: start; }
+
+.config-item {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; width: 100%;
+  border-bottom: 1px solid var(--border); text-align: left; transition: background-color var(--rapido);
+}
+.config-item:last-child { border-bottom: none; }
+.config-item:hover { background: var(--surface-2); }
+.config-item__icone {
+  width: 36px; height: 36px; border-radius: var(--rs); background: var(--accent-suave);
+  color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.config-item__txt { flex: 1; min-width: 0; }
+.config-item__nome { font-size: var(--txt-md); font-weight: 600; }
+.config-item__sub { font-size: var(--txt-sm); color: var(--muted); margin-top: 1px; }
+
+/* aviso da IA na tela de treinos */
+.ia-cartao { margin: 0 14px 14px; padding: 16px; }
+.shell--desktop .ia-cartao { margin: 0 0 16px; }
+.filtros-fichas { padding: 0 14px 12px; }
+.shell--desktop .filtros-fichas { padding: 0 0 14px; }
+
+/* A aula deixa de ser um botao gigante (nao dava para convidar sem inscrever).
+   As acoes ficam numa linha propria: no desktop os cartoes sao estreitos e
+   lado a lado, entao botao ao lado do texto espremia o nome da aula. */
+.aula { flex-wrap: wrap; }
+.aula__acoes {
+  display: flex; gap: 6px; align-items: center; justify-content: flex-end;
+  width: 100%; padding-top: 10px; margin-top: 2px; border-top: 1px solid var(--border);
+}

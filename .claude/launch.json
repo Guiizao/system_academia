@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dark-fisic",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "api", "tsx", "api/src/index.ts"],
+      "env": { "DB_PATH": "api/dados/academia.db", "WEB_DIST": "web/dist", "PORT": "3000" },
+      "port": 3000
+    },
+    {
+      "name": "dark-fisic-web-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "web"],
+      "port": 5173
+    }
+  ]
+}

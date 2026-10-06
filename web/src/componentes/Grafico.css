@@ -1,0 +1,50 @@
+/* Graficos: marca fina, eixo discreto, numero no hover.
+   Uma cor so por grafico -- quem separa as categorias e o rotulo. */
+
+.grafico__vazio { color: var(--muted); font-size: var(--txt-base); padding: 18px 2px; }
+.grafico__balao {
+  position: absolute; bottom: calc(100% + 6px); left: 50%; translate: -50% 0;
+  display: none; flex-direction: column; align-items: center; gap: 1px;
+  background: var(--surface-3); color: var(--text); border: 1px solid var(--border-forte);
+  border-radius: var(--rs); padding: 5px 9px; font-size: var(--txt-sm); font-weight: 700;
+  white-space: nowrap; z-index: 5; box-shadow: var(--sombra-flutuante);
+}
+.grafico__balao small { font-weight: 600; color: var(--muted); font-size: var(--txt-xs); }
+
+/* ─── barras em pe (meses) ────────────────────────────── */
+.grafico--vertical { display: flex; align-items: flex-end; gap: 8px; }
+.gv { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; }
+.gv__trilho {
+  position: relative; width: 100%; height: var(--altura, 132px);
+  display: flex; align-items: flex-end; justify-content: center;
+  background: var(--surface-2); border-radius: var(--rs);
+}
+.gv__barra {
+  width: 100%; background: var(--accent);
+  border-radius: var(--rs) var(--rs) 0 0;   /* ponta arredondada, base fixa no eixo */
+  transition: height 320ms var(--ease), background-color var(--rapido);
+  min-height: 2px;
+}
+.gv__trilho:hover .gv__barra { background: var(--accent-hover); }
+.gv__trilho:hover .grafico__balao { display: flex; }
+.gv--destaque .gv__rotulo { color: var(--text); font-weight: 700; }
+.gv__rotulo { font-size: var(--txt-xs); color: var(--muted); font-weight: 600; }
+
+/* ─── barras deitadas (ranking) ───────────────────────── */
+.grafico--horizontal { display: grid; gap: 10px; }
+.gh {
+  display: grid; grid-template-columns: minmax(70px, 118px) 1fr auto; align-items: center; gap: 10px;
+}
+.gh__rotulo { font-size: var(--txt-base); color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gh__trilho { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.gh__barra {
+  height: 100%; background: var(--accent); border-radius: 999px;
+  transition: width 320ms var(--ease);
+  min-width: 3px;
+}
+.gh__valor { font-size: var(--txt-base); font-weight: 700; white-space: nowrap; }
+.gh__detalhe { grid-column: 2 / -1; font-size: var(--txt-xs); color: var(--muted); margin-top: -4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gv__barra, .gh__barra { transition: none; }
+}

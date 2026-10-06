@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DARK FISIC — Colocar o sistema online</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 14mm; }
+
+  :root {
+    --tinta: #15181E;
+    --tinta-fraca: #585E6B;
+    --azul: #1F4FBF;
+    --azul-claro: #EAF0FD;
+    --linha: #D8DCE4;
+    --alerta: #B45309;
+    --alerta-fundo: #FEF6E7;
+    --perigo: #B3261E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--tinta);
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  /* capa ───────────────────────────────────────────── */
+  .capa {
+    page-break-after: always;
+    height: 247mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .capa__marca { font-size: 13pt; font-weight: 800; letter-spacing: .14em; color: var(--azul); }
+  .capa h1 { font-size: 30pt; line-height: 1.1; margin: 10mm 0 4mm; letter-spacing: -.02em; }
+  .capa__sub { font-size: 12pt; color: var(--tinta-fraca); max-width: 125mm; }
+  .capa__meta {
+    margin-top: 14mm; padding-top: 5mm; border-top: 2px solid var(--linha);
+    font-size: 9.5pt; color: var(--tinta-fraca);
+  }
+  .capa__meta b { color: var(--tinta); }
+
+  .resumo { margin-top: 10mm; background: var(--azul-claro); border-radius: 3mm; padding: 6mm 7mm; }
+  .resumo h2 { font-size: 11pt; margin-bottom: 3mm; color: var(--azul); }
+  .resumo ol { margin-left: 5mm; }
+  .resumo li { margin-bottom: 1.6mm; }
+
+  /* corpo ──────────────────────────────────────────── */
+  h2.secao {
+    font-size: 15pt; margin: 9mm 0 3mm; padding-bottom: 2mm;
+    border-bottom: 2px solid var(--azul); color: var(--azul);
+    page-break-after: avoid;
+  }
+  h2.secao:first-of-type { margin-top: 0; }
+  h3 { font-size: 11.5pt; margin: 6mm 0 2mm; page-break-after: avoid; }
+  p { margin-bottom: 2.5mm; }
+  ul, ol { margin: 0 0 3mm 5.5mm; }
+  li { margin-bottom: 1.4mm; }
+  b, strong { font-weight: 650; }
+
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9.5pt; background: #F1F3F7; padding: .4mm 1.2mm; border-radius: 1mm;
+  }
+  pre {
+    background: #15181E; color: #E8EBF0; padding: 4mm 5mm; border-radius: 2mm;
+    font-family: Consolas, "Courier New", monospace; font-size: 9.5pt;
+    margin: 2.5mm 0 3.5mm; white-space: pre-wrap; word-break: break-all;
+    page-break-inside: avoid;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { text-align: left; padding: 2.2mm 3mm; border-bottom: 1px solid var(--linha); vertical-align: top; }
+  th { background: #F5F6F9; font-weight: 650; }
+
+  .passo {
+    display: flex; gap: 4mm; margin-bottom: 4mm; page-break-inside: avoid;
+  }
+  .passo__n {
+    flex-shrink: 0; width: 7mm; height: 7mm; border-radius: 50%;
+    background: var(--azul); color: #fff; font-weight: 700; font-size: 10pt;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .passo__corpo { flex: 1; min-width: 0; }
+  .passo__corpo > p:last-child, .passo__corpo > pre:last-child { margin-bottom: 0; }
+
+  .aviso {
+    border-left: 3px solid var(--alerta); background: var(--alerta-fundo);
+    padding: 3.5mm 5mm; margin: 3mm 0 4mm; border-radius: 0 2mm 2mm 0;
+    page-break-inside: avoid;
+  }
+  .aviso b { color: var(--alerta); }
+  .aviso--perigo { border-left-color: var(--perigo); background: #FDF0EF; }
+  .aviso--perigo b { color: var(--perigo); }
+
+  .nota { color: var(--tinta-fraca); font-size: 9.5pt; }
+  .quebra { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<section class="capa">
+  <div class="capa__marca">DARK FISIC</div>
+  <h1>Colocar o sistema<br>online</h1>
+  <p class="capa__sub">
+    Passo a passo para o notebook da academia atender de qualquer lugar, por um
+    endereço seguro, sem abrir porta no roteador.
+  </p>
+
+  <div class="resumo">
+    <h2>O que você vai fazer</h2>
+    <ol>
+      <li>Preparar o notebook para ficar ligado sem dormir.</li>
+      <li>Testar o acesso de fora em 5 minutos, de graça, sem compromisso.</li>
+      <li>Registrar um endereço fixo e criar o túnel da Cloudflare.</li>
+      <li>Colocar uma porta de entrada antes do sistema (só quem você liberar).</li>
+      <li>Conferir que tudo volta sozinho depois de reiniciar.</li>
+    </ol>
+  </div>
+
+  <div class="capa__meta">
+    Versão do sistema: <b>0.1.8</b> &nbsp;·&nbsp; Documento gerado em <b>6 de outubro de 2026</b><br>
+    Tempo estimado: <b>20 a 30 minutos</b> &nbsp;·&nbsp; Custo: <b>grátis</b>, fora o domínio (~R$ 40/ano)
+  </div>
+</section>
+
+<h2 class="secao">1. Como funciona, em uma página</h2>
+
+<p>
+  Hoje o DARK FISIC só responde para quem está na Wi-Fi da academia. Para ele
+  atender de fora, a saída comum seria <b>abrir uma porta no roteador</b> — e isso
+  deixa o notebook exposto a qualquer varredura da internet. Não é o que vamos fazer.
+</p>
+<p>
+  O túnel inverte o sentido: um programinha (<code>cloudflared</code>) roda no
+  notebook e faz uma ligação <b>de dentro para fora</b>, até a Cloudflare. Quem
+  acessa o endereço chega na Cloudflare, e ela entrega pelo túnel que já está aberto.
+  <b>O roteador continua fechado.</b> Ninguém da internet alcança o notebook direto.
+</p>
+
+<table>
+  <tr><th style="width:38%">Item</th><th style="width:22%">Custo</th><th>Observação</th></tr>
+  <tr><td>Conta Cloudflare</td><td>Grátis</td><td>Só e-mail e senha</td></tr>
+  <tr><td>Programa <code>cloudflared</code></td><td>Grátis</td><td>Instala no notebook da academia</td></tr>
+  <tr><td>Domínio próprio</td><td>~R$ 40/ano</td><td>É o que dá endereço fixo e bonito</td></tr>
+  <tr><td>Cloudflare Access</td><td>Grátis até 50 pessoas</td><td>A porta antes da porta. Recomendado</td></tr>
+</table>
+
+<div class="aviso">
+  <b>Antes de divulgar o endereço.</b> O sistema já trava tentativas repetidas de
+  login (10 por minuto por aparelho, 40 no total) e já marca o cookie de sessão como
+  seguro quando o acesso vem por HTTPS. O que <b>ainda falta</b> é a cópia do backup
+  para fora do notebook: hoje, se o notebook queimar ou for roubado, o banco vai
+  junto. Isso não impede subir o túnel, mas trate como pendência real.
+</div>
+
+<h2 class="secao">2. Preparar o notebook</h2>
+
+<p>O túnel só funciona enquanto o notebook está ligado e com internet. Faça isto primeiro.</p>
+
+<div class="passo">
+  <div class="passo__n">1</div>
+  <div class="passo__corpo">
+    <p><b>Nunca dormir.</b> Painel de Controle → Opções de Energia → Alterar
+    configurações do plano. Com energia na tomada:</p>
+    <ul>
+      <li>Desligar vídeo: pode deixar 10 minutos.</li>
+      <li><b>Suspender atividade do computador: <code>Nunca</code></b>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="passo__n">2</div>
+  <div class="passo__corpo">
+    <p><b>Fechar a tampa não pode derrubar o sistema.</b> Na mesma tela, em
+    "Escolher a função do fechamento da tampa", com o notebook na tomada:
+    <code>Não fazer nada</code>.</p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="passo__n">3</div>
+  <div class="passo__corpo">
+    <p><b>Sempre na tomada</b>, e de preferência com cabo de rede. Wi-Fi caindo
+    significa sistema fora do ar para todo mundo.</p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="passo__n">4</div>
+  <div class="passo__corpo">
+    <p><b>Abrir junto com o Windows.</b> No painel do DARK FISIC, confirme que a
+    opção está marcada. Assim, depois de qualquer reinício, o sistema sobe sozinho.</p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="passo__n">5</div>
+  <div class="passo__corpo">
+    <p><b>Voltar depois de queda de luz.</b> Se esse POSITIVO tiver a opção na BIOS,
+    procure por <code>Restore on AC Power Loss</code> e deixe em <code>Power On</code>.
+    Sem isso, depois de um apagão alguém precisa apertar o botão.</p>
+  </div>
+</div>
+
+<h2 class="secao">3. Teste rápido: 5 minutos, sem conta e sem custo</h2>
+
+<p>
+  Serve para você ver funcionando antes de decidir qualquer coisa. O endereço é
+  temporário e morre quando você fecha.
+</p>
+
+<div class="passo">
+  <div class="passo__n">1</div>
+  <div class="passo__corpo">
+    <p>Abra o <b>PowerShell</b> no notebook da academia e instale o programa:</p>
+    <pre>winget install --id Cloudflare.cloudflared</pre>
+    <p class="nota">
+      Se o <code>winget</code> não existir nessa máquina, baixe
+      <code>cloudflared-windows-amd64.exe</code> da página oficial de releases
+      (github.com/cloudflare/cloudflared/releases/latest), renomeie para
+      <code>cloudflared.exe</code> e guarde em <code>C:\cloudflared\</code>.
+    </p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="passo__n">2</div>
+  <div class="passo__corpo">
+    <p>Com o DARK FISIC <b>aberto</b>, rode:</p>
+    <pre>cloudflared tunnel --url http://localhost:3000</pre>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="passo__n">3</div>
+  <div class="passo__corpo">
+    <p>
+      Ele imprime um endereço parecido com
+      <code>https://algo-aleatorio.trycloudflare.com</code>. Abra esse endereço no
+      celular <b>usando dados móveis</b> — não a Wi-Fi da academia. É isso que prova
+      que o acesso veio de fora.
+    </p>
+  </div>
+</div>
+
+<div class="passo">
+  <div class="passo__n">4</div>
+  <div class="passo__corpo">
+    <p>Para encerrar: <code>Ctrl + C</code> na janela. O endereço morre junto.</p>
+  </div>
+</div>
+
+<div class="aviso">
+  <b>Isso é só teste.</b> Esse endereço gratuito troca a cada vez que você liga e
+  não tem a porta da Cloudflare na frente. Não divulgue para aluno.
+</div>
+
+<h2 class="secao quebra">4. Endereço definitivo</h2>
+
+<h3>4.1 Criar a conta</h3>
+<p>
+  Em <code>dash.cloudflare.com</code>, crie a conta com o e-mail da academia e
+  <b>ative a verificação em dois passos</b>. Essa conta passa a ser a chave da porta
+  da frente: quem entrar nela controla o endereço.
+</p>
+
+<h3>4.2 O domínio</h3>
+<table>
+  <tr><th style="width:20%">Opção</th><th style="width:22%">Preço</th><th>Como funciona</th></tr>
+  <tr>
+    <td><code>.com.br</code></td><td>R$ 40/ano</td>
+    <td>Registra no <code>registro.br</code> (pede CPF ou CNPJ). Depois, na Cloudflare,
+    "Add a site", e o registro.br passa a apontar para os dois servidores DNS que ela
+    mostrar. Leva de minutos a algumas horas para valer.</td>
+  </tr>
+  <tr>
+    <td><code>.com</code></td><td>~US$ 11/ano</td>
+    <td>Compra dentro da própria Cloudflare e já vem configurado. Menos passos,
+    preço em dólar.</td>
+  </tr>
+</table>
+<p>Sugestão de endereço: <code>painel.darkfisic.com.br</code>.</p>
+
+<h3>4.3 Criar o túnel pelo painel</h3>
+
+<div class="passo">
+  <div class="passo__n">1</div>
+  <div class="passo__corpo">
+    <p>No painel: <b>Zero Trust → Networks → Tunnels → Create a tunnel</b>.</p>
+  </div>
+</div>
+<div class="passo">
+  <div class="passo__n">2</div>
+  <div class="passo__corpo">
+    <p>Tipo: <b>Cloudflared</b>. Nome: <code>darkfisic-notebook</code>.</p>
+  </div>
+</div>
+<div class="passo">
+  <div class="passo__n">3</div>
+  <div class="passo__corpo">
+    <p>
+      A tela mostra um comando pronto para Windows, com um código comprido
+      (o <i>token</i> do túnel). Copie e rode no PowerShell do notebook
+      <b>como administrador</b>:
+    </p>
+    <pre>cloudflared.exe service install &lt;TOKEN-QUE-O-PAINEL-MOSTROU&gt;</pre>
+    <p>
+      Isso instala o túnel <b>como serviço do Windows</b>: ele sobe sozinho quando o
+      notebook liga, antes de alguém fazer login.
+    </p>
+  </div>
+</div>
+<div class="passo">
+  <div class="passo__n">4</div>
+  <div class="passo__corpo">
+    <p>De volta ao painel, aba <b>Public Hostname → Add a public hostname</b>:</p>
+    <table>
+      <tr><td style="width:32%"><b>Subdomain</b></td><td><code>painel</code></td></tr>
+      <tr><td><b>Domain</b></td><td><code>darkfisic.com.br</code></td></tr>
+      <tr><td><b>Type</b></td><td><code>HTTP</code></td></tr>
+      <tr><td><b>URL</b></td><td><code>localhost:3000</code></td></tr>
+    </table>
+  </div>
+</div>
+<div class="passo">
+  <div class="passo__n">5</div>
+  <div class="passo__corpo">
+    <p>
+      Salve. Em menos de um minuto, <code>https://painel.darkfisic.com.br</code> abre
+      o sistema, com certificado HTTPS automático.
+    </p>
+  </div>
+</div>
+
+<div class="aviso aviso--perigo">
+  <b>O token é a chave do túnel.</b> Não mande por WhatsApp e não deixe anotado em
+  papel no balcão. Se vazar, no painel você clica em <b>Refresh token</b> e o antigo
+  deixa de valer.
+</div>
+
+<p class="nota">
+  Se o sistema estiver em outra porta, troque o <code>3000</code> do passo 4. Para
+  conferir, abra <code>http://localhost:3000/status</code> no navegador do notebook:
+  se responder um texto com <code>"ok": true</code>, é essa.
+</p>
+
+<h2 class="secao">5. Uma porta antes da porta</h2>
+
+<p>
+  Sem isto, qualquer pessoa da internet chega na <b>tela de login</b> do sistema e
+  pode ficar tentando. Com o Cloudflare Access, ela não chega nem lá.
+</p>
+
+<div class="passo">
+  <div class="passo__n">1</div>
+  <div class="passo__corpo">
+    <p><b>Zero Trust → Access → Applications → Add an application → Self-hosted</b>.</p>
+  </div>
+</div>
+<div class="passo">
+  <div class="passo__n">2</div>
+  <div class="passo__corpo">
+    <p>Nome: <code>DARK FISIC</code>. Domínio: <code>painel.darkfisic.com.br</code>.</p>
+  </div>
+</div>
+<div class="passo">
+  <div class="passo__n">3</div>
+  <div class="passo__corpo">
+    <p>Em <b>Policies</b>, crie uma política:</p>
+    <ul>
+      <li>Nome: <code>Equipe</code></li>
+      <li>Action: <b>Allow</b></li>
+      <li>Include: <b>Emails</b> → liste os e-mails de quem pode entrar (o seu, o do João, o da recepção)</li>
+    </ul>
+  </div>
+</div>
+<div class="passo">
+  <div class="passo__n">4</div>
+  <div class="passo__corpo">
+    <p>
+      Método de login: <b>One-time PIN</b> — a Cloudflare manda um código no e-mail.
+      Não precisa criar senha nova nem instalar nada.
+    </p>
+  </div>
+</div>
+
+<p>
+  Resultado: quem abre o endereço recebe primeiro a tela da Cloudflare pedindo o
+  e-mail; só quem está na lista chega no login do DARK FISIC. <b>São duas portas.</b>
+</p>
+
+<h2 class="secao">6. Conferir que ficou de pé</h2>
+
+<table>
+  <tr><th style="width:30%">Teste</th><th style="width:38%">Como</th><th>Esperado</th></tr>
+  <tr><td>Serviço rodando</td><td>PowerShell: <code>Get-Service cloudflared</code></td><td><code>Status: Running</code></td></tr>
+  <tr><td>Túnel conectado</td><td>Painel → Tunnels</td><td>Bolinha verde, <code>HEALTHY</code></td></tr>
+  <tr><td>Acesso de fora</td><td>Celular <b>nos dados móveis</b>, abrir o endereço</td><td>Tela da Cloudflare, depois o login</td></tr>
+  <tr><td><b>Sobrevive ao reinício</b></td><td>Reiniciar o notebook e <b>não</b> fazer login no Windows</td><td>O endereço continua abrindo</td></tr>
+</table>
+
+<p>
+  O último teste é o mais importante: é ele que prova que o serviço sobe sozinho,
+  sem depender de alguém entrar no Windows.
+</p>
+
+<h2 class="secao">7. Se der problema</h2>
+
+<table>
+  <tr><th style="width:38%">Sintoma</th><th>O que é, e o que fazer</th></tr>
+  <tr>
+    <td>Abre em casa, não abre no celular</td>
+    <td>Você estava na Wi-Fi da academia. Desligue o Wi-Fi do celular e teste nos dados.</td>
+  </tr>
+  <tr>
+    <td><code>Error 1033</code> ou <code>Tunnel not found</code></td>
+    <td>O serviço parou. Rode <code>Get-Service cloudflared</code> e, se estiver parado,
+    <code>Start-Service cloudflared</code>.</td>
+  </tr>
+  <tr>
+    <td><code>502 Bad Gateway</code></td>
+    <td>O túnel está de pé, mas o DARK FISIC não. Abra o programa no notebook e veja
+    se o painel mostra "servidor ligado".</td>
+  </tr>
+  <tr>
+    <td>"Site não encontrado" logo depois de comprar o domínio</td>
+    <td>DNS ainda propagando. No <code>.com.br</code> pode levar algumas horas.</td>
+  </tr>
+  <tr>
+    <td>O endereço abre, mas recusa a senha certa</td>
+    <td>Me chame. É ajuste no sistema, não na Cloudflare.</td>
+  </tr>
+</table>
+
+<h2 class="secao">8. Como desligar, se quiser voltar atrás</h2>
+
+<ul>
+  <li>
+    <b>Fechar o acesso na hora, de qualquer lugar:</b> painel → Tunnels → o túnel →
+    <b>Delete</b>. Cai imediatamente, e o sistema volta a funcionar só na Wi-Fi.
+  </li>
+  <li>
+    <b>Tirar do notebook:</b> PowerShell como administrador →
+    <code>cloudflared.exe service uninstall</code>
+  </li>
+</ul>
+<p>
+  Nada disso encosta no banco de dados nem nos alunos. É só o caminho de entrada.
+</p>
+
+<h2 class="secao">9. Quem faz o quê</h2>
+
+<table>
+  <tr><th style="width:26%">Quem</th><th>O quê</th></tr>
+  <tr>
+    <td><b>Você</b>, no notebook da academia</td>
+    <td>Seções 2 a 5: preparar a energia, criar a conta Cloudflare, registrar o
+    domínio, rodar o comando do túnel, cadastrar o endereço público e a política de
+    Access. De 20 a 30 minutos.</td>
+  </tr>
+  <tr>
+    <td><b>Eu</b>, no sistema</td>
+    <td>A cópia do backup para fora do notebook, que ainda não existe. O resto da
+    segurança de acesso já está entregue nesta versão.</td>
+  </tr>
+</table>
+
+<p class="nota" style="margin-top:8mm">
+  Se preferir ir devagar: faça só o teste rápido da seção 3 e me mande o que
+  apareceu. Dali eu confirmo se o resto vai no caminho certo.
+</p>
+
+</body>
+</html>

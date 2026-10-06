@@ -1,0 +1,72 @@
+/* mesmo documento do guia de instalacao: capa grafite, paginas claras */
+@import url(guia.css);
+
+.pagina { overflow: hidden; height: 297mm; }
+h2 { font-size: 21pt; }
+.intro { max-width: 165mm; }
+.mudo { color: #5D6472; }
+
+/* captura do sistema: borda fina, sem efeito */
+.tela { margin: 0 0 6mm; break-inside: avoid; }
+.tela img { display: block; width: 100%; border-radius: 2.5mm; border: 1px solid #D5DAE3; }
+.tela figcaption { font-size: 8.5pt; color: #5D6472; margin-top: 2mm; }
+.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; align-items: start; }
+
+/* o que a tela faz */
+.faz { list-style: none; display: grid; grid-template-columns: 1fr 1fr; column-gap: 8mm; row-gap: 2.4mm; }
+.faz.uma { grid-template-columns: 1fr; }
+.faz li { position: relative; padding-left: 4.5mm; }
+.faz li::before { content: ''; position: absolute; left: 0; top: 2.1mm; width: 1.6mm; height: 1.6mm; border-radius: 50%; background: #2F62E0; }
+
+/* caixa com filete na cor do significado */
+.caixa { border: 1px solid #E1E4E9; border-left: 1.2mm solid #2F62E0; border-radius: 0 2mm 2mm 0; padding: 3mm 4mm; break-inside: avoid; }
+.caixa strong { display: block; font-size: 10.5pt; margin-bottom: .8mm; }
+.caixa.c-ok { border-left-color: #15875A; } .caixa.c-danger { border-left-color: #C8323E; }
+.caixa + .caixa { margin-top: 4mm; }
+.regua { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin: 2mm 0 5mm; }
+.regua .caixa + .caixa { margin-top: 0; }
+
+/* situacao do aluno: as cores sao as mesmas do sistema */
+.estados { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 2mm 0 6mm; }
+.estado { border: 1px solid #E1E4E9; border-radius: 2mm; padding: 2.6mm 3mm; font-size: 8.8pt; color: #5D6472; }
+.estado strong { display: flex; align-items: center; gap: 2mm; font-size: 10pt; color: #151820; }
+.estado strong::before { content: ''; width: 2.2mm; height: 2.2mm; border-radius: 50%; background: var(--cor, #8A909C); }
+.estado.c-ok { --cor: #15875A; } .estado.c-warn { --cor: #AD7412; } .estado.c-danger { --cor: #C8323E; }
+
+/* capa com a tela principal */
+.capa .vitrine { margin-top: 12mm; }
+.capa .vitrine img { width: 100%; border-radius: 2.5mm; border: 1px solid #2A2F38; }
+.capa h1 { margin-top: 26mm; }
+
+/* como funciona */
+.mapa { display: grid; grid-template-columns: 1.15fr 18mm 1fr; align-items: center; margin: 2mm 0 6mm; }
+.mapa .no { border: 1px solid #D5DAE3; border-radius: 2.5mm; padding: 3.5mm 4.5mm; break-inside: avoid; }
+.mapa .no strong { display: block; font-size: 11pt; }
+.mapa .no ul { list-style: none; font-size: 9pt; color: #5D6472; margin-top: 1.2mm; }
+.mapa .no li + li { margin-top: .6mm; }
+.mapa .fio-rede { height: .5mm; background: #151820; position: relative; }
+.mapa .fio-rede span { position: absolute; top: -5.5mm; left: 0; right: 0; text-align: center; font-size: 8pt; color: #5D6472; font-weight: 700; }
+.mapa .pilha { display: grid; gap: 3mm; }
+
+/* celulares */
+.celulares { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-bottom: 6mm; }
+.celulares img { width: 100%; border-radius: 3mm; border: 1px solid #D5DAE3; }
+.celulares figcaption { font-size: 8pt; color: #5D6472; margin-top: 1.6mm; text-align: center; }
+
+/* desligado: tracejado, cinza, chave em off */
+.desligado { border: 1px dashed #B9C0CC; border-radius: 2.5mm; padding: 4.5mm 5mm; break-inside: avoid; }
+.desligado + .desligado { margin-top: 5mm; }
+.desligado header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2mm; }
+.desligado header strong { font-size: 13pt; font-weight: 800; }
+.chave { display: inline-flex; align-items: center; gap: 2mm; font-size: 8.5pt; color: #5D6472; font-weight: 700; }
+.chave i { width: 8mm; height: 4.4mm; border-radius: 2.2mm; background: #E1E4E9; position: relative; }
+.chave i::after { content: ''; position: absolute; left: .7mm; top: .7mm; width: 3mm; height: 3mm; border-radius: 50%; background: #8A909C; }
+.desligado .faz li::before { background: #8A909C; }
+.desligado h4 { font-size: 10pt; margin: 3mm 0 1.4mm; }
+
+/* proximos passos: sequencia de verdade, numerada */
+.proximo { display: grid; grid-template-columns: 9mm 1fr 26mm; gap: 3mm; padding: 3mm 0; border-bottom: 1px solid #E1E4E9; break-inside: avoid; }
+.proximo .passo__n { width: 7mm; height: 7mm; font-size: 10pt; }
+.proximo strong { display: block; font-size: 10.5pt; }
+.proximo div span { font-size: 9.2pt; color: #5D6472; }
+.proximo em { font-style: normal; font-size: 8.5pt; font-weight: 700; color: #5D6472; text-align: right; }

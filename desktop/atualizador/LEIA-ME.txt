@@ -1,0 +1,44 @@
+DARK FISIC - atualizacao sem instalador
+=======================================
+
+COMO USAR
+---------
+1. Clique com o botao direito no zip e escolha "Extrair tudo".
+2. Entre na pasta que apareceu.
+3. Clique duas vezes em ATUALIZAR.bat.
+4. Espere a mensagem "Pronto!" e feche a janela.
+
+Demora menos de um minuto. O sistema fecha e abre sozinho.
+
+
+O QUE ELE FAZ
+-------------
+- Confere se o pacote serve para esta instalacao (versao e bibliotecas).
+- Confere a impressao digital de cada arquivo antes de copiar.
+- Guarda uma copia do banco de dados antes de mexer em qualquer coisa.
+- Troca so o programa. Os dados da academia nao sao tocados.
+- Abre o sistema de novo e so termina quando ele responde com a versao nova.
+- Se alguma coisa der errado, volta tudo para a versao anterior sozinho.
+
+
+O QUE ELE NAO FAZ
+-----------------
+- Nao apaga aluno, ficha, pagamento nem configuracao.
+- Nao mexe no Windows nem em outros programas.
+- Nao precisa de internet.
+
+
+SE APARECER ALGUMA MENSAGEM
+---------------------------
+"O sistema ja esta nesta versao"      -> nao precisa fazer nada.
+"use o instalador completo"           -> me avise; mando o instalador .exe.
+"o arquivo chegou corrompido"         -> baixe o zip de novo.
+"voltei para a versao anterior"       -> nada foi perdido; me avise.
+"nao achei o DARK FISIC instalado"    -> arraste a pasta da instalacao
+                                         para cima do ATUALIZAR.bat.
+
+O registro de tudo fica em:
+%LOCALAPPDATA%\DarkFisic\logs\atualizacao.log
+
+As copias de seguranca ficam em:
+%LOCALAPPDATA%\DarkFisic\backups\

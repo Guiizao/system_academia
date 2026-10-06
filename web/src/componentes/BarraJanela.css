@@ -1,0 +1,38 @@
+/* Barra de titulo do app de PC (so existe dentro dele: html.com-barra-janela).
+   A altura vem de --barra-janela, que o resto do layout desconta. */
+/* No app de PC quem rola e o #root, nao a pagina: assim a barra de rolagem
+   comeca ABAIXO da barra de titulo, em vez de atravessar a tela inteira por
+   cima dela. No navegador (--barra-janela: 0) nada disso muda. */
+.com-barra-janela body { overflow: hidden; }
+.com-barra-janela #root {
+  height: calc(100% - var(--barra-janela));
+  margin-top: var(--barra-janela);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+/* com modal aberto, nada atras dele rola */
+.modal-aberto body, .modal-aberto #root { overflow: hidden; }
+
+.barra-janela {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--barra-janela); z-index: 600;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 6px 0 14px; background: var(--bg); border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag; user-select: none;
+}
+.barra-janela__titulo { font-size: var(--txt-sm); font-weight: 800; letter-spacing: .05em; color: var(--muted); }
+.barra-janela__titulo b { color: var(--accent); font-weight: 800; }
+.barra-janela__botoes { display: flex; gap: 3px; -webkit-app-region: no-drag; }
+
+/* botoes coloridos: amarelo minimiza, verde tela cheia, vermelho fecha */
+.jbtn {
+  width: 34px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  color: var(--cor); transition: background-color var(--rapido), color var(--rapido), transform var(--rapido);
+}
+.jbtn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.jbtn:hover { background: color-mix(in srgb, var(--cor) 16%, transparent); }
+.jbtn:active { transform: scale(.92); }
+.jbtn--min { --cor: var(--warn); }
+.jbtn--max { --cor: var(--ok); }
+.jbtn--fechar { --cor: var(--danger); }
+.jbtn--fechar:hover { background: var(--danger); color: #fff; }

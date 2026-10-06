@@ -1,0 +1,178 @@
+/* ─── busca e filtros ─── */
+.busca { margin: 4px 14px 4px; position: relative; display: flex; align-items: center; }
+.busca svg { position: absolute; left: 12px; color: var(--fraco); pointer-events: none; }
+.busca input {
+  width: 100%; height: 40px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--rs); padding: 0 38px 0 38px; color: var(--text);
+  font-size: var(--txt-md); outline: none; transition: border-color var(--rapido), box-shadow var(--rapido);
+}
+.busca input:hover { border-color: var(--border-forte); }
+.busca input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-suave); }
+.busca input::placeholder { color: var(--fraco); }
+.busca__atalho {
+  position: absolute; right: 10px; font-size: var(--txt-xs); color: var(--muted); font-weight: 700;
+  border: 1px solid var(--border); border-radius: 5px; padding: 0 6px; font-family: inherit; line-height: 18px;
+}
+/* Os filtros quebram linha em vez de rolar para o lado: na coluna de 380px o
+   último ("Inativos") ficava escondido atrás da borda, sem nada indicando que
+   dava para arrastar. */
+.alunos__chips { padding: 10px 14px 4px; flex-wrap: wrap; overflow-x: visible; row-gap: 6px; }
+
+.dica-teclado { padding: 8px 14px 6px; font-size: var(--txt-sm); color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.dica-teclado kbd {
+  border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; line-height: 17px;
+  font-size: var(--txt-xs); font-family: inherit; font-weight: 700; color: var(--text);
+}
+.dica-teclado .link-btn { margin-left: auto; }
+
+/* ─── lista ─── */
+.alunos__lista { flex: 1; overflow-y: auto; padding: 4px 8px 12px; }
+.aluno-item {
+  display: flex; align-items: center; gap: 11px; padding: 10px 10px; width: 100%;
+  border-radius: var(--rs); text-align: left; position: relative;
+  transition: background-color var(--rapido);
+}
+.aluno-item:hover { background: var(--surface); }
+.aluno-item.sel { background: var(--surface-2); }
+.aluno-item.sel::before {
+  content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--accent); animation: surgir var(--medio) var(--ease);
+}
+.aluno-item.foco:not(.sel) { box-shadow: inset 0 0 0 1px var(--border-forte); }
+.aluno-item__info { flex: 1; min-width: 0; }
+.aluno-item__nome { font-size: var(--txt-md); font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aluno-item__meta { font-size: var(--txt-sm); color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aluno-item__dir { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; }
+.aluno-item__aviso { font-size: var(--txt-sm); color: var(--warn); margin-top: 3px; font-weight: 650; }
+.aluno-item__aviso.grave { color: var(--danger); }
+.aluno-item:disabled { cursor: default; opacity: .55; }
+.aluno-item:disabled:hover { background: none; }
+
+/* check-in confirmado: a linha acende em verde e o visto entra no avatar */
+.aluno-item.confirmado { animation: confirmar 1.4s var(--ease); }
+@keyframes confirmar { 0%, 60% { background: var(--ok-suave); } 100% { background: var(--surface-2); } }
+.visto {
+  position: absolute; left: 36px; top: 30px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ok); color: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 2px var(--surface-2); animation: estalar 320ms var(--ease) both;
+}
+@keyframes estalar { from { transform: scale(.3); opacity: 0; } 70% { transform: scale(1.12); opacity: 1; } to { transform: none; } }
+
+.fab {
+  position: fixed; bottom: calc(var(--bottomnav-h) + 16px); right: max(16px, calc(50vw - var(--largura-mobile) / 2 + 16px));
+  width: 52px; height: 52px; border-radius: 16px; background: var(--accent); color: var(--accent-texto);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--sombra-flutuante); z-index: 150; transition: transform var(--rapido), background-color var(--rapido);
+}
+.fab:hover { background: var(--accent-hover); }
+.fab:active { transform: scale(.93); }
+
+/* ─── perfil ─── */
+.perfil { padding-bottom: 40px; }
+.perfil__topo { display: flex; align-items: center; gap: 16px; padding: 26px 28px 18px; flex-wrap: wrap; }
+.perfil__id { flex: 1; min-width: 180px; }
+.perfil__id h2 { font-size: var(--txt-xl); font-weight: 750; letter-spacing: -.02em; line-height: 1.25; }
+.perfil__id p { font-size: var(--txt-base); color: var(--muted); margin-top: 2px; }
+.perfil__selos { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.perfil__acoes { display: flex; gap: 8px; flex-shrink: 0; }
+.btn-ok { background: var(--ok); color: #fff; }
+.btn-ok svg { animation: estalar 320ms var(--ease) both; }
+
+.perfil__faixa {
+  display: flex; align-items: center; gap: 8px; margin: 0 28px 14px;
+  padding: 10px 14px; border-radius: var(--rs); font-size: var(--txt-base); font-weight: 600;
+  background: var(--warn-suave); color: var(--warn);
+}
+.perfil__faixa.grave { background: var(--danger-suave); color: var(--danger); }
+
+.perfil__restricoes {
+  margin: 0 28px 16px; padding: 14px 16px; border-radius: var(--r);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border)); background: var(--surface);
+}
+.perfil__restricoes-cab { display: flex; align-items: center; gap: 7px; font-size: var(--txt-base); font-weight: 750; color: var(--danger); margin-bottom: 9px; }
+.perfil__tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 9px; }
+.tag-restricao {
+  font-size: var(--txt-sm); font-weight: 650; padding: 2px 8px; border-radius: var(--rp);
+  background: var(--danger-suave); color: var(--danger); text-transform: capitalize;
+}
+.perfil__restricoes p { font-size: var(--txt-base); color: var(--text); line-height: 1.55; margin-bottom: 6px; }
+.perfil__restricoes small { font-size: var(--txt-sm); color: var(--muted); line-height: 1.5; display: block; }
+
+/* ─── abas: o sublinhado desliza ─── */
+.abas { display: flex; border-bottom: 1px solid var(--border); margin: 0 28px 4px; position: relative; gap: 4px; }
+.aba {
+  height: 40px; padding: 0 12px; font-size: var(--txt-base); font-weight: 650; color: var(--muted); position: relative;
+  transition: color var(--rapido);
+}
+.aba:hover { color: var(--text); }
+.aba.on { color: var(--text); }
+.abas__marca {
+  position: absolute; bottom: -1px; left: 0; height: 2px; border-radius: 2px; background: var(--accent);
+  transition: transform 240ms var(--ease), width 240ms var(--ease);
+}
+.perfil__corpo { padding: 18px 28px 0; }
+.perfil__corpo > * { animation: surgir var(--medio) var(--ease); }
+
+/* ─── medidas ─── */
+.medidas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+@media (max-width: 560px) { .medidas { grid-template-columns: repeat(2, 1fr); } }
+.medida { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs); padding: 12px 10px; }
+.medida__v { font-size: var(--txt-xl); font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1.2; }
+.medida__u { font-size: var(--txt-sm); color: var(--muted); font-weight: 600; margin-left: 3px; }
+.medida__r { font-size: var(--txt-sm); color: var(--muted); margin-top: 2px; display: block; font-weight: 600; }
+
+.hist-avaliacoes { margin-top: 22px; }
+.hist-avaliacoes .sec-head { padding: 0 0 6px; }
+.hist-linha {
+  display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--border); font-size: var(--txt-base); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.hist-linha span:first-child { color: var(--text); font-weight: 650; }
+.nota { font-size: var(--txt-sm); color: var(--muted); line-height: 1.6; margin-top: 12px; }
+
+/* ─── ficha ─── */
+.ficha { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 14px; overflow: hidden; box-shadow: var(--sombra-cartao); }
+.ficha__cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.ficha__cab strong { font-size: var(--txt-md); display: block; font-weight: 750; }
+.ficha__cab small { font-size: var(--txt-sm); color: var(--muted); margin-top: 2px; display: block; }
+.ficha__gate { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; background: var(--warn-suave); color: var(--warn); font-size: var(--txt-base); font-weight: 600; }
+.ficha__assinada { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--ok-suave); color: var(--ok); font-size: var(--txt-sm); font-weight: 650; }
+.divisao__cab { padding: 12px 16px 6px; font-size: var(--txt-base); font-weight: 750; }
+.exercicio { display: flex; align-items: center; gap: 10px; padding: 8px 16px; }
+.exercicio__num {
+  width: 24px; height: 24px; border-radius: 6px; background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--txt-sm); font-weight: 750; color: var(--muted); flex-shrink: 0;
+}
+.exercicio__info { flex: 1; min-width: 0; }
+.exercicio__nome { font-size: var(--txt-base); font-weight: 650; }
+.exercicio__det { font-size: var(--txt-sm); color: var(--muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
+.exercicio__maq { font-size: var(--txt-xs); font-weight: 650; background: var(--surface-2); color: var(--muted); padding: 2px 7px; border-radius: var(--rp); flex-shrink: 0; }
+
+/* ─── tabela generica ─── */
+.tabela__linha { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.card .tabela__linha:last-child { border-bottom: none; }
+.tabela__forte { font-size: var(--txt-md); font-weight: 650; }
+.tabela__fraco { font-size: var(--txt-sm); color: var(--muted); margin-top: 1px; }
+.valor-ok { font-size: var(--txt-md); font-weight: 750; color: var(--ok); font-variant-numeric: tabular-nums; }
+
+/* perfil aberto dentro do modal (celular/tablet): o modal ja da a margem lateral.
+   O modal fica no <body> (portal), fora do .shell -- por isso a regra e pelo .modal-corpo. */
+.modal-corpo .perfil { padding-bottom: 8px; }
+.modal-corpo .perfil__topo, .modal-corpo .perfil__corpo { padding-left: 0; padding-right: 0; }
+.modal-corpo .abas { margin-left: 0; margin-right: 0; }
+.modal-corpo .perfil__topo { padding-top: 4px; }
+.modal-corpo .perfil__faixa, .modal-corpo .perfil__restricoes { margin-left: 0; margin-right: 0; }
+.modal-corpo .perfil__acoes { width: 100%; }
+.modal-corpo .perfil__acoes .btn { flex: 1; }
+.ficha__gate { flex-direction: row; align-items: flex-start; }
+.ficha__gate svg { flex-shrink: 0; margin-top: 2px; }
+.divisao__cab small { font-weight: 600; color: var(--muted); margin-left: 8px; font-size: var(--txt-base); }
+
+.ficha__liberar { padding: 12px 16px 4px; }
+.ficha__sem-cref {
+  font-size: var(--txt-sm); line-height: 1.55; color: var(--warn); background: var(--warn-suave);
+  padding: 10px 12px; border-radius: var(--rs); margin-bottom: 10px;
+}
+.ficha__assinada--sem-cref { background: var(--warn-suave); color: var(--warn); }
+.ficha__assinada svg { flex-shrink: 0; }

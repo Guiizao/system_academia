@@ -1,0 +1,136 @@
+@font-face {
+  font-family: 'Manrope'; src: url(manrope.woff2) format('woff2-variations');
+  font-weight: 200 800; font-display: swap;
+}
+/* mesmos tons do sistema: grafite, bordas finas, um azul so */
+:root {
+  --bg: #111318; --surface: #181B21; --surface-2: #20242C; --surface-3: #2A2F39;
+  --border: #2A2F38; --border-forte: #3A404B;
+  --text: #E8EAEE; --muted: #979EAB; --fraco: #6B7280;
+  --accent: #5B85F5; --accent-hover: #7096F7; --accent-suave: rgba(91,133,245,.14);
+  --ok: #3DBE83; --ok-suave: rgba(61,190,131,.13);
+  --warn: #E2A33C; --danger: #EA5A62; --danger-suave: rgba(234,90,98,.13);
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Manrope', 'Segoe UI', system-ui, sans-serif; color: var(--text); background: var(--bg); min-height: 100vh; padding: 62px 24px 28px; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ─── barra de titulo propria (sem a moldura do Windows) ───
+   Arrasta pela barra; duplo clique maximiza. Os botoes tem cor: amarelo
+   minimiza, verde tela cheia, vermelho fecha (e o sistema segue na bandeja). */
+.barra {
+  position: fixed; top: 0; left: 0; right: 0; height: 42px; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 7px 0 14px; background: var(--bg); border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag; user-select: none;
+}
+.barra__marca { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.barra .logo { width: 22px; height: 22px; flex-shrink: 0; }
+.barra__nome { font-size: 13.5px; font-weight: 800; letter-spacing: .04em; white-space: nowrap; }
+.barra__nome b { color: var(--accent); }
+.barra__sub { color: var(--fraco); font-size: 12.5px; font-weight: 600; white-space: nowrap; margin-left: 4px; }
+.barra__botoes { display: flex; gap: 4px; -webkit-app-region: no-drag; }
+
+.jbtn {
+  width: 34px; height: 28px; border-radius: 7px; border: none; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--cor);
+  transition: background-color .12s, color .12s, transform .12s;
+}
+.jbtn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.jbtn:hover { background: color-mix(in srgb, var(--cor) 16%, transparent); }
+.jbtn:active { transform: scale(.92); }
+.jbtn--min { --cor: var(--warn); }
+.jbtn--max { --cor: var(--ok); }
+.jbtn--fechar { --cor: var(--danger); }
+.jbtn--fechar:hover { background: var(--danger); color: #fff; }
+.jbtn .ic-restaurar, .maximizada .jbtn .ic-max { display: none; }
+.maximizada .jbtn .ic-restaurar { display: block; }
+
+.grade { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cartao { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; animation: entrar .2s var(--ease) backwards; }
+.cartao h2 { font-size: 15px; font-weight: 750; margin-bottom: 8px; }
+.cartao-status, .cartao-largo { grid-column: 1 / -1; }
+.cartao-status { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; transition: border-color .2s; }
+.cartao-status.no-ar { border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
+.cartao-status.parado { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.cartao-perigo h2 { color: var(--danger); }
+#cartao-config { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+@keyframes entrar { from { opacity: 0; transform: translateY(6px); } }
+
+.status { display: flex; align-items: center; gap: 14px; }
+.ponto { width: 12px; height: 12px; border-radius: 50%; background: var(--fraco); flex-shrink: 0; }
+.ponto.on { background: var(--ok); box-shadow: 0 0 0 4px var(--ok-suave); }
+.ponto.off { background: var(--danger); box-shadow: 0 0 0 4px var(--danger-suave); }
+.status-titulo { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.status-sub { font-size: 13px; color: var(--muted); }
+
+.acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.cartao-status .acoes { margin-top: 0; }
+.btn { font: inherit; font-size: 13.5px; font-weight: 650; height: 36px; padding: 0 14px; border-radius: 8px; cursor: pointer;
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+  transition: background-color .12s, border-color .12s, transform .12s; }
+.btn:hover:not(:disabled) { background: var(--surface-3); border-color: var(--border-forte); }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primario { background: var(--accent); border-color: transparent; color: #fff; }
+.btn-primario:hover:not(:disabled) { background: var(--accent-hover); border-color: transparent; }
+.btn-perigo { background: transparent; color: var(--danger); }
+.btn-perigo:hover:not(:disabled) { background: var(--danger-suave); border-color: transparent; }
+.btn-leve { background: transparent; }
+
+.nota { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+.nota b { color: var(--text); }
+.celular { display: flex; gap: 16px; align-items: flex-start; }
+#qr { width: 132px; height: 132px; border-radius: 10px; background: #fff; flex-shrink: 0; padding: 4px; }
+.urls { list-style: none; font-size: 13px; }
+.urls li { padding: 3px 0; color: var(--accent); user-select: all; font-weight: 700; }
+.urls li small { color: var(--muted); margin-left: 6px; font-weight: 500; }
+.sem-rede strong { display: block; color: var(--warn); font-size: 14.5px; margin-bottom: 4px; }
+
+.backups { list-style: none; font-size: 13px; max-height: 120px; overflow-y: auto; margin-bottom: 4px; }
+.backups li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); color: var(--muted); font-variant-numeric: tabular-nums; }
+.backups li:first-child { color: var(--text); font-weight: 600; }
+
+.alternar { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; margin-bottom: 12px; cursor: pointer; flex-wrap: wrap; }
+.alternar input { width: 17px; height: 17px; accent-color: var(--accent); }
+.alternar small { color: var(--muted); width: 100%; padding-left: 26px; font-size: 12.5px; font-weight: 500; }
+
+#form-config { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+#form-config label, .confirma { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+#form-config input, .confirma input { font: inherit; font-size: 14px; height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); transition: border-color .12s, box-shadow .12s; }
+#form-config input:focus, .confirma input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-suave); }
+#form-config .acoes, #form-config .erro { grid-column: 1 / -1; }
+.confirma b { color: var(--danger); }
+.erro { background: var(--danger-suave); color: var(--danger); padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+
+#logs { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); max-height: 150px; overflow-y: auto; white-space: pre-wrap; line-height: 1.6; }
+.aviso { position: fixed; bottom: 22px; right: 22px; display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 11px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 600;
+  box-shadow: 0 12px 32px rgba(0,0,0,.45); animation: entrar .2s var(--ease); }
+.aviso::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.aviso.erro-aviso::before { background: var(--danger); }
+[hidden] { display: none !important; }
+@media (max-width: 780px) { .grade { grid-template-columns: 1fr; } #form-config { grid-template-columns: 1fr; } }
+
+/* o div da coluna so existe em tela larga; aqui ele nem conta no layout */
+.coluna { display: contents; }
+
+/* Painel inteiro na tela, sem rolagem: o 1366x768 da academia e a medida.
+   Quem rola e so o Registro, que cresce para ocupar o que sobra. */
+@media (min-width: 1100px) and (min-height: 620px) {
+  body { height: 100vh; overflow: hidden; display: flex; flex-direction: column; padding-bottom: 20px; }
+  .grade {
+    flex: 1; min-height: 0;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto minmax(90px, 1fr);
+  }
+  .coluna { display: grid; gap: 14px; align-content: start; min-height: 0; }
+  .cartao { min-height: 0; }
+  .backups { max-height: none; }
+  .cartao-registro { display: flex; flex-direction: column; min-height: 0; }
+  .cartao-registro #logs { flex: 1; max-height: none; }
+  /* no primeiro acesso entra o cartao da conta do administrador, que e grande
+     e so aparece uma vez: ali a pagina volta a rolar normalmente */
+  body:has(#cartao-config:not([hidden])) { height: auto; min-height: 100vh; overflow: auto; display: block; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }

@@ -1,0 +1,121 @@
+/* ═══ layout responsivo: celular (barra inferior), tablet (icones), PC (lateral) ═══ */
+.shell { display: flex; min-height: calc(100vh - var(--barra-janela)); }
+.shell__principal { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.conteudo { flex: 1; min-width: 0; }
+
+/* ─── marca: simbolo + nome, sem efeito ─── */
+.marca { display: flex; align-items: center; gap: 10px; text-align: left; }
+.marca .logo { flex-shrink: 0; display: block; }
+.marca__nome { font-size: var(--txt-md); font-weight: 800; letter-spacing: .04em; white-space: nowrap; }
+.marca__nome b { color: var(--accent); font-weight: 800; }
+
+/* ─── celular ─── */
+.shell--movel { flex-direction: column; }
+.shell--movel .shell__principal { max-width: var(--largura-mobile); width: 100%; margin: 0 auto; }
+.shell--movel .conteudo { padding-bottom: calc(var(--bottomnav-h) + 24px); }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; height: var(--topbar-h);
+  padding: 0 14px 0 16px; background: var(--bg);
+  position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border);
+}
+.topbar__acoes { display: flex; gap: 4px; }
+
+.icone-btn {
+  width: 38px; height: 38px; border-radius: var(--rs);
+  display: flex; align-items: center; justify-content: center; color: var(--muted); position: relative;
+  transition: background-color var(--rapido), color var(--rapido), transform var(--rapido);
+}
+.icone-btn:hover { background: var(--surface-2); color: var(--text); }
+.icone-btn:active { transform: scale(.94); }
+.contador {
+  position: absolute; top: 3px; right: 2px; min-width: 17px; height: 17px; padding: 0 5px;
+  border-radius: 9px; background: var(--danger); color: #fff; font-size: var(--txt-xs); font-weight: 800;
+  display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.bottomnav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: var(--largura-mobile); background: var(--surface);
+  border-top: 1px solid var(--border); display: flex; z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottomnav__item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 0 7px; color: var(--muted); font-size: var(--txt-xs); font-weight: 650;
+  transition: color var(--rapido);
+}
+.bottomnav__icone {
+  width: 52px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  transition: background-color var(--medio) var(--ease), transform var(--medio) var(--ease);
+}
+.bottomnav__item:active .bottomnav__icone { transform: scale(.92); }
+.bottomnav__item.on { color: var(--text); }
+.bottomnav__item.on .bottomnav__icone { background: var(--accent-suave); color: var(--accent); animation: pilula var(--medio) var(--ease); }
+@keyframes pilula { from { transform: scaleX(.6); opacity: .4; } to { transform: none; opacity: 1; } }
+
+/* ─── PC e tablet: lateral fixa ─── */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0; background: var(--surface);
+  border-right: 1px solid var(--border); display: flex; flex-direction: column;
+  position: sticky; top: 0; height: calc(100vh - var(--barra-janela)); padding: 18px 12px 12px;
+}
+.shell--tablet .sidebar { width: var(--sidebar-w-icones); align-items: center; padding-left: 10px; padding-right: 10px; }
+.sidebar > .marca { padding: 0 6px 22px; }
+.shell--tablet .sidebar > .marca { padding: 0 0 22px; }
+.shell--tablet .marca__nome { display: none; }
+
+.sidebar__menus { position: relative; display: flex; flex-direction: column; flex: 1; width: 100%; }
+.sidebar__nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.sidebar__rodape { display: flex; flex-direction: column; gap: 2px; padding-top: 10px; }
+
+/* o fundo do item ativo e uma peca so, que desliza entre as telas */
+.sidebar__indicador {
+  position: absolute; left: 0; right: 0; top: 0; border-radius: var(--rs);
+  background: var(--surface-2); pointer-events: none;
+}
+.sidebar__indicador.anima { transition: transform 260ms var(--ease), height 260ms var(--ease); }
+.sidebar__indicador::before {
+  content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
+}
+.shell--tablet .sidebar__indicador::before { display: none; }
+
+.sidebar__item {
+  display: flex; align-items: center; gap: 11px; height: 38px; padding: 0 12px; position: relative; z-index: 1;
+  border-radius: var(--rs); color: var(--muted); font-size: var(--txt-md); font-weight: 600;
+  transition: color var(--rapido), background-color var(--rapido); text-align: left; width: 100%;
+}
+.shell--tablet .sidebar__item { justify-content: center; padding: 0; height: 42px; }
+.sidebar__item:not(.on):hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); color: var(--text); }
+.sidebar__item.on { color: var(--text); }
+.sidebar__item.on svg { color: var(--accent); }
+.sidebar__contador { position: static; margin-left: auto; box-shadow: none; }
+.shell--tablet .sidebar__contador { position: absolute; top: 3px; right: 3px; margin: 0; }
+
+.sidebar__usuario {
+  display: flex; align-items: center; gap: 10px; padding: 12px 6px 2px; margin-top: 10px;
+  border-top: 1px solid var(--border); width: 100%;
+}
+.shell--tablet .sidebar__usuario { justify-content: center; padding: 12px 0 2px; }
+.sidebar__usuario-info { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.sidebar__usuario-info strong { font-size: var(--txt-base); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar__usuario-info small { font-size: var(--txt-sm); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ─── mestre-detalhe (PC) ─── */
+.mestre-detalhe { display: flex; height: calc(100vh - var(--barra-janela)); }
+.mestre-detalhe__lista {
+  width: var(--lista-w); flex-shrink: 0; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; height: calc(100vh - var(--barra-janela)); overflow: hidden; background: var(--bg);
+}
+.mestre-detalhe__detalhe { flex: 1; min-width: 0; overflow-y: auto; height: calc(100vh - var(--barra-janela)); background: var(--bg); }
+
+.container { max-width: 1180px; margin: 0 auto; padding: 0 28px 32px; }
+.shell--movel .container { padding: 0 0 24px; max-width: none; }
+
+/* bonequinho no canto superior direito da área de conteúdo */
+.shell__principal { position: relative; }
+.shell__boneco {
+  position: absolute; top: 6px; right: 14px; z-index: 20;
+  opacity: .9; animation: surgir 600ms var(--ease) both;
+}

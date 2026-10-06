@@ -1,0 +1,51 @@
+@font-face { font-family: 'Manrope'; src: url(../../desktop/painel/manrope.woff2) format('woff2-variations'); font-weight: 200 800; }
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: 'Manrope', 'Segoe UI', sans-serif; color: #151820; background: #fff; font-size: 10pt; line-height: 1.5; }
+
+.pagina { width: 210mm; min-height: 297mm; padding: 16mm 18mm 14mm; position: relative; break-after: page; }
+.pagina:last-child { break-after: auto; }
+.rodape { position: absolute; bottom: 8mm; left: 18mm; right: 18mm; display: flex; justify-content: space-between; font-size: 8pt; color: #7A8499; }
+
+/* capa */
+.capa { background: #111318; color: #E8EAEE; display: flex; flex-direction: column; justify-content: space-between; padding: 26mm 20mm 20mm; }
+.marca { display: flex; align-items: center; gap: 4mm; }
+.marca__logo { width: 12mm; height: 12mm; display: block; flex-shrink: 0; }
+.marca__nome { font-size: 17pt; font-weight: 800; letter-spacing: .04em; }
+.marca__nome b { color: #5B85F5; }
+.capa h1 { font-size: 34pt; font-weight: 800; letter-spacing: -.02em; line-height: 1.08; margin-top: 50mm; max-width: 150mm; }
+.capa .sub { font-size: 12.5pt; color: #979EAB; margin-top: 6mm; max-width: 130mm; }
+.capa .meta { font-size: 10pt; color: #979EAB; border-top: 1px solid #2A2F38; padding-top: 5mm; }
+.capa .rodape { color: #6B7280; }
+
+h2 { font-size: 19pt; font-weight: 800; letter-spacing: -.02em; color: #151820; margin: 0 0 3mm; line-height: 1.2; }
+h3 { font-size: 12pt; font-weight: 750; margin: 6mm 0 2mm; color: #151820; }
+p { margin-bottom: 2.6mm; max-width: 165mm; }
+.intro { font-size: 11.5pt; color: #3A4458; margin-bottom: 6mm; }
+b, strong { font-weight: 700; }
+code, .cod { font-family: 'Manrope', monospace; background: #EEF2FC; color: #2552C4; padding: .3mm 1.6mm; border-radius: 1.2mm; font-weight: 650; white-space: nowrap; }
+
+/* passos numerados: aqui a sequencia e a informacao */
+.passo { display: grid; grid-template-columns: 11mm 1fr; column-gap: 4mm; margin-bottom: 4mm; break-inside: avoid; }
+.passo__n { width: 8mm; height: 8mm; border-radius: 50%; background: #2F62E0; color: #fff; font-weight: 800; font-size: 11pt; display: flex; align-items: center; justify-content: center; }
+.passo__corpo h4 { font-size: 11.5pt; font-weight: 700; margin-bottom: 1mm; }
+.passo__corpo p { margin-bottom: 1.4mm; }
+ol.sub, ul.sub { margin: 1mm 0 2mm 5mm; }
+ol.sub li, ul.sub li { margin-bottom: 1mm; }
+
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure img { width: 100%; display: block; border-radius: 2.5mm; border: 1px solid #D5DAE3; }
+figure.estreita img { width: auto; max-height: 120mm; margin: 0 auto; }
+figcaption { font-size: 8.5pt; color: #5A6478; margin-top: 2mm; }
+.lado { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; align-items: start; }
+
+.aviso { border-left: 1.2mm solid #E0A800; background: #FFF8E1; padding: 3mm 4mm; border-radius: 0 2mm 2mm 0; margin: 3mm 0 4mm; break-inside: avoid; }
+.aviso.perigo { border-color: #D93450; background: #FFEEF1; }
+.aviso.dica { border-color: #2F62E0; background: #EEF2FC; }
+.aviso strong { display: block; margin-bottom: .8mm; }
+
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 5mm; font-size: 9.5pt; break-inside: avoid; }
+th { text-align: left; font-weight: 750; color: #151820; border-bottom: 1.5px solid #151820; padding: 1.8mm 2mm; }
+td { border-bottom: 1px solid #E1E6F0; padding: 1.8mm 2mm; vertical-align: top; }
+figure.media img { width: 62%; }

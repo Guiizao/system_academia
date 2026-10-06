@@ -1,0 +1,82 @@
+.dash__ola { padding: 26px 18px 18px; display: flex; flex-direction: column; }
+.dash__ola h1 { font-size: var(--txt-xl); font-weight: 750; letter-spacing: -.02em; line-height: 1.25; }
+.dash__ola p { font-size: var(--txt-base); color: var(--muted); margin-top: 2px; }
+.shell--desktop .dash__ola, .shell--tablet .dash__ola { padding: 30px 0 20px; }
+
+/* ─── numeros do dia: uma faixa so, dividida, sem quatro caixas soltas ─── */
+.numeros {
+  display: grid; grid-template-columns: repeat(2, 1fr); margin: 0 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sombra-cartao);
+}
+.shell--desktop .numeros, .shell--tablet .numeros { grid-template-columns: repeat(4, 1fr); margin: 0; }
+.numero { padding: 16px 18px; display: flex; flex-direction: column; min-width: 0; }
+.numero + .numero { border-left: 1px solid var(--border); }
+.shell--movel .numero:nth-child(3) { border-left: none; }
+.shell--movel .numero:nth-child(n+3) { border-top: 1px solid var(--border); }
+.numero__rot { font-size: var(--txt-base); color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 7px; }
+.numero__val { font-size: var(--txt-3xl); font-weight: 750; line-height: 1.15; margin-top: 6px; letter-spacing: -.02em; }
+.shell--desktop .numero__val { font-size: var(--txt-3xl); }
+
+.dash__grade { display: grid; grid-template-columns: 1fr; gap: 14px; padding-top: 14px; }
+.shell--desktop .dash__grade { grid-template-columns: 1fr 1.1fr; gap: 20px; align-items: start; padding-top: 20px; }
+.dash__col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.shell--movel .dash__col { padding: 0 14px; }
+
+.atalhos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.atalho {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 12px 6px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--muted); box-shadow: var(--sombra-cartao);
+  transition: background-color var(--rapido), border-color var(--rapido), color var(--rapido), transform var(--rapido);
+}
+.atalho svg { color: var(--accent); }
+.atalho span { font-size: var(--txt-sm); font-weight: 650; }
+.atalho:hover { border-color: var(--border-forte); color: var(--text); background: var(--surface-2); }
+.atalho:active { transform: scale(.97); }
+
+/* ─── paineis ─── */
+.painel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px 18px; box-shadow: var(--sombra-cartao); }
+.painel > .esq { width: 100%; }
+.painel__cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.painel__cab strong { font-size: var(--txt-md); font-weight: 750; display: flex; align-items: center; gap: 8px; }
+.painel__nota { font-size: var(--txt-sm); color: var(--muted); font-weight: 600; }
+.painel__rot { font-size: var(--txt-base); color: var(--muted); font-weight: 600; }
+
+.receita { display: flex; flex-direction: column; }
+.receita__valor { font-size: var(--txt-3xl); font-weight: 800; line-height: 1.2; letter-spacing: -.02em; margin-top: 2px; }
+.receita__linha { display: flex; gap: 32px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.receita__linha div { display: flex; flex-direction: column; gap: 2px; }
+.receita__linha span { font-size: var(--txt-sm); color: var(--muted); font-weight: 600; }
+.receita__linha strong { font-size: var(--txt-lg); font-weight: 750; }
+.t-danger { color: var(--danger); }
+.t-ok { color: var(--ok); }
+
+.hoje { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.hoje div { background: var(--surface-2); border-radius: var(--rs); padding: 10px 12px; display: flex; flex-direction: column; }
+.hoje b { font-size: var(--txt-xl); font-weight: 750; line-height: 1.2; }
+.hoje small { font-size: var(--txt-sm); color: var(--muted); font-weight: 600; }
+
+/* ─── listas ─── */
+.lista { padding-bottom: 6px; }
+.lista .painel__cab { margin-bottom: 4px; }
+.lista__nota { font-size: var(--txt-sm); color: var(--muted); margin-bottom: 4px; }
+.linha {
+  display: flex; align-items: center; gap: 10px; width: calc(100% + 16px); margin: 0 -8px; text-align: left;
+  padding: 9px 8px; border-radius: var(--rs); transition: background-color var(--rapido);
+}
+.linha + .linha { position: relative; }
+.linha + .linha::before { content: ''; position: absolute; top: 0; left: 8px; right: 8px; border-top: 1px solid var(--border); }
+.linha:hover { background: var(--surface-2); }
+.linha:hover::before, .linha:hover + .linha::before { opacity: 0; }
+.linha__nome { flex: 1; min-width: 0; font-size: var(--txt-md); font-weight: 650; display: flex; flex-direction: column; }
+.linha__nome small { font-size: var(--txt-sm); color: var(--muted); font-weight: 500; }
+.linha__detalhe { font-size: var(--txt-base); color: var(--muted); white-space: nowrap; font-weight: 600; }
+.whats-off { color: var(--fraco); opacity: .6; display: flex; }
+
+/* "ver todos" das listas: o painel abre sem virar rolo */
+.lista__mais {
+  width: 100%; padding: 9px 0 2px; font-size: var(--txt-sm); font-weight: 700;
+  color: var(--accent); border-top: 1px solid var(--border); margin-top: 4px;
+  transition: color var(--rapido);
+}
+.lista__mais:hover { color: var(--accent-hover); }

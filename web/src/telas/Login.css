@@ -1,0 +1,16 @@
+.login { min-height: calc(100vh - var(--barra-janela)); display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--bg); }
+.login__cartao {
+  width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 30px 28px 26px; box-shadow: var(--sombra-flutuante);
+}
+.login__cartao .marca { margin-bottom: 26px; cursor: default; }
+.login__titulo { font-size: var(--txt-xl); font-weight: 750; letter-spacing: -.02em; }
+.login__sub { color: var(--muted); font-size: var(--txt-base); margin: 2px 0 22px; }
+.login__erro {
+  background: var(--danger-suave); color: var(--danger); font-size: var(--txt-base); font-weight: 600;
+  padding: 10px 12px; border-radius: var(--rs); margin-bottom: 14px; animation: tremer 320ms var(--ease);
+}
+/* senha errada: o aviso balanca uma vez, como um "nao" */
+@keyframes tremer { 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
+.login__rodape { text-align: center; font-size: var(--txt-sm); color: var(--fraco); margin-top: 18px; }
+.btn:disabled.btn-primary { cursor: wait; }

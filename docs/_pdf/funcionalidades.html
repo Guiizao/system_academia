@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Funcionalidades do DARK FISIC</title>
+<link rel="stylesheet" href="funcionalidades.css" />
+</head>
+<body>
+
+<!-- ───────── capa ───────── -->
+<section class="pagina capa">
+  <div class="marca"><svg class="marca__logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16181D"/><rect x=".75" y=".75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#2E333D" stroke-width="1.5"/><g transform="translate(32 32) scale(.88) skewX(-10) translate(-32 -32)"><path d="M8 16H16A16 16 0 0 1 16 48H8Z M16 24A8 8 0 0 1 16 40Z" fill="#F2F4F7" fill-rule="evenodd"/><path d="M36 16H56V24H44V28H52V36H44V48H36Z" fill="#5B85F5"/></g></svg><span class="marca__nome">DARK <b>FISIC</b></span></div>
+  <div>
+    <h1>O que o sistema faz hoje</h1>
+    <p class="sub">Recepção, alunos, pagamentos, treinos e agenda num sistema só, rodando no notebook da academia e
+      aberto no PC e nos celulares da equipe.</p>
+    <figure class="vitrine"><img src="../capturas/pc-inicio.png" alt="Tela inicial do sistema" /></figure>
+  </div>
+  <div class="meta">Versão 0.1.1, outubro de 2026. Para o dono e para quem cuida do sistema.</div>
+</section>
+
+<!-- ───────── como funciona ───────── -->
+<section class="pagina">
+  <h2>Como funciona</h2>
+  <p class="intro">O notebook da academia é o servidor: guarda os dados e atende todos os aparelhos. Não depende de
+    internet, só do Wi-Fi da academia. Sem Wi-Fi, funciona no próprio notebook.</p>
+
+  <div class="mapa">
+    <div class="no"><strong>Notebook da academia</strong>
+      <ul><li>Servidor do sistema, liga junto com o Windows</li><li>Banco de dados com tudo da academia</li>
+        <li>Backup automático todo dia</li><li>Painel do servidor: QR code, backup, começar do zero</li></ul></div>
+    <div class="fio-rede"><span>Wi-Fi</span></div>
+    <div class="pilha">
+      <div class="no c-ok"><strong>Celulares da equipe</strong><ul><li>Pelo navegador, com ícone na tela inicial</li></ul></div>
+      <div class="no c-ok"><strong>Outros PCs</strong><ul><li>Pelo navegador, sem instalar nada</li></ul></div>
+    </div>
+  </div>
+
+  <h3>Cada pessoa vê o que precisa</h3>
+  <table>
+    <tr><th style="width:18%">Papel</th><th>Vê e faz</th><th style="width:32%">Não vê</th></tr>
+    <tr><td><b>Dono</b></td><td>Tudo, inclusive receita, preços, equipe, dados da academia e Pix</td><td>nada</td></tr>
+    <tr><td><b>Recepção</b></td><td>Alunos, check-in, pagamentos, cobranças em aberto, agenda</td><td>Receita do mês, inadimplência total, preços, equipe</td></tr>
+    <tr><td><b>Professor</b></td><td>Alunos, restrições médicas, avaliações, fichas de treino, agenda</td><td>Qualquer valor em dinheiro</td></tr>
+  </table>
+  <p class="mudo">As permissões são conferidas no servidor, não só escondidas na tela: mesmo quem souber o endereço
+    certo não consegue ver o que o papel não permite.</p>
+
+  <h3>Nenhum aluno é barrado</h3>
+  <p>Plano vencido gera aviso vermelho no check-in, mas a entrada é registrada. A decisão de cobrar fica com a
+    recepção, com a informação na tela.</p>
+
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>2</span></div>
+</section>
+
+<!-- ───────── inicio ───────── -->
+<section class="pagina">
+  <h2>Início</h2>
+  <p class="intro">O resumo do dia, que se atualiza sozinho a cada 30 segundos: o que outro aparelho registrou
+    aparece sem ninguém recarregar. Enquanto os dados chegam, a tela já mostra o formato, sem piscar.</p>
+  <figure class="tela"><img src="../capturas/pc-inicio.png" alt="Tela Início" />
+    <figcaption>Tela Início vista pelo dono. A recepção vê a mesma tela, sem a caixa de receita.</figcaption></figure>
+  <ul class="faz">
+    <li><b>Placar:</b> alunos ativos, check-ins de hoje, planos vencendo e vencidos, cada um na sua cor</li>
+    <li><b>Atalhos:</b> check-in, novo aluno, receber pagamento e agenda</li>
+    <li><b>Receita</b> do mês, recebido hoje e valor em atraso (só para o dono)</li>
+    <li><b>Hoje na academia:</b> entradas, aulas do dia e ocupação das aulas</li>
+    <li><b>Planos vencendo</b> e <b>alunos sumidos</b>, com um clique para abrir o aluno</li>
+    <li><b>Últimas entradas</b> do dia</li>
+  </ul>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>3</span></div>
+</section>
+
+<!-- ───────── alunos e check-in ───────── -->
+<section class="pagina c-ok">
+  <h2>Alunos e check-in</h2>
+  <p class="intro">Lista com busca e a ficha completa do aluno ao lado. O check-in da fila inteira sai só pelo
+    teclado: <b>/</b> para buscar, setas para escolher, <b>Enter</b> para registrar.</p>
+  <figure class="tela"><img src="../capturas/pc-alunos.png" alt="Tela Alunos" />
+    <figcaption>Aluno vencido selecionado: o aviso aparece, mas o check-in continua liberado.</figcaption></figure>
+
+  <div class="estados">
+    <div class="estado c-ok"><strong>Ativo</strong>plano em dia</div>
+    <div class="estado c-warn"><strong>A vencer</strong>vence nos próximos dias (prazo ajustável)</div>
+    <div class="estado c-danger"><strong>Vencido</strong>passou do vencimento</div>
+    <div class="estado"><strong>Inativo</strong>sem matrícula</div>
+  </div>
+  <ul class="faz">
+    <li>Situação calculada na hora a partir do vencimento, nunca desatualizada</li>
+    <li>Filtros: todos, ativos, a vencer, vencidos, inativos</li>
+    <li>Perfil com medidas, treino, pagamentos e histórico de entradas</li>
+    <li>Restrições médicas em destaque vermelho no topo do perfil</li>
+    <li><b>Confirmação visual:</b> o botão vira "Registrado" em verde e a linha do aluno acende</li>
+  </ul>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>4</span></div>
+</section>
+
+<!-- ───────── cadastro ───────── -->
+<section class="pagina c-ok">
+  <h2>Cadastro do aluno</h2>
+  <p class="intro">Um formulário só: dados, restrições médicas, plano e primeiro pagamento. O aluno sai do balcão
+    matriculado.</p>
+  <figure class="tela"><img src="../capturas/pc-novo-aluno.png" alt="Formulário de novo aluno" />
+    <figcaption>Cadastro com restrições médicas marcadas por toque.</figcaption></figure>
+  <ul class="faz">
+    <li>Nome, WhatsApp, e-mail, CPF e nascimento; telefone salvo em formato padrão</li>
+    <li>CPF não se repete entre alunos</li>
+    <li><b>12 restrições médicas</b>: joelho, ombro, lombar, cervical, punho, tornozelo, quadril, hipertensão, cardíaco, gestante, hérnia e diabetes</li>
+    <li>Consentimento LGPD e autorização de WhatsApp registrados</li>
+    <li>Editar dados a qualquer momento</li>
+    <li>Desativar aluno sem apagar o histórico (só dono e recepção)</li>
+  </ul>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>5</span></div>
+</section>
+
+<!-- ───────── pagamentos e pix ───────── -->
+<section class="pagina c-warn">
+  <h2>Pagamentos e Pix</h2>
+  <p class="intro">Receber, renovar o plano e quitar a cobrança acontecem de uma vez só. No Pix, o aluno escaneia o
+    QR code direto da tela da recepção, com o valor já preenchido.</p>
+  <figure class="tela"><img src="../capturas/pc-pagamento.png" alt="Pagamento com QR code Pix" />
+    <figcaption>Cobrança em aberto já selecionada, QR code e Pix copia e cola gerados com a chave da academia.</figcaption></figure>
+  <ul class="faz">
+    <li><b>Cobrança automática:</b> quando o plano entra no prazo de aviso, a cobrança do próximo período aparece sozinha</li>
+    <li>Pix, dinheiro, débito ou crédito</li>
+    <li>QR code Pix também para renovação antecipada ou plano novo</li>
+    <li>Pagamento, quitação e renovação gravados juntos: nunca pela metade</li>
+    <li>Aluno desativado tem as cobranças abertas canceladas</li>
+    <li>Confirmação do Pix pela recepção, conferindo o extrato do banco</li>
+  </ul>
+  <h3>Regra da renovação</h3>
+  <div class="regua">
+    <div class="caixa c-ok"><strong>Pagou antes ou no dia</strong>Conta a partir do vencimento antigo: ninguém perde
+      dias por pagar adiantado. Vencia 10/10, pagou 05/10 → vence 10/11.</div>
+    <div class="caixa c-danger"><strong>Pagou atrasado</strong>Conta a partir do dia do pagamento, e o dia de vencimento
+      passa a ser esse. Vencia 10/10, pagou 20/10 → vence 20/11.</div>
+  </div>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>6</span></div>
+</section>
+
+<!-- ───────── financeiro ───────── -->
+<section class="pagina c-warn">
+  <h2>Financeiro</h2>
+  <p class="intro">O dono vê o dinheiro da academia inteira. A recepção vê só o que precisa para receber.</p>
+  <figure class="tela"><img src="../capturas/pc-financeiro.png" alt="Financeiro visto pelo dono" />
+    <figcaption>Visão do dono: receita, inadimplência, planos e pagamentos recentes.</figcaption></figure>
+  <div class="duas">
+    <figure class="tela"><img src="../capturas/pc-financeiro-recepcao.png" alt="Financeiro visto pela recepção" />
+      <figcaption>Visão da recepção: cobranças em aberto e pagamentos, sem os totais.</figcaption></figure>
+    <ul class="faz uma">
+      <li><b>Receita do mês</b>, <b>recebido hoje</b>, <b>inadimplência</b> e alunos com plano vigente</li>
+      <li><b>Cobranças em aberto</b>, com botão Receber</li>
+      <li><b>Distribuição por plano</b>: quantos alunos em cada um</li>
+      <li><b>Editar plano</b>: preço, benefícios e destaque (só o dono); o preço novo vale para as próximas renovações, e quem já pagou mantém o valor</li>
+      <li>Valores guardados em centavos: nenhum arredondamento some com dinheiro</li>
+    </ul>
+  </div>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>7</span></div>
+</section>
+
+<!-- ───────── avaliacao ───────── -->
+<section class="pagina c-purple">
+  <h2>Avaliação física</h2>
+  <p class="intro">Cada avaliação vira histórico; a anterior nunca é sobrescrita. O perfil do aluno mostra a
+    evolução ao longo do tempo.</p>
+  <figure class="tela"><img src="../capturas/pc-avaliacao.png" alt="Formulário de avaliação física" />
+    <figcaption>Nova avaliação: objetivo e nível vêm da anterior, para agilizar.</figcaption></figure>
+  <ul class="faz">
+    <li>Peso, altura e percentual de gordura, com IMC calculado</li>
+    <li>Circunferências: braço, peito, cintura, quadril, coxa e ombros</li>
+    <li>Objetivo (hipertrofia, emagrecimento, definição, condicionamento, saúde geral ou reabilitação) e nível</li>
+    <li>Observações do professor</li>
+    <li>Linha de evolução no perfil: peso, gordura e cintura por data</li>
+    <li>Medida inválida é recusada antes de gravar</li>
+  </ul>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>8</span></div>
+</section>
+
+<!-- ───────── fichas ───────── -->
+<section class="pagina c-purple">
+  <h2>Fichas de treino</h2>
+  <p class="intro">O professor monta a ficha com exercícios da biblioteca. Ela nasce como rascunho e só chega ao aluno
+    quando um professor revisa e libera.</p>
+  <figure class="tela"><img src="../capturas/pc-montar-ficha.png" alt="Montar ficha" />
+    <figcaption>Montar ficha: exercícios contraindicados para as restrições do aluno nem aparecem na lista.</figcaption></figure>
+  <ul class="faz">
+    <li>Divisões de A a E, cada uma com foco, séries, repetições e descanso</li>
+    <li>Biblioteca com 30 exercícios, cada um com grupo muscular, equipamento, nível mínimo e contraindicações</li>
+    <li><b>Contraindicação dupla:</b> escondida na tela e recusada pelo servidor</li>
+    <li><b>CREF avisa, não bloqueia:</b> a ficha guarda quem liberou e o CREF dessa pessoa, ou a falta dele</li>
+    <li>Ficha liberada sem CREF aparece em âmbar, com o aviso, em vez do visto verde</li>
+    <li>Qualquer pessoa da equipe libera; montar a ficha é do professor e do dono</li>
+    <li>Filtros: aguardando revisão, liberadas e todas</li>
+    <li>Aviso para o professor quando há rascunho esperando</li>
+  </ul>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>9</span></div>
+</section>
+
+<!-- ───────── agenda ───────── -->
+<section class="pagina">
+  <h2>Agenda de aulas</h2>
+  <p class="intro">Aulas coletivas que se repetem toda semana, com vagas e professor. A recepção inscreve o aluno com
+    um toque.</p>
+  <figure class="tela"><img src="../capturas/pc-agenda.png" alt="Agenda de aulas" />
+    <figcaption>A barra de ocupação muda de cor: verde, amarela acima de 80% e vermelha quando lota.</figcaption></figure>
+  <div class="duas">
+    <figure class="tela"><img src="../capturas/pc-nova-aula.png" alt="Nova aula" />
+      <figcaption>Nova aula: dia da semana, horário, duração, vagas, local e professor.</figcaption></figure>
+    <ul class="faz uma">
+      <li>Navegação pelos dias da semana</li>
+      <li>Inscrição do aluno na aula do dia, sem passar das vagas</li>
+      <li>Aula lotada fica bloqueada para novas inscrições</li>
+      <li>Editar aula: horário, vagas, professor</li>
+      <li>Ocupação das aulas do dia aparece no Início</li>
+    </ul>
+  </div>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>10</span></div>
+</section>
+
+<!-- ───────── avisos ───────── -->
+<section class="pagina c-danger">
+  <h2>Avisos</h2>
+  <p class="intro">O sino lista o que precisa de ação hoje, com um clique para abrir o aluno. Cada papel recebe só os
+    avisos que lhe cabem.</p>
+  <figure class="tela"><img src="../capturas/pc-avisos.png" alt="Avisos" />
+    <figcaption>Avisos do dono. O número no sino se atualiza sozinho a cada minuto.</figcaption></figure>
+  <table>
+    <tr><th>Aviso</th><th style="width:15%">Dono</th><th style="width:15%">Recepção</th><th style="width:15%">Professor</th></tr>
+    <tr><td><b>Cobrança vencida</b>, com há quantos dias</td><td>sim</td><td>sim</td><td>não</td></tr>
+    <tr><td><b>Plano vencendo</b>, com em quantos dias</td><td>sim</td><td>sim</td><td>não</td></tr>
+    <tr><td><b>Aluno sumido</b> há mais dias que o prazo configurado</td><td>sim</td><td>sim</td><td>sim</td></tr>
+    <tr><td><b>Ficha em rascunho</b>, esperando liberação</td><td>sim</td><td>sim</td><td>sim</td></tr>
+  </table>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>11</span></div>
+</section>
+
+<!-- ───────── configuracoes ───────── -->
+<section class="pagina">
+  <h2>Configurações e equipe</h2>
+  <p class="intro">Tudo o que o dono ajusta sem precisar de ninguém técnico: equipe, senhas, dados da academia,
+    chave Pix e prazos.</p>
+  <figure class="tela"><img src="../capturas/pc-config.png" alt="Configurações" />
+    <figcaption>Configurações vistas pelo dono. Recepção e professor veem só a parte "Você".</figcaption></figure>
+  <ul class="faz">
+    <li><b>Equipe:</b> cadastrar pessoa, trocar papel, CREF e especialidade</li>
+    <li><b>Redefinir senha</b> de quem esqueceu; <b>bloquear</b> quem saiu (desconecta na hora)</li>
+    <li>O sistema nunca fica sem nenhum dono ativo</li>
+    <li><b>Trocar minha senha</b>: desconecta os outros aparelhos</li>
+    <li><b>Dados da academia:</b> nome, CNPJ, telefone, WhatsApp, endereço</li>
+    <li><b>Chave Pix</b> validada antes de salvar</li>
+    <li><b>Prazos:</b> aviso de vencimento e aluno sumido</li>
+    <li><b>Aparência:</b> escuro, claro ou automático, escolhido em cada aparelho</li>
+  </ul>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>12</span></div>
+</section>
+
+
+<!-- ───────── celular ───────── -->
+<section class="pagina">
+  <h2>No celular</h2>
+  <p class="intro">O mesmo sistema, arrumado para a tela pequena: menu embaixo, janelas que sobem da parte de baixo e
+    botões do tamanho do dedo. Não instala nada da loja: abre pelo navegador e fica com ícone na tela inicial.</p>
+  <div class="celulares">
+    <figure><img src="../capturas/cel-inicio.png" alt="Início no celular" /><figcaption>Início</figcaption></figure>
+    <figure><img src="../capturas/cel-alunos.png" alt="Alunos no celular" /><figcaption>Alunos</figcaption></figure>
+    <figure><img src="../capturas/cel-perfil.png" alt="Perfil no celular" /><figcaption>Perfil do aluno</figcaption></figure>
+    <figure><img src="../capturas/cel-agenda.png" alt="Agenda no celular" /><figcaption>Agenda</figcaption></figure>
+  </div>
+  <ul class="faz">
+    <li>Funciona em iPhone (Safari) e Android (Chrome)</li>
+    <li>Precisa estar no mesmo Wi-Fi do notebook da academia</li>
+    <li>Cada pessoa entra com o próprio login, com as mesmas permissões do PC</li>
+    <li>Botão de novo aluno sempre à mão, no canto da tela</li>
+    <li>Tema claro ou escuro, escolhido no próprio aparelho</li>
+    <li>Nenhum dado de aluno fica guardado no celular: tudo vem do notebook</li>
+  </ul>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>13</span></div>
+</section>
+
+<!-- ───────── painel do servidor ───────── -->
+<section class="pagina">
+  <h2>Painel do servidor</h2>
+  <p class="intro">A janela que só existe no notebook da academia. É por ela que o sistema liga, mostra o endereço para
+    os celulares, faz backup e, se precisar, começa do zero.</p>
+  <div class="duas">
+    <figure class="tela"><img src="../capturas/painel-2-em-uso.png" alt="Painel em uso" />
+      <figcaption>Em uso: sistema no ar, QR code para os celulares e backups.</figcaption></figure>
+    <ul class="faz uma">
+      <li><b>Liga sozinho</b> com o Windows e fica no ícone ao lado do relógio</li>
+      <li><b>Barra própria</b> na cor do sistema: minimizar, tela cheia e fechar; fechar não desliga</li>
+      <li><b>Conta do administrador</b> criada na primeira abertura, sem senha de fábrica</li>
+      <li><b>QR code e endereço</b> da rede para os celulares, atualizados sozinhos se a rede mudar</li>
+      <li><b>Sem Wi-Fi:</b> avisa que o sistema está funcionando só neste computador</li>
+      <li><b>Backup</b> automático todo dia, e um botão para fazer na hora</li>
+      <li><b>Demonstração</b> com 40 alunos para treinar a equipe</li>
+      <li><b>Começar do zero</b> só depois de digitar APAGAR TUDO, com cópia de segurança que nunca é apagada sozinha</li>
+      <li><b>Registro</b> dos últimos eventos, para diagnosticar problemas</li>
+    </ul>
+  </div>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>14</span></div>
+</section>
+
+<!-- ───────── desligado ───────── -->
+<section class="pagina">
+  <h2>Desligado por enquanto</h2>
+  <p class="intro">Duas funções já estão desenhadas e aparecem no sistema, mas ficam desligadas até termos um
+    veredito. Em Configurações elas aparecem com a chave em "desligado".</p>
+
+  <div class="desligado">
+    <header><strong>Cobrança pelo WhatsApp</strong><span class="chave"><i></i>desligado</span></header>
+    <p>Mensagens automáticas para o aluno, a partir do número da academia.</p>
+    <ul class="faz">
+      <li>Aviso de vencimento no prazo configurado</li>
+      <li>Cobrança com o Pix copia e cola e o valor certo</li>
+      <li>Envio da ficha liberada, com séries e repetições</li>
+      <li>Resumo do dia para o dono</li>
+    </ul>
+    <h4>O que já está pronto</h4>
+    <p class="mudo">O cadastro já registra quem aceita receber mensagens, e a cobrança já gera o Pix com o valor.
+      O ícone do WhatsApp aparece apagado na lista de planos vencendo.</p>
+    <h4>O que falta para ligar</h4>
+    <p class="mudo">Escolher o provedor da API oficial do WhatsApp Business, um número só para a academia e os modelos
+      de mensagem aprovados pela Meta. Há custo por conversa.</p>
+  </div>
+
+  <div class="desligado">
+    <header><strong>Ficha de treino por IA</strong><span class="chave"><i></i>desligado</span></header>
+    <p>A IA sugere um rascunho de ficha a partir da avaliação, do objetivo, do nível e das restrições do aluno.</p>
+    <ul class="faz">
+      <li>Só usa exercícios da biblioteca da academia</li>
+      <li>Nunca sugere exercício contraindicado: o servidor recusa</li>
+      <li>Sai sempre como rascunho</li>
+      <li>Só chega ao aluno depois que um professor revisa e libera</li>
+    </ul>
+    <h4>O que falta para ligar</h4>
+    <p class="mudo">A revisão da biblioteca pelos dois personal trainers, os limites de volume por nível validados
+      por eles, e o veredito de vocês sobre usar ou não.</p>
+  </div>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>15</span></div>
+</section>
+
+<!-- ───────── seguranca ───────── -->
+<section class="pagina">
+  <h2>Segurança e confiabilidade</h2>
+  <p class="intro">O sistema guarda dados de saúde e de dinheiro. As proteções abaixo já estão funcionando.</p>
+  <table>
+    <tr><th style="width:30%">Proteção</th><th>Como funciona</th></tr>
+    <tr><td><b>Senhas</b></td><td>Guardadas com argon2id, o padrão atual para senhas. Nem quem abre o banco consegue ler.
+      Mínimo de 10 caracteres.</td></tr>
+    <tr><td><b>Sessões</b></td><td>Duram 12 horas. Bloquear uma pessoa ou trocar a senha desconecta os outros aparelhos na hora.</td></tr>
+    <tr><td><b>Permissões</b></td><td>Conferidas no servidor em toda ação: recepção não vê receita, professor não vê dinheiro,
+      montar ficha é de dono e professor.</td></tr>
+    <tr><td><b>Registro do CREF</b></td><td>Cada ficha liberada guarda quem liberou e o CREF que a pessoa tinha na hora.
+      Sem CREF, fica marcada como liberada sem CREF: o sistema avisa, mas não bloqueia (Lei 9.696/1998).</td></tr>
+    <tr><td><b>Sem senha de fábrica</b></td><td>A conta do administrador é criada na primeira abertura, com a senha que você escolhe.</td></tr>
+    <tr><td><b>Dinheiro</b></td><td>Valores guardados em centavos inteiros. Pagamento, quitação e renovação gravados juntos, nunca pela metade.</td></tr>
+    <tr><td><b>Backups</b></td><td>Cópia consistente do banco em uso, todo dia. Guarda 7 diários, 4 semanais e 12 mensais.</td></tr>
+    <tr><td><b>Atualizações</b></td><td>Se uma versão nova muda a estrutura do banco, uma cópia é feita antes.</td></tr>
+    <tr><td><b>Instalador testado</b></td><td>Todo instalador gerado é ligado num computador "limpo", fora da pasta do projeto,
+      e só é aprovado se o servidor e o banco subirem.</td></tr>
+    <tr><td><b>Celular</b></td><td>Guarda só a casca do app. Dados de alunos e pagamentos nunca ficam gravados no aparelho.</td></tr>
+    <tr><td><b>Testes automáticos</b></td><td>156 testes conferem as regras de renovação, cobrança, permissões, fichas e backup a cada mudança.</td></tr>
+  </table>
+  <div class="aviso"><strong>O ponto fraco hoje</strong>
+    O backup fica no próprio notebook. Até existir a cópia automática fora dele, alguém precisa copiar o backup mais
+    recente para um pendrive toda semana.</div>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>16</span></div>
+</section>
+
+<!-- ───────── proximos passos ───────── -->
+<section class="pagina">
+  <h2>Próximos passos sugeridos</h2>
+  <p class="intro">Em ordem de importância para a academia, considerando risco e esforço.</p>
+  <div class="proximo"><span class="passo__n">1</span><div><strong>Backup automático fora do notebook</strong>
+    <span>Cópia criptografada diária para a nuvem (Google Drive ou similar). Tira o risco de perder tudo num roubo ou defeito.</span></div><em>pequeno</em></div>
+  <div class="proximo"><span class="passo__n">2</span><div><strong>Acesso de fora da academia</strong>
+    <span>Túnel da Cloudflare com endereço próprio e cadeado (HTTPS). O dono acompanha de casa e o Android instala o app de verdade.</span></div><em>médio</em></div>
+  <div class="proximo"><span class="passo__n">3</span><div><strong>Cobrança pelo WhatsApp</strong>
+    <span>Aviso de vencimento e Pix automáticos. Depende de escolher o provedor e aprovar as mensagens.</span></div><em>médio</em></div>
+  <div class="proximo"><span class="passo__n">4</span><div><strong>Confirmação automática do Pix</strong>
+    <span>Com um provedor de pagamento (Pix com cobrança dinâmica), o sistema sabe na hora que o dinheiro caiu.
+      Tem taxa por transação.</span></div><em>médio</em></div>
+  <div class="proximo"><span class="passo__n">5</span><div><strong>Check-in pelo próprio aluno</strong>
+    <span>QR code na entrada: o aluno escaneia com o celular e a recepção fica livre. O sistema já tem o campo de origem do check-in.</span></div><em>pequeno</em></div>
+  <div class="proximo"><span class="passo__n">6</span><div><strong>Relatórios para o dono</strong>
+    <span>Receita por mês, cancelamentos e horários de pico, com exportação para planilha.</span></div><em>pequeno</em></div>
+  <div class="proximo"><span class="passo__n">7</span><div><strong>Ficha por IA e vídeos dos exercícios</strong>
+    <span>Depois do veredito e das gravações feitas na academia.</span></div><em>grande</em></div>
+  <div class="rodape"><span>DARK FISIC, funcionalidades</span><span>17</span></div>
+</section>
+</body>
+</html>

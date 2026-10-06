@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Versao para Android e iPhone: fundo sem cantos (o sistema recorta) e
+       letras dentro da zona segura central. -->
+  <rect width="64" height="64" fill="#16181D"/>
+  <g transform="translate(32 32) scale(.62) skewX(-10) translate(-32 -32)">
+    <path d="M8 16H16A16 16 0 0 1 16 48H8Z M16 24A8 8 0 0 1 16 40Z" fill="#F2F4F7" fill-rule="evenodd"/>
+    <path d="M36 16H56V24H44V28H52V36H44V48H36Z" fill="#5B85F5"/>
+  </g>
+</svg>

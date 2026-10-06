@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'" />
+  <title>DARK FISIC | Servidor</title>
+  <link rel="stylesheet" href="painel.css" />
+</head>
+<body>
+  <!-- barra de titulo propria: a janela nao usa a moldura do Windows -->
+  <header class="barra">
+    <div class="barra__marca">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="#16181D"/>
+        <rect x=".75" y=".75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#2E333D" stroke-width="1.5"/>
+        <g transform="translate(32 32) scale(.88) skewX(-10) translate(-32 -32)">
+          <path d="M8 16H16A16 16 0 0 1 16 48H8Z M16 24A8 8 0 0 1 16 40Z" fill="#F2F4F7" fill-rule="evenodd"/>
+          <path d="M36 16H56V24H44V28H52V36H44V48H36Z" fill="#5B85F5"/>
+        </g>
+      </svg>
+      <span class="barra__nome">DARK <b>FISIC</b></span>
+      <span class="barra__sub">Servidor, versão <span id="versao"></span></span>
+    </div>
+    <div class="barra__botoes">
+      <button class="jbtn jbtn--min" id="j-min" title="Minimizar" aria-label="Minimizar">
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8"/></svg>
+      </button>
+      <button class="jbtn jbtn--max" id="j-max" title="Tela cheia" aria-label="Tela cheia">
+        <svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="1.5"/></svg>
+        <svg class="ic-restaurar" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.2 3.6V3a1 1 0 0 1 1-1H9a1 1 0 0 1 1 1v3.8a1 1 0 0 1-1 1h-.6"/><rect x="2" y="4.2" width="6" height="5.8" rx="1.2"/></svg>
+      </button>
+      <button class="jbtn jbtn--fechar" id="j-fechar" title="Fechar (o sistema continua ligado na bandeja)" aria-label="Fechar">
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="grade">
+    <section class="cartao cartao-status" id="cartao-status">
+      <div class="status">
+        <span class="ponto" id="ponto"></span>
+        <div>
+          <div class="status-titulo" id="status-titulo">Verificando…</div>
+          <div class="status-sub" id="status-sub"></div>
+        </div>
+      </div>
+      <div class="acoes">
+        <button class="btn btn-primario" id="btn-abrir">Abrir o sistema</button>
+        <button class="btn" id="btn-alternar">Parar servidor</button>
+      </div>
+    </section>
+
+    <section class="cartao cartao-largo" id="cartao-config" hidden>
+      <h2>Conta do administrador</h2>
+      <p class="nota">O sistema está vazio. Crie a conta com que <b>você</b> vai entrar. Lá dentro, em
+        <b>Configurações → Equipe</b>, você cadastra os donos, a recepção e os professores.</p>
+      <form id="form-config">
+        <label>Nome da academia<input name="nomeAcademia" required value="DARK FISIC" /></label>
+        <label>Seu nome<input name="nome" required value="Administrador" /></label>
+        <label>E-mail de login<input name="email" type="email" required value="admin@darkfisic.local" /></label>
+        <label>Senha (mínimo 10 caracteres)<input name="senha" type="password" minlength="10" required autocomplete="new-password" /></label>
+        <div class="erro" id="erro-config" hidden></div>
+        <div class="acoes">
+          <button class="btn btn-primario" type="submit">Criar conta do administrador</button>
+          <button class="btn" type="button" id="btn-demo">Testar com dados de demonstração</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="cartao">
+      <h2>Acesso pelo celular e outros PCs</h2>
+      <div class="celular" id="com-rede">
+        <img id="qr" alt="QR code para abrir o sistema no celular" />
+        <div>
+          <p class="nota">Com o celular <b>no mesmo Wi-Fi</b>, aponte a câmera para o código. No navegador,
+            use <b>Adicionar à tela inicial</b>.</p>
+          <ul class="urls" id="urls"></ul>
+        </div>
+      </div>
+      <div class="sem-rede" id="sem-rede" hidden>
+        <strong>Sem rede agora</strong>
+        <p class="nota">O sistema funciona normalmente <b>neste computador</b> — é só usar
+          <b>Abrir o sistema</b>. Quando o notebook entrar no Wi-Fi, o endereço e o QR code aparecem aqui sozinhos.</p>
+      </div>
+    </section>
+
+    <section class="cartao">
+      <h2>Backup</h2>
+      <p class="nota">Automático todo dia depois das 3h. Guarda 7 diários, 4 semanais e 12 mensais.
+        <b>Copie o mais recente para um pendrive uma vez por semana.</b></p>
+      <ul class="backups" id="backups"></ul>
+      <div class="acoes">
+        <button class="btn" id="btn-backup">Fazer backup agora</button>
+        <button class="btn btn-leve" id="btn-pasta-backup">Abrir pasta</button>
+      </div>
+    </section>
+
+    <!-- em tela larga estes dois dividem a terceira coluna; em tela estreita
+         o div some (display: contents) e eles viram cartoes soltos como antes -->
+    <div class="coluna">
+    <section class="cartao">
+      <h2>Opções</h2>
+      <label class="alternar"><input type="checkbox" id="chk-windows" /> Iniciar junto com o Windows
+        <small>O servidor sobe sozinho ao ligar o PC.</small></label>
+      <button class="btn btn-leve" id="btn-pasta-dados">Abrir pasta de dados</button>
+    </section>
+
+    <section class="cartao cartao-perigo">
+      <h2>Começar do zero</h2>
+      <p class="nota">Apaga alunos, pagamentos, equipe e todo o resto. Use depois de testar com a demonstração.
+        Antes de apagar, o sistema guarda uma cópia na pasta de backups.</p>
+      <div id="reset-passo1"><button class="btn btn-perigo" id="btn-reset">Apagar dados…</button></div>
+      <div id="reset-passo2" hidden>
+        <label class="confirma">Para confirmar, digite <b>APAGAR TUDO</b>
+          <input id="txt-reset" autocomplete="off" spellcheck="false" /></label>
+        <div class="acoes">
+          <button class="btn btn-perigo" id="btn-reset-ok" disabled>Apagar e começar do zero</button>
+          <button class="btn btn-leve" id="btn-reset-cancela">Cancelar</button>
+        </div>
+      </div>
+    </section>
+    </div>
+
+    <section class="cartao cartao-largo cartao-registro">
+      <h2>Registro</h2>
+      <pre id="logs"></pre>
+    </section>
+  </main>
+
+  <div class="aviso" id="aviso" hidden></div>
+  <script src="painel.js"></script>
+</body>
+</html>

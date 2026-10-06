@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Guia de instalação do DARK FISIC</title>
+<link rel="stylesheet" href="guia.css" />
+</head>
+<body>
+
+<!-- ───────── capa ───────── -->
+<section class="pagina capa">
+  <div class="marca"><svg class="marca__logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16181D"/><rect x=".75" y=".75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#2E333D" stroke-width="1.5"/><g transform="translate(32 32) scale(.88) skewX(-10) translate(-32 -32)"><path d="M8 16H16A16 16 0 0 1 16 48H8Z M16 24A8 8 0 0 1 16 40Z" fill="#F2F4F7" fill-rule="evenodd"/><path d="M36 16H56V24H44V28H52V36H44V48H36Z" fill="#5B85F5"/></g></svg><span class="marca__nome">DARK <b>FISIC</b></span></div>
+  <div>
+    <h1>Guia de instalação e configuração</h1>
+    <p class="sub">Do pendrive ao primeiro check-in: instalar no notebook da academia, criar a conta do administrador,
+      cadastrar os donos, ligar os celulares e usar sem Wi-Fi.</p>
+  </div>
+  <div class="meta">Versão 0.1.1 do sistema. Outubro de 2026.<br />Para quem instala e cuida do sistema.</div>
+</section>
+
+<!-- ───────── 1. instalar ───────── -->
+<section class="pagina">
+  <h2>Antes de começar</h2>
+  <p class="intro">O notebook da academia é o servidor: é nele que o sistema roda e onde ficam todos os dados.
+    Os celulares e outros PCs só acessam o que está nele, pela rede.</p>
+
+  <table>
+    <tr><th>Você vai precisar de</th><th>Detalhe</th></tr>
+    <tr><td>O instalador</td><td><code>DARK-FISIC-Instalador-0.1.1.exe</code>, cerca de 120 MB, num pendrive</td></tr>
+    <tr><td>O notebook da academia</td><td>Windows 10 ou 11. Não precisa de internet nem de senha de administrador</td></tr>
+    <tr><td>Os dados da chave Pix</td><td>Chave, nome do recebedor exatamente como aparece no banco, e cidade</td></tr>
+    <tr><td>Nome e e-mail de cada pessoa da equipe</td><td>E o CREF de cada professor que tiver</td></tr>
+    <tr><td>Uns 30 minutos</td><td>Mais 10 se for fixar o IP no roteador</td></tr>
+  </table>
+
+  <h2 style="margin-top:8mm">Instalar no notebook</h2>
+
+  <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+    <h4>Copie o instalador e dê dois cliques</h4>
+    <p>Pode rodar direto do pendrive, mas copiar para a área de trabalho é mais rápido.</p>
+  </div></div>
+
+  <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+    <h4>Passe pelo aviso azul do Windows</h4>
+    <p>Aparece <b>"O Windows protegeu o computador"</b>. Clique em <b>Mais informações</b> e depois em
+      <b>Executar assim mesmo</b>.</p>
+    <p>O aviso aparece porque o programa não tem assinatura digital paga. Não é vírus: é o mesmo aviso de qualquer
+      programa feito por uma pessoa e não por uma empresa grande.</p>
+  </div></div>
+
+  <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+    <h4>Conclua a instalação</h4>
+    <p>A pasta padrão serve. A instalação é só para o usuário do Windows que está logado, por isso não pede senha
+      de administrador.</p>
+  </div></div>
+
+  <div class="passo"><div class="passo__n">4</div><div class="passo__corpo">
+    <h4>Abra o DARK FISIC</h4>
+    <p>O atalho fica na área de trabalho e no menu Iniciar. Ao abrir, o servidor liga sozinho e aparece o
+      <b>painel do servidor</b>. É ele que você vê nas próximas páginas.</p>
+  </div></div>
+
+  <div class="aviso dica"><strong>Se o Windows perguntar sobre o firewall</strong>
+    Marque <b>Redes privadas</b> e clique em <b>Permitir acesso</b>. Sem isso, os celulares não conseguem abrir o sistema.</div>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>2</span></div>
+</section>
+
+<!-- ───────── 2. conta do administrador ───────── -->
+<section class="pagina">
+  <h2>Criar a conta do administrador</h2>
+  <p class="intro">Na primeira vez, o sistema está vazio e o painel mostra o cartão <b>Conta do administrador</b>.
+    É a conta com que você entra para configurar todo o resto.</p>
+
+  <div class="lado">
+    <figure><img src="../capturas/painel-1-primeira-vez.png" alt="Painel na primeira abertura" />
+      <figcaption>Painel na primeira abertura. O e-mail já vem preenchido.</figcaption></figure>
+    <div>
+      <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+        <h4>Confira o nome da academia</h4>
+        <p>Já vem <b>DARK FISIC</b>. Dá para mudar depois.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+        <h4>Mantenha o e-mail</h4>
+        <p><code>admin@darkfisic.local</code> é o login do administrador. Pode trocar por um e-mail seu, se preferir.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+        <h4>Escolha a senha</h4>
+        <p>No mínimo 10 caracteres. Anote num lugar seguro: sem ela, só dá para entrar recomeçando do zero.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">4</div><div class="passo__corpo">
+        <h4>Clique em Criar conta do administrador</h4>
+        <p>Depois, em <b>Abrir o sistema</b>, e entre com esse e-mail e essa senha.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="aviso"><strong>Por que não existe uma senha padrão</strong>
+    Se o sistema viesse com uma senha fixa de fábrica, ela seria a mesma em todo instalador, e qualquer pessoa que
+    tivesse uma cópia entraria na sua academia. Quando o sistema for para a internet, isso vira porta aberta.
+    Por isso a senha é você quem escolhe, na primeira abertura.</div>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>3</span></div>
+</section>
+
+<!-- ───────── 3. equipe ───────── -->
+<section class="pagina">
+  <h2>Cadastrar os donos e a equipe</h2>
+  <p class="intro">Entre como administrador e vá em <b>Configurações</b>, seção <b>Equipe</b>, botão
+    <b>Cadastrar pessoa</b>. Repita para cada dono, recepcionista e professor.</p>
+
+  <figure class="media"><img src="../capturas/pc-cadastrar-pessoa.png" alt="Formulário Cadastrar pessoa" />
+    <figcaption>Configurações → Equipe → Cadastrar pessoa. O papel define o que a pessoa vê.</figcaption></figure>
+
+  <table>
+    <tr><th style="width:22%">Papel</th><th>Vê e faz</th><th style="width:34%">Não vê</th></tr>
+    <tr><td><b>Dono</b></td><td>Tudo: alunos, dinheiro, preços, equipe e dados da academia</td><td>nada</td></tr>
+    <tr><td><b>Recepção</b></td><td>Alunos, check-in, pagamentos, agenda</td><td>Receita do mês, inadimplência total, preços, equipe</td></tr>
+    <tr><td><b>Professor</b></td><td>Alunos, avaliações, fichas de treino, agenda</td><td>Qualquer coisa de dinheiro</td></tr>
+  </table>
+
+  <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+    <h4>Preencha nome, e-mail e papel</h4>
+    <p>O e-mail é o login da pessoa. Cada um tem o seu: o sistema registra quem fez cada coisa.</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+    <h4>Preencha o CREF de quem tiver</h4>
+    <p>O CREF é <b>aviso, não trava</b>: sem ele a pessoa libera ficha do mesmo jeito, mas vê um aviso antes e a ficha
+      fica marcada como <b>liberada sem CREF</b>. Com o CREF cadastrado, a ficha é assinada com ele. A Lei 9.696/1998
+      reserva a prescrição de exercício a profissional de Educação Física; a decisão é de quem responde pela academia.</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+    <h4>Defina uma senha inicial e entregue à pessoa</h4>
+    <p>No mínimo 10 caracteres. No primeiro acesso, ela troca em <b>Configurações → Trocar senha</b>.</p>
+  </div></div>
+
+  <div class="aviso dica"><strong>Alguém esqueceu a senha ou saiu da academia</strong>
+    Clique no nome da pessoa na lista da equipe. Dá para <b>redefinir a senha</b> ou <b>bloquear o acesso</b>.
+    Bloquear desconecta a pessoa na hora, em todos os aparelhos. O sistema não deixa ficar sem nenhum dono ativo.</div>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>4</span></div>
+</section>
+
+<!-- ───────── 4. academia, pix e planos ───────── -->
+<section class="pagina">
+  <h2>Dados da academia, Pix e preços</h2>
+  <p class="intro">Em <b>Configurações</b>, seção <b>Academia</b>, botão <b>Editar dados e Pix</b>.
+    Só o dono vê essa parte.</p>
+
+  <figure class="media"><img src="../capturas/pc-academia-pix.png" alt="Formulário Dados da academia" />
+    <figcaption>Os dados do Pix entram no QR code e no código copia e cola que a recepção mostra ao aluno.</figcaption></figure>
+
+  <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+    <h4>Chave Pix</h4>
+    <p>Escolha o tipo (CPF, CNPJ, e-mail, telefone ou aleatória) e cole a chave. O nome do recebedor tem de ser
+      <b>igual ao do banco</b>, e a cidade também. Ao salvar, o sistema monta um código de teste e recusa dados
+      que o banco não aceitaria.</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+    <h4>Prazos dos avisos</h4>
+    <p><b>Avisar vencimento com quantos dias</b>: quando o plano entra em "vencendo" (padrão 5 dias).
+      <b>Aluno sumido depois de quantos dias</b>: quando alguém aparece na lista de sumidos (padrão 10 dias).</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+    <h4>Confira os preços dos planos</h4>
+    <p>Os quatro planos (Básico, Plus, Trimestral e Anual) já vêm cadastrados. Em <b>Financeiro</b>, clique em
+      <b>Editar plano</b> em cada um para acertar preço e benefícios. Mudar o preço não altera o que já foi cobrado.</p>
+  </div></div>
+
+  <p>Na recepção, a tela de pagamento mostra o <b>QR code</b> com o valor já preenchido: o aluno aponta a câmera do
+    app do banco e paga. O código copia e cola fica logo abaixo, para quem preferir.</p>
+
+  <div class="aviso"><strong>O Pix não confirma sozinho</strong>
+    O sistema gera o código com o valor certo, mas não tem acesso à sua conta. Quem confirma o pagamento é a
+    recepção, conferindo o extrato do banco, e só então registra no sistema.</div>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>5</span></div>
+</section>
+
+<!-- ───────── 5. deixar ligado ───────── -->
+<section class="pagina">
+  <h2>Deixar o sistema sempre ligado</h2>
+  <p class="intro">O notebook é o sistema. Enquanto ele estiver desligado, ninguém usa, nem pelo celular.</p>
+
+  <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+    <h4>Marque Iniciar junto com o Windows</h4>
+    <p>No cartão <b>Opções</b> do painel. A partir daí, ao ligar o notebook o servidor sobe sozinho, já escondido
+      na bandeja, sem ninguém clicar em nada.</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+    <h4>Entenda a barra da janela e o ícone da bandeja</h4>
+    <p>As janelas do DARK FISIC têm barra própria: <b>amarelo</b> minimiza, <b>verde</b> põe em tela cheia e
+      <b>vermelho</b> fecha. Arrastar pela barra move a janela; dois cliques nela também põem em tela cheia.</p>
+    <p>Fechar a janela <b>não desliga</b> o sistema: ele continua rodando no ícone ao lado do relógio, e na primeira
+      vez o Windows mostra um aviso dizendo isso.
+      Dois cliques no ícone reabrem o painel. Para desligar de verdade, clique com o botão direito no ícone e escolha
+      <b>Encerrar (tira o sistema do ar)</b>.</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+    <h4>Desligue a suspensão do notebook</h4>
+    <p>No Windows: <b>Configurações → Sistema → Energia e suspensão</b>. Em "Quando conectado, o computador entra em
+      suspensão após", escolha <b>Nunca</b>. A tela pode apagar; o computador, não.</p>
+    <p>Se for usar o notebook fechado, em <b>Opções de energia → Escolher a função do fechamento da tampa</b>,
+      coloque <b>Nada a fazer</b> quando conectado.</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">4</div><div class="passo__corpo">
+    <h4>Fixe o endereço do notebook no roteador</h4>
+    <p>O endereço que os celulares usam (algo como <code>http://192.168.1.113:3000</code>) é dado pelo roteador e pode
+      mudar quando ele reinicia. Para não mudar nunca, entre na página do roteador e faça uma <b>reserva de IP</b>
+      (também chamada de DHCP estático ou IP fixo) para o notebook.</p>
+    <p>Cada roteador tem uma tela diferente; a opção costuma ficar em <b>LAN</b> ou <b>DHCP</b>. Se não conseguir,
+      tudo bem: quando o endereço mudar, o painel mostra o novo e é só escanear o QR code de novo.</p>
+  </div></div>
+
+  <div class="aviso"><strong>Nobreak</strong>
+    Uma queda de energia desliga o roteador e, sem bateria, o notebook. Com a bateria do próprio notebook o sistema
+    aguenta, mas os celulares perdem o Wi-Fi até o roteador voltar. Um nobreak pequeno só para o roteador resolve.</div>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>6</span></div>
+</section>
+
+<!-- ───────── 6. celular ───────── -->
+<section class="pagina">
+  <h2>Ligar os celulares na rede</h2>
+  <p class="intro">O celular não instala nada da loja: ele abre o sistema pelo navegador, direto do notebook.
+    Para isso, os dois precisam estar <b>no mesmo Wi-Fi</b>.</p>
+
+  <div class="lado">
+    <figure><img src="../capturas/painel-2-em-uso.png" alt="Painel com QR code e endereços" />
+      <figcaption>O QR code e o endereço para celulares ficam no cartão "Acesso pelo celular e outros PCs".</figcaption></figure>
+    <div>
+      <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+        <h4>Conecte o celular ao Wi-Fi da academia</h4>
+        <p>O mesmo em que o notebook está. Dados móveis (4G/5G) não funcionam.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+        <h4>Aponte a câmera para o QR code do painel</h4>
+        <p>Toque no link que aparece. Se preferir, digite no navegador o endereço que está embaixo do QR code,
+          o que termina em <code>:3000</code> e começa com <code>192.168</code> ou <code>10.</code>.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+        <h4>Coloque na tela inicial</h4>
+        <p>Assim o sistema ganha ícone próprio, como um aplicativo.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th style="width:24%">Aparelho</th><th>Como colocar na tela inicial</th></tr>
+    <tr><td><b>iPhone</b></td><td>Abra no <b>Safari</b>. Toque no botão de compartilhar (quadrado com seta para cima) e
+      depois em <b>Adicionar à Tela de Início</b>. Abre em tela cheia, sem a barra do navegador.</td></tr>
+    <tr><td><b>Android</b></td><td>Abra no <b>Chrome</b>. Toque no menu de três pontos e depois em
+      <b>Adicionar à tela inicial</b>.</td></tr>
+  </table>
+
+  <div class="aviso dica"><strong>Limitação do Android na rede local</strong>
+    No Android, o Chrome só instala como "aplicativo de verdade" em endereços com cadeado (HTTPS). Na rede da academia
+    o endereço é simples (HTTP), então ele cria um atalho comum. Funciona igual para usar. Isso se resolve quando o
+    sistema tiver endereço na internet.</div>
+
+  <p><b>Outro PC ou notebook da academia:</b> abra o navegador e digite o mesmo endereço do celular. Não precisa
+    instalar nada nele.</p>
+  <p><b>Tema claro ou escuro:</b> cada aparelho escolhe o seu em <b>Configurações → Aparência</b>. O padrão é o escuro.</p>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>7</span></div>
+</section>
+
+<!-- ───────── 7. sem wi-fi ───────── -->
+<section class="pagina">
+  <h2>Usar só no computador, sem Wi-Fi</h2>
+  <p class="intro">Se a academia ainda não tem Wi-Fi, ou a internet caiu, o sistema funciona normalmente no próprio
+    notebook. Nada muda no uso; só os celulares ficam de fora até a rede voltar.</p>
+
+  <div class="lado">
+    <figure><img src="../capturas/painel-3-sem-wifi.png" alt="Painel sem rede" />
+      <figcaption>Sem rede, o painel avisa "Funcionando só neste computador" e esconde o QR code.</figcaption></figure>
+    <div>
+      <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+        <h4>Abra o DARK FISIC normalmente</h4>
+        <p>O servidor liga igual, com ou sem rede.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+        <h4>Clique em Abrir o sistema</h4>
+        <p>O sistema abre numa janela própria, no endereço <code>localhost</code>, que é o próprio notebook.
+          Cadastro, check-in, pagamentos, fichas: tudo funciona.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+        <h4>Quando o Wi-Fi chegar, não faça nada</h4>
+        <p>Assim que o notebook entrar numa rede, o painel mostra o endereço e o QR code sozinho, em até 15 segundos.
+          Aí é seguir a página anterior para ligar os celulares.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="aviso dica"><strong>Internet não é o mesmo que rede</strong>
+    O sistema não precisa de internet: precisa só que o notebook e os celulares estejam no mesmo roteador. Se a
+    operadora cair mas o roteador continuar ligado, os celulares continuam funcionando.</div>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>8</span></div>
+</section>
+
+<!-- ───────── 8. demonstracao e comecar do zero ───────── -->
+<section class="pagina">
+  <h2>Testar com a demonstração e começar do zero</h2>
+  <p class="intro">Para mostrar o sistema à equipe antes de cadastrar alunos de verdade, carregue dados de exemplo.
+    Quando terminar o teste, apague tudo e comece limpo.</p>
+
+  <h3>Carregar a demonstração</h3>
+  <p>Com o sistema vazio, no cartão <b>Conta do administrador</b>, clique em <b>Testar com dados de demonstração</b>.
+    Entram 40 alunos, pagamentos, check-ins, aulas e quatro pessoas na equipe:</p>
+  <table>
+    <tr><th>Login</th><th>Papel</th><th>Para testar</th></tr>
+    <tr><td><code>joao@darkfisic.com</code></td><td>Dono</td><td>Financeiro, equipe, dados da academia</td></tr>
+    <tr><td><code>bruna@darkfisic.com</code></td><td>Recepção</td><td>Check-in e pagamento, sem ver a receita</td></tr>
+    <tr><td><code>pedro@darkfisic.com</code></td><td>Professor com CREF</td><td>Avaliação, montar e liberar ficha</td></tr>
+    <tr><td><code>ana@darkfisic.com</code></td><td>Professora com CREF</td><td>Aulas coletivas</td></tr>
+  </table>
+  <p>A senha de todos é <code>darkfisic123</code>. Ela só existe na demonstração.</p>
+
+  <h3>Começar do zero</h3>
+  <div class="lado">
+    <figure><img src="../capturas/painel-4-reset.png" alt="Cartão Começar do zero" />
+      <figcaption>O botão só libera depois de digitar APAGAR TUDO.</figcaption></figure>
+    <div>
+      <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+        <h4>No painel, cartão Começar do zero</h4>
+        <p>Clique em <b>Apagar dados…</b></p>
+      </div></div>
+      <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+        <h4>Digite APAGAR TUDO</h4>
+        <p>Em maiúsculas, com espaço. Depois clique em <b>Apagar e começar do zero</b>.</p>
+      </div></div>
+      <div class="passo"><div class="passo__n">3</div><div class="passo__corpo">
+        <h4>Crie a conta do administrador de novo</h4>
+        <p>O sistema volta ao estado da primeira abertura. Siga de novo da página 3.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="aviso perigo"><strong>Apaga tudo mesmo</strong>
+    Alunos, pagamentos, fichas, equipe, dados da academia. Antes de apagar, o sistema guarda uma cópia na pasta de
+    backups, por segurança. Esse botão só existe no painel do notebook: ninguém consegue apagar pelo celular.</div>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>9</span></div>
+</section>
+
+<!-- ───────── 9. backup ───────── -->
+<section class="pagina">
+  <h2>Backup e atualizações</h2>
+  <p class="intro">O sistema faz backup sozinho, mas a cópia fica no próprio notebook. Se ele for roubado, cair ou o
+    disco morrer, o backup vai junto. Por isso existe a cópia semanal no pendrive.</p>
+
+  <table>
+    <tr><th style="width:30%">O quê</th><th>Como funciona</th></tr>
+    <tr><td>Backup automático</td><td>Um por dia, depois das 3h da manhã. Guarda os 7 últimos diários, 4 semanais e 12 mensais</td></tr>
+    <tr><td>Backup na hora</td><td>Painel → cartão <b>Backup</b> → <b>Fazer backup agora</b></td></tr>
+    <tr><td>Antes de apagar tudo</td><td>O botão Começar do zero faz uma cópia com nome próprio (<code>antes-do-reset</code>), que a limpeza automática nunca apaga</td></tr>
+    <tr><td>Antes de atualizar</td><td>Se uma versão nova mudar a estrutura do banco, o sistema faz uma cópia antes</td></tr>
+  </table>
+
+  <div class="passo"><div class="passo__n">1</div><div class="passo__corpo">
+    <h4>Toda semana, copie o backup mais recente para um pendrive</h4>
+    <p>Painel → cartão <b>Backup</b> → <b>Abrir pasta</b>. Copie o arquivo mais novo (o nome tem a data) para um
+      pendrive ou para o Google Drive. Leva um minuto.</p>
+  </div></div>
+  <div class="passo"><div class="passo__n">2</div><div class="passo__corpo">
+    <h4>Guarde o pendrive fora do notebook</h4>
+    <p>Na bolsa, em casa, na gaveta do escritório. É isso que separa "perdemos uma semana" de "perdemos a academia inteira".</p>
+  </div></div>
+
+  <h3>Onde ficam os dados</h3>
+  <p>Na pasta <code>%LOCALAPPDATA%\DarkFisic</code> do notebook: <b>dados</b> (o banco, com o sistema inteiro),
+    <b>backups</b> e <b>logs</b>. Os botões <b>Abrir pasta de dados</b> e <b>Abrir pasta</b> do painel levam direto a elas.
+    A pasta fica fora do OneDrive de propósito: sincronizar um banco aberto corrompe o arquivo.</p>
+
+  <h3>Atualizar para uma versão nova</h3>
+  <p>Rode o instalador novo por cima do antigo, sem desinstalar antes. Os dados ficam, e restos da versão anterior são limpos sozinhos. A primeira abertura depois de instalar demora um pouco mais: o Windows examina os arquivos novos. Desinstalar o programa também não apaga os dados.</p>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>10</span></div>
+</section>
+
+<!-- ───────── 10. problemas e checklist ───────── -->
+<section class="pagina">
+  <h2>Quando algo der errado</h2>
+  <p class="intro">O cartão <b>Registro</b>, no fim do painel, mostra os últimos eventos do servidor. Se precisar de
+    ajuda, tire um print dele.</p>
+
+  <table>
+    <tr><th style="width:36%">O que acontece</th><th>O que fazer</th></tr>
+    <tr><td>O celular não abre o sistema</td><td>Confira se está no mesmo Wi-Fi do notebook, e não no 4G. Depois confira no painel se o endereço mudou e escaneie o QR code de novo.</td></tr>
+    <tr><td>O painel diz "Sistema no ar", mas nenhum celular abre</td><td>É o firewall do Windows. Em <b>Segurança do Windows → Firewall → Permitir um aplicativo</b>, marque o DARK FISIC em <b>Privada</b>.</td></tr>
+    <tr><td>"A porta 3000 já está em uso"</td><td>Outro programa ocupou a porta. Reinicie o notebook.</td></tr>
+    <tr><td>O sistema pede login toda hora</td><td>A sessão dura 12 horas. Depois disso, é normal pedir de novo.</td></tr>
+    <tr><td>Esqueci a senha de administrador</td><td>Outro dono pode redefinir em Configurações → Equipe. Se não houver outro dono, só recomeçando do zero; por isso, cadastre pelo menos dois donos.</td></tr>
+    <tr><td>Tudo parado, ninguém acessa</td><td>Procure o ícone do DARK FISIC na bandeja, ao lado do relógio. Se não estiver lá, abra pelo atalho da área de trabalho.</td></tr>
+  </table>
+
+  <h2 style="margin-top:6mm">Lista do dia da instalação</h2>
+  <table>
+    <tr><th style="width:8%"></th><th>Tarefa</th></tr>
+    <tr><td>☐</td><td>Instalar e permitir no firewall (redes privadas)</td></tr>
+    <tr><td>☐</td><td>Criar a conta do administrador e anotar a senha em local seguro</td></tr>
+    <tr><td>☐</td><td>Cadastrar pelo menos dois donos, a recepção e os professores (com CREF, quando tiverem)</td></tr>
+    <tr><td>☐</td><td>Preencher dados da academia e chave Pix; conferir preços dos planos</td></tr>
+    <tr><td>☐</td><td>Marcar Iniciar junto com o Windows e desligar a suspensão</td></tr>
+    <tr><td>☐</td><td>Reservar o IP do notebook no roteador</td></tr>
+    <tr><td>☐</td><td>Colocar o sistema na tela inicial de cada celular da equipe</td></tr>
+    <tr><td>☐</td><td>Fazer um backup agora e copiar para o pendrive</td></tr>
+  </table>
+
+  <div class="rodape"><span>DARK FISIC, guia de instalação</span><span>11</span></div>
+</section>
+
+</body>
+</html>

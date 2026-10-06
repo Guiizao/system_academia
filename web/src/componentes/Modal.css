@@ -1,0 +1,109 @@
+/* celular: folha que sobe de baixo. PC: dialogo que aparece no centro. */
+.modal-fundo {
+  /* abaixo da barra de titulo do app de PC: minimizar/fechar continuam alcancaveis */
+  position: fixed; inset: var(--barra-janela) 0 0 0; background: var(--fundo-modal); z-index: 400;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: surgir var(--medio) var(--ease) both;
+}
+.modal-caixa {
+  background: var(--surface); width: 100%; max-width: var(--largura-mobile);
+  border-radius: 16px 16px 0 0; max-height: 92vh; overflow-y: auto;
+  border: 1px solid var(--border); border-bottom: none; box-shadow: var(--sombra-flutuante);
+  animation: subir 260ms var(--ease) both;
+}
+@keyframes subir { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes descer { to { transform: translateY(100%); } }
+@keyframes aparecer { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes sumir { to { opacity: 0; transform: translateY(4px) scale(.985); } }
+.modal-fundo.saindo { animation: surgir 150ms var(--ease) reverse both; }
+.modal-fundo.saindo .modal-caixa { animation: descer 150ms ease-in both; }
+
+.modal-cab {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 18px 8px; position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.modal-cab h3 { font-size: var(--txt-lg); font-weight: 750; letter-spacing: -.01em; }
+.modal-x {
+  width: 32px; height: 32px; border-radius: var(--rs); color: var(--muted); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color var(--rapido), color var(--rapido);
+}
+.modal-x:hover { background: var(--surface-2); color: var(--text); }
+.modal-corpo { padding: 8px 18px 22px; }
+
+@media (min-width: 768px) {
+  .modal-fundo { align-items: center; padding: 24px; }
+  .modal-caixa { max-width: 480px; border-radius: 14px; border-bottom: 1px solid var(--border); max-height: 88vh; animation: aparecer var(--medio) var(--ease) both; }
+  .modal-caixa--largo { max-width: 760px; }
+  .modal-fundo.saindo .modal-caixa { animation: sumir 150ms ease-in both; }
+}
+
+/* ─── formularios dentro dos modais ─── */
+.form-erro {
+  background: var(--danger-suave); color: var(--danger); font-size: var(--txt-base); font-weight: 600;
+  padding: 10px 12px; border-radius: var(--rs); margin-bottom: 12px; animation: entrar var(--medio) var(--ease);
+}
+.form-nota { font-size: var(--txt-sm); color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+.form-nota b { color: var(--text); }
+.form-nota--alerta { color: var(--warn); background: var(--warn-suave); padding: 9px 12px; border-radius: var(--rs); }
+.form-nota--alerta b { color: var(--warn); }
+.checkbox-linha { display: flex; gap: 10px; align-items: flex-start; font-size: var(--txt-base); line-height: 1.45; margin-bottom: 12px; cursor: pointer; }
+.checkbox-linha input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+.tags-escolha { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.tags-escolha .chip.on { background: var(--danger-suave); color: var(--danger); border-color: transparent; }
+.carregando { padding: 40px; text-align: center; color: var(--muted); font-size: var(--txt-base); }
+.erro-carga { margin: 14px; padding: 12px 14px; border-radius: var(--rs); background: var(--danger-suave); color: var(--danger); font-size: var(--txt-base); font-weight: 600; }
+
+.pagamento-total { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--border); margin-top: 2px; }
+.pagamento-total span { color: var(--muted); font-size: var(--txt-base); font-weight: 600; }
+.pagamento-total strong { font-size: var(--txt-2xl); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.pix-caixa { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 14px; animation: entrar var(--medio) var(--ease); }
+.pix-caixa__qr { display: block; width: 196px; height: 196px; margin: 0 auto 14px; border-radius: 10px; background: #fff; padding: 6px; image-rendering: pixelated; }
+.pix-caixa__rot { font-size: var(--txt-sm); color: var(--muted); font-weight: 650; margin-bottom: 6px; }
+.pix-caixa code { display: block; font-size: var(--txt-xs); word-break: break-all; color: var(--text); line-height: 1.5; margin-bottom: 12px; font-family: ui-monospace, Consolas, monospace; opacity: .85; }
+
+/* ─── montar ficha ─── */
+.divisao-editor { border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 12px; background: var(--surface-2); }
+.divisao-editor__cab { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.divisao-editor__cab strong { font-size: var(--txt-md); font-weight: 750; white-space: nowrap; }
+.divisao-editor__cab input, .item-editor input, .item-editor__add {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs);
+  color: var(--text); height: 36px; padding: 0 10px; font-size: var(--txt-base); min-width: 0;
+  transition: border-color var(--rapido);
+}
+.divisao-editor__cab input:focus, .item-editor input:focus, .item-editor__add:focus { border-color: var(--accent); outline: none; }
+.divisao-editor__cab input { flex: 1; }
+.item-editor { display: grid; grid-template-columns: 1fr 64px 80px 92px auto; gap: 8px; align-items: end; padding: 8px 0; border-top: 1px solid var(--border); animation: entrar var(--medio) var(--ease); }
+.item-editor__nome { font-size: var(--txt-base); font-weight: 650; display: flex; flex-direction: column; align-self: center; }
+.item-editor__nome small { color: var(--muted); font-weight: 500; font-size: var(--txt-sm); }
+.item-editor label { font-size: var(--txt-sm); color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
+.item-editor input { width: 100%; }
+.item-editor__add { width: 100%; margin-top: 8px; }
+@media (max-width: 560px) {
+  .item-editor { grid-template-columns: 1fr 1fr 1fr; }
+  .item-editor__nome { grid-column: 1 / -1; }
+}
+
+.zona-perigo { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.papeis { display: flex; flex-direction: column; gap: 8px; }
+.papel {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; cursor: pointer;
+  padding: 10px 12px; border-radius: var(--rs); border: 1px solid var(--border);
+  transition: border-color var(--rapido), background-color var(--rapido);
+}
+.papel:hover { border-color: var(--border-forte); }
+.papel input { grid-row: span 2; accent-color: var(--accent); width: 17px; height: 17px; }
+.papel strong { font-size: var(--txt-md); font-weight: 700; }
+.papel small { font-size: var(--txt-sm); color: var(--muted); }
+.papel.on { border-color: var(--accent); background: var(--accent-suave); }
+
+.acao-aba { margin-bottom: 14px; }
+.plano__editar { margin-top: 12px; }
+
+.so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.modal-cab:has(.so-leitor) { justify-content: flex-end; padding-bottom: 0; }
+.form-secao { font-size: var(--txt-md); font-weight: 750; margin: 12px 0 10px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+/* dentro de .campo, as regras genericas de label/input nao valem para o seletor de papel */
+.campo label.papel { display: grid; margin: 0; font-size: inherit; color: var(--text); font-weight: inherit; }
+.campo .papel input { width: 17px; height: 17px; padding: 0; border: none; background: none; box-shadow: none; }
