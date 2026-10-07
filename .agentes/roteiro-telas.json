@@ -1,0 +1,22 @@
+{
+  "_uso": "Roteiro do auditar-telas.mjs para este projeto. API com banco de demonstração servindo web/dist na :3000 (ver AGENTS.md > Testes). Menu: no celular tem texto, no tablet só ícone com title.",
+  "url": "http://localhost:3000",
+  "entrar": ["fetch('/api/auth/login', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: 'joao@darkfisic.com', senha: 'darkfisic123' }) }).then((r) => { if (!r.ok) throw new Error('login ' + r.status); })"],
+  "sair": ["fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })"],
+  "auxiliares": [
+    "window.__achar = (sel, t) => [...document.querySelectorAll(sel)].find((b) => [b.textContent, b.title, b.getAttribute('aria-label')].join(' ').includes(t))",
+    "window.__nav = (t) => { const b = __achar('.sidebar__item,.bottomnav__item,.topbar button', t); if (!b) throw new Error('menu: ' + t); b.click(); }",
+    "window.__btn = (t) => { const b = __achar('button,a', t); if (!b) throw new Error('botão: ' + t); b.click(); }"
+  ],
+  "telas": [
+    { "nome": "login", "logado": false },
+    { "nome": "inicio", "espera": 800 },
+    { "nome": "alunos", "passos": ["__nav('Alunos')"] },
+    { "nome": "aluno-perfil", "passos": ["__nav('Alunos')", "(document.querySelector('.aluno-item') || (() => { throw new Error('nenhum aluno'); })()).click()"] },
+    { "nome": "novo-aluno", "passos": ["__nav('Alunos')", "__btn('Novo aluno')"] },
+    { "nome": "financeiro", "passos": ["__nav('Financeiro')"] },
+    { "nome": "treinos", "passos": ["__nav('Treinos')"] },
+    { "nome": "agenda", "passos": ["__nav('Agenda')"] },
+    { "nome": "configuracoes", "passos": ["__nav('Configurações')"] }
+  ]
+}

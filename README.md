@@ -5,7 +5,7 @@ e o banco dentro de si. Recepção, celulares e outros PCs acessam pela rede loc
 
 ```
 desktop/   app de PC (Electron): servidor embutido, painel Iniciar/Parar, backup, QR do celular
-api/       servidor (Fastify + SQLite): regras de negócio, 156 testes
+api/       servidor (Fastify + SQLite): regras de negócio, com testes
 web/       interface (React): PC, tablet e celular; instalável no celular (PWA)
 docs/      guias (PDF e Markdown), capturas, spec e planos
 ```
@@ -50,7 +50,7 @@ de propósito — sincronizar um SQLite aberto corrompe o banco.
 Pré-requisito: Node 20+.
 
 ```bash
-cd api && npm install && npm test          # 156 testes
+cd api && npm install && npm test
 cd api && npm run db:seed                  # banco de demonstração (recusa se já houver dados)
 cd api && npm run dev                      # API em :3000
 cd web && npm install && npm run dev       # interface em :5173 (fala com a API em :3000)
