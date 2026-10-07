@@ -17,6 +17,8 @@
 @keyframes sumir { to { opacity: 0; transform: translateY(4px) scale(.985); } }
 .modal-fundo.saindo { animation: surgir 150ms var(--ease) reverse both; }
 .modal-fundo.saindo .modal-caixa { animation: descer 150ms ease-in both; }
+/* a caixa recebe o foco ao abrir so para o Tab comecar dentro dela: sem contorno nela inteira */
+.modal-caixa:focus { outline: none; }
 
 .modal-cab {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;

@@ -27,6 +27,14 @@ export function Modal({ titulo, aoFechar, children, largo, ocultarTitulo }: {
   const caixaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // o foco entra no modal ao abrir (na caixa, nao num campo: no celular abriria o teclado sozinho)
+    // e volta para quem abriu ao fechar. Sem isso o primeiro Tab ia para a tela de tras.
+    const anterior = document.activeElement as HTMLElement | null;
+    caixaRef.current?.focus();
+    return () => anterior?.focus?.();
+  }, []);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { fechar(); return; }
       // Tab preso dentro do modal: sem isso o foco escapa para a tela de tras,
@@ -38,6 +46,7 @@ export function Modal({ titulo, aoFechar, children, largo, ocultarTitulo }: {
       if (!focaveis.length) return;
       const primeiro = focaveis[0];
       const ultimo = focaveis[focaveis.length - 1];
+      if (!caixaRef.current.contains(document.activeElement)) { e.preventDefault(); (e.shiftKey ? ultimo : primeiro).focus(); return; }
       if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro.focus(); }
       if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimo.focus(); }
     };
@@ -52,7 +61,7 @@ export function Modal({ titulo, aoFechar, children, largo, ocultarTitulo }: {
 
   return createPortal(
     <div className={`modal-fundo ${saindo ? 'saindo' : ''}`} onMouseDown={(e) => e.target === e.currentTarget && fechar()}>
-      <div ref={caixaRef} className={`modal-caixa ${largo ? 'modal-caixa--largo' : ''}`} role="dialog" aria-modal="true" aria-label={titulo}>
+      <div ref={caixaRef} tabIndex={-1} className={`modal-caixa ${largo ? 'modal-caixa--largo' : ''}`} role="dialog" aria-modal="true" aria-label={titulo}>
         <div className="modal-cab">
           <h3 className={ocultarTitulo ? 'so-leitor' : undefined}>{titulo}</h3>
           <button className="modal-x" onClick={fechar} aria-label="Fechar"><IconeFechar size={18} /></button>
