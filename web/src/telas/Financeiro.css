@@ -97,3 +97,6 @@
 .rel__acoes { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .t-mudo { color: var(--muted); }
 @media (max-width: 520px) { .rel__numeros { grid-template-columns: 1fr; } }
+
+/* valor e botão de excluir lado a lado, alinhados à direita da linha */
+.pag__lado { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }

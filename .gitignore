@@ -33,3 +33,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 *.log
+
+# estado de plugin do Claude Code, nao e do projeto
+.omc/

@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, index, unique } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index, unique, check } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 const agora = sql`(strftime('%Y-%m-%dT%H:%M:%fZ','now'))`;
@@ -152,6 +152,7 @@ export const cobranca = sqliteTable('cobranca', {
 
 export const pagamento = sqliteTable('pagamento', {
   ...base,
+  matriculaId: integer('matricula_id').references(() => matricula.id),
   cobrancaId: integer('cobranca_id').references(() => cobranca.id),
   alunoId: integer('aluno_id').notNull().references(() => aluno.id),
   valorCentavos: integer('valor_centavos').notNull(),
@@ -161,6 +162,40 @@ export const pagamento = sqliteTable('pagamento', {
   observacao: text('observacao'),
 }, (t) => ({
   idxData: index('idx_pagamento_data').on(t.dataPagamento),
+}));
+
+export const produto = sqliteTable('produto', {
+  ...base,
+  nome: text('nome').notNull(),
+  descricao: text('descricao'),
+  categoria: text('categoria'),
+  precoCentavos: integer('preco_centavos').notNull(),
+  estoque: integer('estoque').notNull().default(0),
+  fotos: text('fotos', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
+  ativo: integer('ativo', { mode: 'boolean' }).notNull().default(true),
+}, (t) => ({
+  idxNome: index('idx_produto_nome').on(t.nome),
+  estoqueValido: check('produto_estoque_valido', sql`${t.estoque} >= 0 AND typeof(${t.estoque}) = 'integer'`),
+}));
+
+export const venda = sqliteTable('venda', {
+  ...base,
+  produtoId: integer('produto_id').notNull().references(() => produto.id),
+  alunoId: integer('aluno_id').references(() => aluno.id),
+  clienteNome: text('cliente_nome'),
+  quantidade: integer('quantidade').notNull(),
+  valorUnitarioCentavos: integer('valor_unitario_centavos').notNull(),
+  totalCentavos: integer('total_centavos').notNull(),
+  situacao: text('situacao', { enum: ['paga', 'fiado'] }).notNull(),
+  forma: text('forma', { enum: ['pix', 'dinheiro', 'credito', 'debito'] }),
+  dataVenda: text('data_venda').notNull(),
+  pagaEm: text('paga_em'),
+  registradoPorUsuarioId: integer('registrado_por_usuario_id').notNull().references(() => usuario.id),
+  observacao: text('observacao'),
+}, (t) => ({
+  idxData: index('idx_venda_data').on(t.dataVenda, t.id),
+  idxSituacaoData: index('idx_venda_situacao_data').on(t.situacao, t.dataVenda, t.id),
+  idxProduto: index('idx_venda_produto').on(t.produtoId),
 }));
 
 export const logAuditoria = sqliteTable('log_auditoria', {

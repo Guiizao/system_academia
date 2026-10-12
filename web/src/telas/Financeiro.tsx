@@ -4,6 +4,7 @@ import { useDados } from '../dados/useDados';
 import { useSessao, pode } from '../sessao';
 import { formatarData, diffDias, hoje } from '../dominio';
 import { Olho, useValores } from '../componentes/Valores';
+import { ConfirmarSenha } from '../componentes/ConfirmarSenha';
 import { mesCurto, variacaoTexto } from '../dominio/grafico';
 import { IconeAlerta } from '../componentes/Icones';
 import { BarrasVerticais, BarrasHorizontais } from '../componentes/Grafico';
@@ -12,7 +13,7 @@ import { FormPagamento } from './FormPagamento';
 import { FormPlano } from './FormPlano';
 import { RelatorioMes } from './RelatorioMes';
 import { mover, podeMover } from '../dominio/ordem';
-import type { Aluno, Plano } from '../tipos';
+import type { Aluno, Pagamento, Plano } from '../tipos';
 import './Financeiro.css';
 
 /** "/mes", "/3 meses", "/dia", "/5 dias" -- o que o cliente le no cartao */
@@ -33,7 +34,7 @@ export function Financeiro() {
   const [verDesativados, setVerDesativados] = useState(false);
   const { dados: planos, recarregar: recPlanos } =
     useDados(() => api.planos(dono && verDesativados), [dono, verDesativados]);
-  const { dados: resumo } = useDados(() => (dono ? api.dashboard() : Promise.resolve(null)), [dono]);
+  const { dados: resumo, recarregar: recResumo } = useDados(() => (dono ? api.dashboard() : Promise.resolve(null)), [dono]);
   const { dados: rel, recarregar: recRel } = useDados(() => (dono ? api.relatorioFinanceiro() : Promise.resolve(null)), [dono]);
   const [editandoPlano, setEditandoPlano] = useState<Plano | null>(null);
   const [criandoPlano, setCriandoPlano] = useState(false);
@@ -41,6 +42,8 @@ export function Financeiro() {
   /** ordem mostrada enquanto o servidor grava: a seta responde na hora */
   const [ordemLocal, setOrdemLocal] = useState<Plano[] | null>(null);
   const [pagando, setPagando] = useState<Aluno | null>(null);
+  // pagamento lançado por engano (duas vezes): só o dono exclui, com a senha dele
+  const [excluindo, setExcluindo] = useState<Pagamento | null>(null);
 
   const H = hoje();
   const emAberto = cobrancas ?? [];
@@ -133,10 +136,36 @@ export function Financeiro() {
                 {formatarData(p.dataPagamento)}, {FORMA[p.forma] ?? p.forma}{p.observacao ? `, ${p.observacao}` : ''}
               </div>
             </div>
-            <strong className="valor-ok">+{dinheiro(p.valorCentavos)}</strong>
+            <div className="pag__lado">
+              <strong className="valor-ok">+{dinheiro(p.valorCentavos)}</strong>
+              {dono && (
+                <button type="button" className="btn btn-danger btn-sm" onClick={() => setExcluindo(p)}
+                        title="Excluir este pagamento (pede a sua senha)">Excluir</button>
+              )}
+            </div>
           </div>
         ))}
       </Painel>
+
+      {excluindo && (
+        <ConfirmarSenha
+          titulo="Excluir pagamento"
+          rotuloBotao={`Excluir ${dinheiro(excluindo.valorCentavos)} de ${excluindo.alunoNome}`}
+          explicacao={<>
+            O pagamento sai do caixa e o vencimento de <b>{excluindo.alunoNome}</b> volta a ser o de
+            antes dele. Use para lançamento em dobro ou por engano. Não tem volta.
+          </>}
+          aoFechar={() => setExcluindo(null)}
+          aoConfirmar={async (senha) => {
+            const r = await api.excluirPagamento(excluindo.id, senha);
+            setExcluindo(null);
+            avisar(r.dataFimNova
+              ? `Pagamento excluído. ${excluindo.alunoNome} volta a vencer em ${formatarData(r.dataFimNova)}.`
+              : 'Pagamento excluído.', 'ok');
+            recPag(); recCob(); recRel(); recResumo();
+          }}
+        />
+      )}
 
       {dono && rel && (
         <div className="fin__graficos">

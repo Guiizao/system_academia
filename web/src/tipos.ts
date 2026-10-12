@@ -150,3 +150,36 @@ export type PreviaPagamento = {
   valorCentavos: number;
   planoNome: string;
 };
+
+/* ─── loja da academia ─────────────────────────────────── */
+
+export type Produto = {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  categoria: string | null;
+  precoCentavos: number;
+  estoque: number;
+  /** até 3 fotos, já reduzidas no navegador (data URL jpeg) */
+  fotos: string[];
+  ativo: boolean;
+};
+
+export type SituacaoVenda = 'paga' | 'fiado';
+
+export type Venda = {
+  id: number;
+  produtoId: number;
+  produtoNome: string;
+  alunoId: number | null;
+  alunoNome: string | null;
+  clienteNome: string | null;
+  quantidade: number;
+  valorUnitarioCentavos: number;
+  totalCentavos: number;
+  situacao: SituacaoVenda;
+  forma: FormaPagamento | null;
+  dataVenda: DataISO;
+  pagaEm: DataISO | null;
+  observacao: string | null;
+};

@@ -1,8 +1,8 @@
-import { get, post, put, del } from './cliente';
+import { get, post, put, del, req } from './cliente';
 import type {
   Aluno, AvaliacaoFisica, AulaDoDia, Checkin, Cobranca, Config, Dashboard,
   FichaTreino, FormaPagamento, Pagamento, Plano, StatusAluno, Usuario,
-  Aviso, Membro, Exercicio, RelatorioMes, PreviaPagamento } from '../tipos';
+  Aviso, Membro, Exercicio, RelatorioMes, PreviaPagamento, Produto, Venda, SituacaoVenda } from '../tipos';
 
 const qs = (o: Record<string, string | undefined>) => {
   const p = new URLSearchParams(Object.entries(o).filter(([, v]) => v) as [string, string][]);
@@ -65,6 +65,22 @@ export const api = {
     /** vencimento na mão, em vez do calculado */
     dataFimManual?: string | null;
   }) => post('/api/pagamentos', d),
+  /** Só o dono, confirmando com a PRÓPRIA senha; o servidor desfaz a renovação. */
+  excluirPagamento: (id: number, senha: string) =>
+    req<{ ok: true; alunoId: number; dataFimNova: string | null }>('DELETE', `/api/pagamentos/${id}`, { senha }),
+
+  produtos: (todos = false) => get<Produto[]>(`/api/produtos${todos ? '?todos=1' : ''}`),
+  salvarProduto: (d: Omit<Produto, 'id' | 'ativo'> & { id?: number; ativo?: boolean }) =>
+    d.id ? put<Produto>(`/api/produtos/${d.id}`, d) : post<Produto>('/api/produtos', d),
+  excluirProduto: (id: number) => del<{ ok: true }>(`/api/produtos/${id}`),
+  vendas: (situacao?: SituacaoVenda) => get<Venda[]>(`/api/vendas${situacao ? `?situacao=${situacao}` : ''}`),
+  vender: (d: {
+    produtoId: number; quantidade: number; situacao: SituacaoVenda;
+    alunoId?: number; clienteNome?: string; forma?: FormaPagamento; observacao?: string;
+  }) => post<Venda>('/api/vendas', d),
+  receberVenda: (id: number, forma: FormaPagamento) => post<Venda>(`/api/vendas/${id}/receber`, { forma }),
+  cancelarVenda: (id: number, senha: string) => req<{ ok: true }>('DELETE', `/api/vendas/${id}`, { senha }),
+
   distribuicao: () => get<Array<{ plano: Plano; quantidade: number }>>('/api/financeiro/distribuicao'),
 
   aulasDoDia: (data: string) => get<AulaDoDia[]>(`/api/aulas?data=${data}`),

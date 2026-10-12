@@ -5,6 +5,7 @@ import { Alunos } from './telas/Alunos';
 import { Treinos } from './telas/Treinos';
 import { Agenda } from './telas/Agenda';
 import { Financeiro } from './telas/Financeiro';
+import { Produtos } from './telas/Produtos';
 import { Config } from './telas/Config';
 import { Login } from './telas/Login';
 import { BarraJanela } from './componentes/BarraJanela';
@@ -62,6 +63,7 @@ export default function App() {
         {tela === 'treinos' && <Treinos />}
         {tela === 'agenda' && <Agenda />}
         {tela === 'financeiro' && <Financeiro />}
+        {tela === 'produtos' && <Produtos />}
         {tela === 'config' && <Config />}
       </Shell>
       {aviso && <div key={aviso.id} className={`aviso aviso--${aviso.tom}`} role="status">{aviso.msg}</div>}

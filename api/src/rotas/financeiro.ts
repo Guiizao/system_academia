@@ -71,6 +71,13 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
 
   app.get('/api/pagamentos', caixa, async () => s.financeiro.pagamentosRecentes(30));
 
+  app.delete('/api/pagamentos/:id', dono, async (req) => {
+    const pagamentoId = id.parse((req.params as any).id);
+    const { senha } = z.object({ senha: z.string().min(1).max(1024) }).parse(req.body);
+    await s.auth.confirmarSenha(req.usuario!.id, senha);
+    return s.financeiro.excluirPagamento(pagamentoId);
+  });
+
   /**
    * O vencimento que VAI sair, antes de gravar qualquer coisa. A tela mostra
    * isso para a recepcao conferir: quem paga adiantado precisa ver que nao

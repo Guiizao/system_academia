@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   IconeInicio, IconeAlunos, IconeTreinos, IconeAgenda,
-  IconeFinanceiro, IconeConfig, IconeSino, IconeUsuario, IconeSair,
+  IconeFinanceiro, IconeProdutos, IconeConfig, IconeSino, IconeUsuario, IconeSair,
 } from './Icones';
 import { useSessao, pode } from '../sessao';
 import { api } from '../dados/api';
@@ -12,7 +12,7 @@ import { filtrarNaoVistos } from '../dominio/avisos-vistos';
 import { Logo } from './Logo';
 import './Shell.css';
 
-export type Tela = 'inicio' | 'alunos' | 'treinos' | 'agenda' | 'financeiro' | 'config';
+export type Tela = 'inicio' | 'alunos' | 'treinos' | 'agenda' | 'financeiro' | 'produtos' | 'config';
 
 const ROTULO_PAPEL = { dono: 'Dono', recepcao: 'Recepção', professor: 'Professor' } as const;
 
@@ -22,6 +22,7 @@ const ITENS: Array<{ id: Tela; rotulo: string; Icone: typeof IconeInicio }> = [
   { id: 'treinos',    rotulo: 'Treinos',    Icone: IconeTreinos },
   { id: 'agenda',     rotulo: 'Agenda',     Icone: IconeAgenda },
   { id: 'financeiro', rotulo: 'Financeiro', Icone: IconeFinanceiro },
+  { id: 'produtos',   rotulo: 'Produtos',   Icone: IconeProdutos },
 ];
 
 /** Detecta a faixa de largura. É o que decide bottom nav vs sidebar. */
@@ -59,7 +60,8 @@ export function Shell({
   const nomePartes = ['DARK', 'FISIC'];
   // professor nao lida com dinheiro: aba some. Recepcao ve a aba (recebe pagamentos),
   // mas nao os numeros consolidados -- esses o servidor nem envia para ela.
-  const itens = ITENS.filter((i) => i.id !== 'financeiro' || pode.receberPagamento(usuario));
+  // loja e caixa: quem recebe pagamento também vende produto
+  const itens = ITENS.filter((i) => !['financeiro', 'produtos'].includes(i.id) || pode.receberPagamento(usuario));
 
   // fundo do item ativo desliza ate a tela escolhida (medido, porque o rodape
   // do menu fica colado embaixo e muda de posicao com a altura da janela)

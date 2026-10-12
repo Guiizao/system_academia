@@ -3,7 +3,8 @@ import { randomBytes } from 'node:crypto';
 import { eq, and, gt } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { usuario, sessao } from '../db/schema.js';
-import { ErroNegocio } from './erros.js';
+import { ErroNegocio, ErroExcessoDeTentativas } from './erros.js';
+import { criarLimitador } from '../dominio/limitador.js';
 
 type Db = BetterSQLite3Database<any>;
 
@@ -29,6 +30,21 @@ export function criarServicoAuth(db: Db) {
   // Falhas por e-mail. Em memoria: reinicia com o servidor, suficiente
   // para frear forca bruta sem tabela extra.
   const falhas = new Map<string, { n: number; bloqueadoAte: number }>();
+  const confirmacoes = criarLimitador({ max: 10, janelaMs: 60_000 });
+  const confirmacoesGerais = criarLimitador({ max: 40, janelaMs: 60_000 });
+
+  /** Confirma a própria senha, sem abrir outra sessão; compartilhado pelas exclusões. */
+  async function confirmarSenha(usuarioId: number, senha: string) {
+    for (const limite of [confirmacoes.tentar(String(usuarioId)), confirmacoesGerais.tentar('*')]) {
+      if (!limite.ok) throw new ErroExcessoDeTentativas(
+        `Muitas tentativas. Tente de novo em ${limite.esperarSeg}s.`, limite.esperarSeg);
+    }
+    const pessoa = db.select().from(usuario).where(eq(usuario.id, usuarioId)).get();
+    if (!pessoa?.ativo || !pessoa.senhaHash || !await argon2.verify(pessoa.senhaHash, senha)) {
+      throw new ErroNegocio('Senha incorreta.');
+    }
+    confirmacoes.esquecer(String(usuarioId));
+  }
 
   async function login(email: string, senha: string, agora = Date.now()) {
     const chave = (email ?? '').trim().toLowerCase();
@@ -76,7 +92,7 @@ export function criarServicoAuth(db: Db) {
     db.delete(sessao).where(eq(sessao.token, token)).run();
   }
 
-  return { login, usuarioDaSessao, logout };
+  return { login, usuarioDaSessao, logout, confirmarSenha };
 }
 
 export type UsuarioPublico = NonNullable<ReturnType<ReturnType<typeof criarServicoAuth>['usuarioDaSessao']>>;

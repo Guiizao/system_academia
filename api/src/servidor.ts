@@ -23,6 +23,8 @@ import { criarServicoAvisos } from './servicos/avisos.js';
 import { criarServicoRelatorios } from './servicos/relatorios.js';
 import { criarServicoAcademia } from './servicos/academia.js';
 import { criarServicoPlanos } from './servicos/planos.js';
+import { criarServicoProdutos } from './servicos/produtos.js';
+import { rotasProdutos } from './rotas/produtos.js';
 
 type Db = BetterSQLite3Database<any>;
 
@@ -42,6 +44,7 @@ export function criarServicos(db: Db) {
     relatorios: criarServicoRelatorios(db),
     academia: criarServicoAcademia(db),
     planos: criarServicoPlanos(db),
+    produtos: criarServicoProdutos(db),
   };
 }
 export type Servicos = ReturnType<typeof criarServicos>;
@@ -82,6 +85,7 @@ export function construirServidor(opts: OpcoesServidor = {}): FastifyInstance {
     rotasFinanceiro(app, s);
     rotasOperacao(app, s);
     rotasEquipe(app, s);
+    rotasProdutos(app, s);
   }
 
   if (opts.pastaWeb && existsSync(opts.pastaWeb)) {

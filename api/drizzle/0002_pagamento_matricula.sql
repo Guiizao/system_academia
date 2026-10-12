@@ -1,0 +1,1 @@
+ALTER TABLE `pagamento` ADD `matricula_id` integer REFERENCES matricula(id);

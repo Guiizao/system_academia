@@ -1,4 +1,4 @@
-import { eq, and, desc, lt, gte, like, sum, count } from 'drizzle-orm';
+import { eq, and, desc, lt, gte, lte, gt, notExists, like, sum, count } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { cobranca, pagamento, aluno, academia, plano, matricula } from '../db/schema.js';
 import { montarBrCode } from '../dominio/pix.js';
@@ -46,7 +46,7 @@ export function criarServicoFinanceiro(db: Db) {
         tx.update(cobranca).set({ status: 'paga' }).where(eq(cobranca.id, c.id)).run();
       }
 
-      const pg = tx.insert(pagamento).values({
+      let pg = tx.insert(pagamento).values({
         alunoId: args.alunoId, cobrancaId: args.cobrancaId,
         valorCentavos: args.valorCentavos, forma: args.forma,
         dataPagamento, observacao: args.observacao,
@@ -62,7 +62,69 @@ export function criarServicoFinanceiro(db: Db) {
           })
         : null;
 
+      if (nova) pg = tx.update(pagamento).set({ matriculaId: nova.id })
+        .where(eq(pagamento.id, pg.id)).returning().get()!;
+
       return { pagamento: pg, matricula: nova };
+    });
+  }
+
+  function excluirPagamento(pagamentoId: number) {
+    return db.transaction((tx) => {
+      const registro = tx.select().from(pagamento).where(eq(pagamento.id, pagamentoId)).get();
+      if (!registro) throw new ErroNaoEncontrado('Pagamento não encontrado');
+      const atual = matriculas.matriculaAtualSync(registro.alunoId, tx as unknown as Db);
+      let matriculaId = registro.matriculaId;
+      const recusarAnterior = () => { throw new ErroNegocio('Exclua primeiro o pagamento mais recente deste aluno.'); };
+
+      if (matriculaId == null) {
+        // Legado: a renovação era gravada logo depois do pagamento, sem vínculo explícito.
+        const limite = new Date(Date.parse(registro.criadoEm) + 60_000).toISOString();
+        const candidatas = tx.select().from(matricula).where(and(
+          eq(matricula.alunoId, registro.alunoId), gte(matricula.criadoEm, registro.criadoEm),
+          lte(matricula.criadoEm, limite),
+          notExists(tx.select({ id: pagamento.id }).from(pagamento).where(eq(pagamento.matriculaId, matricula.id))),
+        )).orderBy(desc(matricula.id)).all();
+        const candidata = candidatas.find((m) => m.id === atual?.id) ?? candidatas[0];
+        if (candidata) {
+          const posterior = tx.select({ id: pagamento.id }).from(pagamento).where(and(
+            eq(pagamento.alunoId, registro.alunoId), gt(pagamento.id, registro.id),
+          )).get();
+          if (posterior) recusarAnterior();
+          matriculaId = candidata.id;
+        }
+      }
+
+      if (matriculaId != null && matriculaId !== atual?.id) recusarAnterior();
+      tx.delete(pagamento).where(eq(pagamento.id, registro.id)).run();
+      const semPagamento = notExists(tx.select({ id: pagamento.id }).from(pagamento)
+        .where(eq(pagamento.cobrancaId, cobranca.id)));
+
+      if (registro.cobrancaId != null) tx.update(cobranca).set({ status: 'aberta' })
+        .where(and(eq(cobranca.id, registro.cobrancaId), semPagamento)).run();
+
+      let dataFimNova = atual?.dataFim ?? null;
+      if (matriculaId != null) {
+        // Cobranças automáticas do período desfeito também deixam de existir.
+        const comPagamento = tx.select({ id: pagamento.id }).from(pagamento)
+          .innerJoin(cobranca, eq(cobranca.id, pagamento.cobrancaId))
+          .where(eq(cobranca.matriculaId, matriculaId)).get();
+        if (comPagamento) recusarAnterior();
+        tx.delete(cobranca).where(eq(cobranca.matriculaId, matriculaId)).run();
+        tx.delete(matricula).where(eq(matricula.id, matriculaId)).run();
+        const anterior = tx.select().from(matricula).where(and(
+          eq(matricula.alunoId, registro.alunoId), eq(matricula.status, 'encerrada'),
+          lt(matricula.id, matriculaId),
+        )).orderBy(desc(matricula.id)).get();
+        if (anterior) {
+          tx.update(matricula).set({ status: 'ativa' }).where(eq(matricula.id, anterior.id)).run();
+          tx.update(cobranca).set({ status: 'aberta' }).where(and(
+            eq(cobranca.matriculaId, anterior.id), eq(cobranca.status, 'paga'), semPagamento,
+          )).run();
+        }
+        dataFimNova = anterior?.dataFim ?? null;
+      }
+      return { ok: true, alunoId: registro.alunoId, dataFimNova };
     });
   }
 
@@ -178,7 +240,7 @@ export function criarServicoFinanceiro(db: Db) {
   }
 
   return {
-    registrarPagamento, cobrancasAbertas, pagamentosRecentes, pagamentosDoAluno,
+    registrarPagamento, excluirPagamento, cobrancasAbertas, pagamentosRecentes, pagamentosDoAluno,
     gerarCobrancasDevidas, pixDaCobranca, pixAvulso, receitaDoMes, recebidoEm, inadimplencia, distribuicaoPorPlano,
   };
 }
