@@ -8,7 +8,8 @@ import { hoje } from '../dominio/datas.js';
 import type { Servicos } from '../servidor.js';
 
 const id = z.coerce.number().int().positive();
-const data = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const data = z.iso.date({ error: 'Data inválida. Use uma data existente no formato AAAA-MM-DD.' });
+const horario = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'Horário inválido. Use HH:MM, de 00:00 a 23:59.');
 
 export function rotasOperacao(app: FastifyInstance, s: Servicos) {
   const todos = { preHandler: exigir() };
@@ -33,7 +34,7 @@ export function rotasOperacao(app: FastifyInstance, s: Servicos) {
   app.post('/api/aulas', { preHandler: exigir('dono', 'professor') }, async (req, reply) => {
     const d = z.object({
       nome: z.string().min(1), diaSemana: z.number().int().min(0).max(6),
-      hora: z.string().regex(/^\d{2}:\d{2}$/), duracaoMin: z.number().int().positive().optional(),
+      hora: horario, duracaoMin: z.number().int().positive().optional(),
       professorUsuarioId: z.number().int().positive().optional(),
       vagas: z.number().int().positive(), local: z.string().optional(),
     }).parse(req.body);
@@ -48,7 +49,7 @@ export function rotasOperacao(app: FastifyInstance, s: Servicos) {
   app.put('/api/aulas/:id', { preHandler: exigir('dono', 'professor') }, async (req) => {
     const d = z.object({
       ativo: z.boolean().optional(), vagas: z.number().int().positive().optional(),
-      hora: z.string().regex(/^\d{2}:\d{2}$/).optional(), local: z.string().optional(),
+      hora: horario.optional(), local: z.string().optional(),
     }).parse(req.body);
     return s.aulas.atualizar(id.parse((req.params as any).id), d);
   });

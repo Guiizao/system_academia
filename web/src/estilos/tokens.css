@@ -8,6 +8,10 @@
    ═══════════════════════════════════════════════════════════ */
 @import '@fontsource-variable/manrope';
 
+/* Cores de status revisadas em 14/10/2026: amarelo e verde do Claro, amarelo
+   do Areia e vermelho do Grafite e do Cinza estavam abaixo de 4,5:1 quando
+   usados como TEXTO sobre a própria faixa de aviso (o pior era o amarelo do
+   Claro, 3,5:1). Os tons novos ficam acima de 4,7:1 no cartão e na faixa. */
 :root, [data-tema='escuro'] {
 
   color-scheme: dark;
@@ -32,7 +36,7 @@
 
   --ok: #3DBE83;     --ok-suave: rgba(61, 190, 131, .13);
   --warn: #E2A33C;   --warn-suave: rgba(226, 163, 60, .13);
-  --danger: #EA5A62; --danger-suave: rgba(234, 90, 98, .13);
+  --danger: #EA666D; --danger-suave: rgba(234, 90, 98, .13);
   --purple: #9A88F2; --purple-suave: rgba(154, 136, 242, .14);
 
   --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
@@ -62,7 +66,7 @@
 
   --ok: #4ECB92;     --ok-suave: rgba(78, 203, 146, .14);
   --warn: #EBB154;   --warn-suave: rgba(235, 177, 84, .14);
-  --danger: #F2737A; --danger-suave: rgba(242, 115, 122, .14);
+  --danger: #F1848B; --danger-suave: rgba(242, 115, 122, .14);
   --purple: #A897F5; --purple-suave: rgba(168, 151, 245, .15);
 
   --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, .4), 0 2px 6px rgba(0, 0, 0, .26);
@@ -120,7 +124,7 @@
   --accent-suave: rgba(168, 85, 30, .12);
 
   --ok: #166B46;     --ok-suave: rgba(22, 107, 70, .12);
-  --warn: #96610C;   --warn-suave: rgba(150, 97, 12, .13);
+  --warn: #8D5C0D;   --warn-suave: rgba(150, 97, 12, .13);
   --danger: #B32D32; --danger-suave: rgba(179, 45, 50, .11);
   --purple: #5B4BBE; --purple-suave: rgba(91, 75, 190, .12);
 
@@ -147,8 +151,8 @@
   --accent-texto: #FFFFFF;
   --accent-suave: rgba(47, 98, 224, .10);
 
-  --ok: #15875A;     --ok-suave: rgba(21, 135, 90, .10);
-  --warn: #AD7412;   --warn-suave: rgba(173, 116, 18, .11);
+  --ok: #157852;     --ok-suave: rgba(21, 135, 90, .10);
+  --warn: #8F6215;   --warn-suave: rgba(173, 116, 18, .11);
   --danger: #C8323E; --danger-suave: rgba(200, 50, 62, .09);
   --purple: #6553D1; --purple-suave: rgba(101, 83, 209, .10);
 

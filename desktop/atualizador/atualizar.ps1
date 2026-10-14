@@ -202,6 +202,9 @@ try {
   Rename-Item -LiteralPath $appNovo -NewName 'app'
 } catch {
   Escrever "Nao consegui trocar os arquivos: $($_.Exception.Message)" 'Red'
+  if (-not (Test-Path -LiteralPath $appInstalado) -and (Test-Path -LiteralPath $appAntigo)) {
+    Rename-Item -LiteralPath $appAntigo -NewName 'app'
+  }
   if ((Test-Path -LiteralPath $nmPara) -and -not (Test-Path -LiteralPath $nmDe)) { Move-Item -LiteralPath $nmPara -Destination $nmDe }
   if (Test-Path -LiteralPath $appNovo) { Remove-Item -LiteralPath $appNovo -Recurse -Force }
   Parar "nada foi alterado: a versao $($pkgInstalado.version) continua instalada. Abra o DARK FISIC normalmente." 1

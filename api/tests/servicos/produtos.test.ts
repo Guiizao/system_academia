@@ -28,6 +28,12 @@ const vender = (produtoId: number, campos: Partial<Parameters<typeof servico.reg
   });
 const estoqueDe = (produtoId: number) => banco.db.select().from(produto).where(eq(produto.id, produtoId)).get()!.estoque;
 
+it('mantém todas as dívidas visíveis mesmo depois de cem vendas fiadas', () => {
+  const mercadoria = cadastrar({ estoque: 101 });
+  const ids = Array.from({ length: 101 }, () => vender(mercadoria.id, { situacao: 'fiado', alunoId }).id);
+  expect(servico.listarVendas('fiado').map((registro) => registro.id)).toEqual(ids.reverse());
+});
+
 describe('cadastro de produtos', () => {
   it('cadastra os campos do contrato e edita somente os campos informados', () => {
     const criado = cadastrar({ descricao: 'Garrafa de 500 ml', categoria: 'Acessórios', fotos: [FOTO] });

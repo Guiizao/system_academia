@@ -67,6 +67,7 @@ export function criarServicoMatriculas(db: Db) {
   } {
     const p = q.select().from(plano).where(eq(plano.id, args.planoId)).limit(1).get();
     if (!p) throw new ErroNaoEncontrado('Plano não encontrado');
+    if (!p.ativo) throw new ErroNegocio('Plano desativado. Escolha um plano ativo.');
 
     const periodos = validarPeriodos(args.periodos, p.duracaoDias != null);
     const anterior = matriculaAtualSync(args.alunoId, q);

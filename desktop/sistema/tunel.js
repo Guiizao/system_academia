@@ -60,6 +60,8 @@ export const SEM_PROGRAMA =
 export function criarTunel({ spawn, log = () => {}, esperaMs = ESPERA_MS, onde = ONDE_PROCURAR }) {
   let processo = null;
   let atual = { estado: 'desligado', url: null, erro: null };
+  let abertura = null, cancelarTentativa = null;
+  let geracao = 0;
 
   const estado = () => ({ ...atual });
 
@@ -74,12 +76,20 @@ export function criarTunel({ spawn, log = () => {}, esperaMs = ESPERA_MS, onde =
    * Liga o túnel e só resolve quando o endereço aparecer. Tenta os caminhos em
    * ordem: "programa não encontrado" num deles não é erro, é o próximo da fila.
    */
-  async function abrir(porta) {
-    if (atual.estado === 'no-ar') return estado();
+  function abrir(porta) {
+    if (atual.estado === 'no-ar') return Promise.resolve(estado());
+    if (abertura) return abertura;
+    const pendente = ligar(porta, ++geracao);
+    abertura = pendente;
+    return pendente.finally(() => { if (abertura === pendente) abertura = null; });
+  }
+
+  async function ligar(porta, tentativa) {
     atual = { estado: 'ligando', url: null, erro: null };
 
     for (const caminho of onde) {
       const r = await tentar(caminho, porta);
+      if (tentativa !== geracao) return estado();
       if (r.ok) {
         atual = { estado: 'no-ar', url: r.url, erro: null };
         log(`Sistema na internet: ${r.url}`);
@@ -113,32 +123,39 @@ export function criarTunel({ spawn, log = () => {}, esperaMs = ESPERA_MS, onde =
         if (respondido) return;
         respondido = true;
         clearTimeout(relogio);
+        if (cancelarTentativa === cancelar) cancelarTentativa = null;
         pronto(r);
       };
+      const cancelar = () => responder({ ok: false });
+      cancelarTentativa = cancelar;
 
       const relogio = setTimeout(() => {
         responder({ ok: false, semPrograma: false, erro: `o cloudflared não respondeu em ${Math.round(esperaMs / 1000)}s` });
       }, esperaMs);
 
       // o cloudflared escreve o endereco no stderr, nao no stdout
-      const olhar = (pedaco) => {
-        for (const linha of String(pedaco).split(/\r?\n/)) {
-          const url = enderecoDaLinha(linha);
+      const observar = () => {
+        let restante = '';
+        return (pedaco) => {
+          restante = (restante + String(pedaco)).slice(-4096);
+          const url = enderecoDaLinha(restante);
           if (url) responder({ ok: true, url });
-        }
+          restante = restante.slice(restante.lastIndexOf('\n') + 1);
+        };
       };
-      filho.stdout?.on('data', olhar);
-      filho.stderr?.on('data', olhar);
+      filho.stdout?.on('data', observar());
+      filho.stderr?.on('data', observar());
 
       filho.on('error', (e) => {
         // ENOENT = este caminho nao tem o programa; o laco tenta o proximo
         responder({ ok: false, semPrograma: e.code === 'ENOENT', erro: e.message });
       });
       filho.on('exit', (codigo) => {
-        if (processo === filho) processo = null;
+        const eraAtual = processo === filho;
+        if (eraAtual) processo = null;
         responder({ ok: false, semPrograma: false, erro: `o cloudflared saiu com código ${codigo}` });
         // caiu depois de ter subido: o painel precisa saber
-        if (atual.estado === 'no-ar') {
+        if (eraAtual && atual.estado === 'no-ar') {
           atual = { estado: 'erro', url: null, erro: 'A ligação com a Cloudflare caiu.' };
           log('O túnel caiu: o sistema não está mais na internet.', 'erro');
         }
@@ -147,8 +164,11 @@ export function criarTunel({ spawn, log = () => {}, esperaMs = ESPERA_MS, onde =
   }
 
   function fechar() {
-    encerrarProcesso();
+    geracao++;
+    cancelarTentativa?.();
+    abertura = null;
     atual = { estado: 'desligado', url: null, erro: null };
+    encerrarProcesso();
     log('Sistema tirado da internet.');
     return estado();
   }

@@ -55,7 +55,7 @@ export function rotasAuth(app: FastifyInstance, s: Servicos) {
   });
 
   app.post('/api/auth/logout', async (req, reply) => {
-    const token = req.cookies?.[COOKIE_SESSAO];
+    const token = req.cookies?.[COOKIE_SESSAO] ?? req.headers.authorization?.replace(/^Bearer /, '');
     if (token) s.auth.logout(token);
     reply.clearCookie(COOKIE_SESSAO, { path: '/' });
     return { ok: true };

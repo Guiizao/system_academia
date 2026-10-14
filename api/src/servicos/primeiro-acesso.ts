@@ -26,6 +26,7 @@ export async function configurarPrimeiroAcesso(db: Db, d: {
 
   const senhaHash = await hashSenha(d.senha);
   db.transaction((tx) => {
+    if (!precisaConfigurar(tx as unknown as Db)) throw new ErroNegocio('O sistema já foi configurado', 409);
     tx.insert(academia).values({ nome: d.nomeAcademia.trim(), responsavel: d.nome.trim() }).run();
     tx.insert(usuario).values({
       nome: d.nome.trim(), email: d.email.trim().toLowerCase(), papel: 'dono', senhaHash,

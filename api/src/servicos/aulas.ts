@@ -46,6 +46,7 @@ export function criarServicoAulas(db: Db) {
       const t = tx as unknown as Db;
       const a = t.select().from(aula).where(eq(aula.id, aulaId)).get();
       if (!a) throw new ErroNaoEncontrado('Aula não encontrada');
+      if (!a.ativo) throw new ErroNegocio('Aula desativada');
       if (a.diaSemana !== diaDaSemana(data)) throw new ErroNegocio('Esta aula não acontece nessa data');
       if (!t.select({ id: aluno.id }).from(aluno).where(eq(aluno.id, alunoId)).get()) {
         throw new ErroNaoEncontrado('Aluno não encontrado');

@@ -14,6 +14,26 @@ const nome = (d: Date) => {
 };
 
 describe('fazerBackup', () => {
+  it.each(['darkfisic', 'antes-da-importacao'])('preserva dois backups no mesmo segundo: %s', (prefixo) => {
+    pasta = mkdtempSync(join(tmpdir(), 'df-colisao-'));
+    const db = new Database(':memory:');
+    try {
+      db.exec('CREATE TABLE exemplo (valor INTEGER); INSERT INTO exemplo VALUES (1)');
+      const instante = new Date(2026, 9, 14, 12);
+      const primeiro = fazerBackup(db, pasta, instante, prefixo);
+      db.exec('UPDATE exemplo SET valor = 2');
+      const segundo = fazerBackup(db, pasta, instante, prefixo);
+      expect(segundo).not.toBe(primeiro);
+      const copia = new Database(primeiro, { readonly: true });
+      try { expect(copia.prepare('SELECT valor FROM exemplo').get()).toEqual({ valor: 1 }); }
+      finally { copia.close(); }
+      expect(listarBackups(pasta).map((registro) => registro.nome)).toEqual([basename(segundo), basename(primeiro)]);
+      const retencao = selecionarRetencao(readdirSync(pasta));
+      if (prefixo === 'darkfisic') expect(retencao.manter).toEqual([basename(segundo)]);
+      else expect(retencao.apagar).toEqual([]);
+    } finally { db.close(); }
+  });
+
   it('gera copia consistente e legivel do banco em uso', () => {
     pasta = mkdtempSync(join(tmpdir(), 'df-bkp-'));
     const origem = join(pasta, 'origem.db');

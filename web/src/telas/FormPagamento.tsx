@@ -67,6 +67,11 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
   const plano: Plano | undefined = planos?.find((p) => String(p.id) === planoId);
   const ehDiaria = !!plano?.duracaoDias;
   const podeAdiantar = !!plano && !ehDiaria;
+  // O plano do aluno foi desativado: o servidor não renova nele, e o campo de
+  // plano fica vazio. Sem avisar, o pagamento entraria avulso e o vencimento
+  // não andaria -- fácil de passar batido no balcão.
+  const planoAtualDesativado = !!aluno.matricula && !!planos
+    && !planos.some((p) => p.id === aluno.matricula!.planoId);
 
   // diaria e pagamento avulso nao adiantam periodo
   useEffect(() => { if (!podeAdiantar && periodos !== 1) setPeriodos(1); }, [podeAdiantar]);
@@ -176,6 +181,13 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
               <option value="debito">Débito</option><option value="credito">Crédito</option>
             </select></div>
         </div>
+
+        {planoAtualDesativado && !plano && (
+          <p className="form-nota form-nota--alerta">
+            O plano {aluno.planoNome ? <b>{aluno.planoNome}</b> : 'atual'} deste aluno foi desativado.
+            Escolha um plano em <b>Renovar plano</b> para o vencimento andar; sem isso o pagamento entra avulso.
+          </p>
+        )}
 
         {podeAdiantar && (
           <div className="campo"><label htmlFor="fp-periodos">Está pagando quanto tempo</label>

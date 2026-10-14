@@ -1,15 +1,15 @@
 import type Database from 'better-sqlite3';
-import { mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const PADRAO = /^darkfisic-(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.db$/;
+const PADRAO = /^darkfisic-(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})(?:-(\d+))?\.db$/;
 /**
  * Copia feita antes de "Comecar do zero": fora do padrao da rotacao, entao a
  * retencao nunca apaga -- um backup mais tarde no mesmo dia substituiria o
  * unico registro dos dados apagados. Quem remove e a pessoa, pela pasta.
  */
 // o mesmo vale para as copias feitas antes de importar alunos e antes de atualizar o programa
-const PADRAO_RESET = /^antes-d[ao]-(reset|importacao|atualizacao)-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.db$/;
+const PADRAO_RESET = /^antes-d[ao]-(reset|importacao|atualizacao)-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(?:-\d+)?\.db$/;
 
 function carimbo(d: Date) {
   const p = (n: number) => String(n).padStart(2, '0');
@@ -23,7 +23,9 @@ function carimbo(d: Date) {
  */
 export function fazerBackup(sqlite: Database.Database, pasta: string, agora = new Date(), prefixo = 'darkfisic'): string {
   mkdirSync(pasta, { recursive: true });
-  const destino = join(pasta, `${prefixo}-${carimbo(agora)}.db`);
+  const base = join(pasta, `${prefixo}-${carimbo(agora)}`);
+  let destino = `${base}.db`;
+  for (let numero = 1; existsSync(destino); numero++) destino = `${base}-${numero}.db`;
   sqlite.prepare('VACUUM INTO ?').run(destino);
   return destino;
 }
@@ -46,10 +48,10 @@ export function selecionarRetencao(arquivos: string[], agora = new Date()): { ma
   const datados = arquivos
     .map((nome) => {
       const m = nome.match(PADRAO);
-      return m ? { nome, data: new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) } : null;
+      return m ? { nome, data: new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]), sequencia: Number(m[7] ?? 0) } : null;
     })
-    .filter((x): x is { nome: string; data: Date } => !!x)
-    .sort((a, b) => b.data.getTime() - a.data.getTime()); // mais recente primeiro
+    .filter((x): x is { nome: string; data: Date; sequencia: number } => !!x)
+    .sort((a, b) => b.data.getTime() - a.data.getTime() || b.sequencia - a.sequencia); // mais recente primeiro
 
   const manter = new Set<string>();
   const regras: Array<{ chave: (d: Date) => string; limite: number }> = [
@@ -81,9 +83,9 @@ export function aplicarRetencao(pasta: string, agora = new Date()): string[] {
 
 export function listarBackups(pasta: string) {
   try {
-    const data = (n: string) => n.slice(n.length - 22);  // ordena pela data, qualquer que seja o prefixo
+    const data = (n: string) => n.match(/\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(?:-\d+)?/)?.[0] ?? '';
     return readdirSync(pasta).filter((n) => PADRAO.test(n) || PADRAO_RESET.test(n))
-      .sort((a, b) => data(b).localeCompare(data(a)))
+      .sort((a, b) => data(b).localeCompare(data(a), 'pt-BR', { numeric: true }))
       .map((nome) => ({ nome, bytes: statSync(join(pasta, nome)).size }));
   } catch { return []; }
 }

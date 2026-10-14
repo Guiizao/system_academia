@@ -3,7 +3,7 @@ import { criarBancoDeTeste } from '../helpers/db.js';
 import { precisaConfigurar, configurarPrimeiroAcesso } from '../../src/servicos/primeiro-acesso.js';
 import { criarServicoAuth } from '../../src/servicos/auth.js';
 import { garantirCatalogo } from '../../src/db/catalogo.js';
-import { exercicio, tagRestricao } from '../../src/db/schema.js';
+import { exercicio, tagRestricao, usuario, academia } from '../../src/db/schema.js';
 import { EXERCICIOS, TAGS_RESTRICAO } from '../../src/db/seed-dados.js';
 
 let t: ReturnType<typeof criarBancoDeTeste>;
@@ -11,6 +11,16 @@ afterEach(() => t?.fechar());
 const dados = { nomeAcademia: 'DARK FISIC', nome: 'Joao', email: 'joao@x.com', senha: 'senha-bem-longa' };
 
 describe('primeiro acesso', () => {
+  it('duas configurações simultâneas criam apenas uma academia e um dono', async () => {
+    t = criarBancoDeTeste();
+    const resultados = await Promise.allSettled([
+      configurarPrimeiroAcesso(t.db, dados),
+      configurarPrimeiroAcesso(t.db, { ...dados, email: 'outro@teste.local' }),
+    ]);
+    expect(resultados.filter((resultado) => resultado.status === 'fulfilled')).toHaveLength(1);
+    expect(t.db.select().from(usuario).all()).toHaveLength(1);
+    expect(t.db.select().from(academia).all()).toHaveLength(1);
+  });
   it('banco vazio precisa configurar; depois, nao', async () => {
     t = criarBancoDeTeste();
     expect(precisaConfigurar(t.db as any)).toBe(true);

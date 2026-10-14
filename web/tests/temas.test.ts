@@ -72,3 +72,39 @@ describe('temas', () => {
     expect(temaValido(null)).toBe(false);
   });
 });
+
+describe('texto de status sobre a faixa de aviso', () => {
+  /*
+   * Amarelo, verde e vermelho aparecem como TEXTO em cima da propria faixa
+   * clarinha (selo "Vencendo", aviso de restricao, faixa da ficha). Em 14/10
+   * o amarelo do tema Claro dava 3,5:1 ali -- abaixo dos 4,5:1 de texto
+   * pequeno. Este teste compoe a faixa sobre o cartao e mede de verdade.
+   */
+  const hex = (n: number) => Math.round(n).toString(16).padStart(2, '0');
+  const rgbDe = (cor: string): [number, number, number] => {
+    const h = cor.trim().replace('#', '');
+    const cheio = h.length === 3 ? [...h].map((c) => c + c).join('') : h;
+    return [0, 2, 4].map((i) => parseInt(cheio.slice(i, i + 2), 16)) as [number, number, number];
+  };
+  /** pinta a faixa semitransparente por cima do cartao e devolve a cor final */
+  const sobre = (faixa: string, fundo: string): string => {
+    const m = faixa.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)/);
+    if (!m) return faixa;
+    const a = Number(m[4]);
+    const base = rgbDe(fundo);
+    return '#' + [1, 2, 3].map((k, i) => hex(Number(m[k]) * a + base[i] * (1 - a))).join('');
+  };
+
+  for (const tema of comCor) {
+    it(`${tema.nome}: amarelo, verde e vermelho legiveis na faixa e no cartao`, () => {
+      const v = variaveis(tema.id);
+      const cartao = v.get('--surface')!;
+      for (const status of ['warn', 'ok', 'danger']) {
+        const cor = v.get(`--${status}`)!;
+        const faixa = sobre(v.get(`--${status}-suave`)!, cartao);
+        expect(contraste(cor, cartao), `${status} no cartao`).toBeGreaterThanOrEqual(4.5);
+        expect(contraste(cor, faixa), `${status} na faixa`).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+  }
+});

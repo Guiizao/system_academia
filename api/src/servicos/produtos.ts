@@ -85,13 +85,14 @@ export function criarServicoProdutos(banco: Banco) {
 
   function listarVendas(situacao?: 'paga' | 'fiado') {
     const filtro = situacaoVenda.optional().parse(situacao);
-    return banco.select({
+    const consulta = banco.select({
       ...getTableColumns(venda), produtoNome: produto.nome, alunoNome: aluno.nome,
     }).from(venda)
       .innerJoin(produto, eq(produto.id, venda.produtoId))
       .leftJoin(aluno, eq(aluno.id, venda.alunoId))
       .where(filtro ? eq(venda.situacao, filtro) : undefined)
-      .orderBy(desc(venda.dataVenda), desc(venda.id)).limit(100).all();
+      .orderBy(desc(venda.dataVenda), desc(venda.id));
+    return (filtro === 'fiado' ? consulta : consulta.limit(100)).all();
   }
 
   function registrarVenda(dados: NovaVenda) {

@@ -7,6 +7,7 @@ import type { Servicos } from '../servidor.js';
 
 const id = z.coerce.number().int().positive();
 const forma = z.enum(['pix', 'dinheiro', 'credito', 'debito', 'boleto']);
+const data = z.iso.date({ error: 'Data inválida. Use uma data existente no formato AAAA-MM-DD.' });
 
 export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
   const caixa = { preHandler: exigir('dono', 'recepcao') };
@@ -88,10 +89,10 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
     const d = z.object({
       alunoId: id,
       planoId: id,
-      dataPagamento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      dataPagamento: data.optional(),
       periodos: z.coerce.number().int().min(1).max(MAX_PERIODOS).optional(),
-      dataInicioEscolhida: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
-      dataFimManual: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+      dataInicioEscolhida: data.nullish(),
+      dataFimManual: data.nullish(),
     }).parse(q);
     return s.matriculas.previa({ ...d, dataPagamento: d.dataPagamento ?? hoje() });
   });
@@ -105,12 +106,12 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
       planoId: z.number().int().positive().optional(),
       /** adiantamento: 2 = o aluno pagou este periodo e o proximo */
       periodos: z.number().int().min(1).max(MAX_PERIODOS).optional(),
-      dataPagamento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      dataPagamento: data.optional(),
       observacao: z.string().max(200).optional(),
       /** diária marcada para outro dia */
-      dataInicioEscolhida: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+      dataInicioEscolhida: data.nullish(),
       /** vencimento na mão, quando a recepção não quer o cálculo automático */
-      dataFimManual: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+      dataFimManual: data.nullish(),
     }).parse(req.body);
     return reply.status(201).send(s.financeiro.registrarPagamento({ ...d, usuarioId: req.usuario!.id }));
   });

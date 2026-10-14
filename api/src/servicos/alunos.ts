@@ -7,6 +7,7 @@ import { statusDoAluno, diasParaVencer, type StatusAluno } from '../dominio/stat
 import { hoje, type DataISO } from '../dominio/datas.js';
 import { criarServicoMatriculas } from './matriculas.js';
 import { criarServicoCheckins } from './checkins.js';
+import { criarServicoFinanceiro } from './financeiro.js';
 import { ErroNegocio, ErroNaoEncontrado } from './erros.js';
 
 type Db = BetterSQLite3Database<any>;
@@ -69,7 +70,9 @@ export function criarServicoAlunos(db: Db) {
     return a ? comStatus(a, hojeISO, diasAviso()) : null;
   }
 
-  function criar(dados: NovoAluno) {
+  function criar(dados: NovoAluno, pagamentoInicial?: {
+    planoId: number; forma: 'pix' | 'dinheiro' | 'credito' | 'debito' | 'boleto'; usuarioId: number;
+  }) {
     if (!dados.nome?.trim()) throw new ErroNegocio('Nome é obrigatório');
     if (!dados.consentimentoLgpd) {
       throw new ErroNegocio('É preciso registrar o consentimento LGPD (medidas e restrições são dado sensível)');
@@ -79,14 +82,25 @@ export function criarServicoAlunos(db: Db) {
     catch { throw new ErroNegocio('Telefone inválido'); }
 
     try {
-      return db.insert(aluno).values({
-        nome: dados.nome.trim(), telefone,
-        email: dados.email || null, cpf: dados.cpf || null,
-        dataNascimento: dados.dataNascimento || null, sexo: dados.sexo || null,
-        endereco: dados.endereco || null, observacoesMedicas: dados.observacoesMedicas || null,
-        restricoes: normalizarRestricoes(dados.restricoes), aceitaWhatsapp: !!dados.aceitaWhatsapp,
-        consentimentoLgpdEm: new Date().toISOString(),
-      }).returning().get();
+      return db.transaction((tx) => {
+        const novo = tx.insert(aluno).values({
+          nome: dados.nome.trim(), telefone,
+          email: dados.email || null, cpf: dados.cpf || null,
+          dataNascimento: dados.dataNascimento || null, sexo: dados.sexo || null,
+          endereco: dados.endereco || null, observacoesMedicas: dados.observacoesMedicas || null,
+          restricoes: normalizarRestricoes(dados.restricoes), aceitaWhatsapp: !!dados.aceitaWhatsapp,
+          consentimentoLgpdEm: new Date().toISOString(),
+        }).returning().get();
+        if (pagamentoInicial) {
+          const p = tx.select().from(plano).where(eq(plano.id, pagamentoInicial.planoId)).get();
+          if (!p) throw new ErroNaoEncontrado('Plano não encontrado');
+          criarServicoFinanceiro(tx as unknown as Db).registrarPagamento({
+            ...pagamentoInicial, alunoId: novo.id, valorCentavos: p.precoCentavos,
+            observacao: `Matrícula · ${p.nome}`,
+          });
+        }
+        return novo;
+      });
     } catch (e: any) {
       if (String(e.message).includes('UNIQUE') && String(e.message).includes('cpf')) {
         throw new ErroNegocio('Já existe aluno com este CPF');

@@ -1,4 +1,5 @@
 import { adicionarMeses, adicionarDias, type DataISO } from './datas.js';
+import { ErroNegocio } from '../servicos/erros.js';
 
 export type PeriodoRenovado = {
   dataInicio: DataISO;
@@ -52,7 +53,7 @@ export function calcularRenovacao(args: ArgsRenovacao): PeriodoRenovado {
 
   if (!dataFimManual) return periodo;
   if (dataFimManual < periodo.dataInicio) {
-    throw new Error(`O vencimento (${dataFimManual}) não pode ser antes do início (${periodo.dataInicio})`);
+    throw new ErroNegocio(`O vencimento (${dataFimManual}) não pode ser antes do início (${periodo.dataInicio})`);
   }
   return { ...periodo, dataFim: dataFimManual, diaAncora: Number(dataFimManual.slice(8, 10)) };
 }

@@ -36,15 +36,12 @@ export function rotasAlunos(app: FastifyInstance, s: Servicos) {
       formaPagamento: z.enum(['pix', 'dinheiro', 'credito', 'debito', 'boleto']).optional(),
     }).parse(req.body);
 
-    const novo = s.alunos.criar(d);
-    // matricula inicial ja paga, se informada no cadastro
-    if (d.planoId && d.formaPagamento) {
-      const p = s.planos.listar().find((x) => x.id === d.planoId);
-      if (p) s.financeiro.registrarPagamento({
-        alunoId: novo.id, valorCentavos: p.precoCentavos, forma: d.formaPagamento,
-        planoId: p.id, observacao: `Matrícula · ${p.nome}`, usuarioId: req.usuario!.id,
-      });
+    if (d.planoId && d.formaPagamento && req.usuario!.papel === 'professor') {
+      throw new ErroPermissao('Professor não registra pagamento');
     }
+    const novo = s.alunos.criar(d, d.planoId && d.formaPagamento ? {
+      planoId: d.planoId, forma: d.formaPagamento, usuarioId: req.usuario!.id,
+    } : undefined);
     return reply.status(201).send(s.alunos.obter(novo.id));
   });
 

@@ -130,8 +130,8 @@ let ultimoBackupDia = null;
 setInterval(async () => {
   const agora = new Date(), dia = agora.toDateString();
   if (servidor && agora.getHours() >= 3 && ultimoBackupDia !== dia) {
-    ultimoBackupDia = dia;
-    try { await backupAgora('automático'); } catch (e) { log(`Backup automático falhou: ${e.message}`, 'erro'); }
+    try { await backupAgora('automático'); ultimoBackupDia = dia; }
+    catch (e) { log(`Backup automático falhou: ${e.message}`, 'erro'); }
   }
 }, 10 * 60 * 1000);
 
@@ -265,6 +265,7 @@ ipcMain.handle('dados-demo', async () => {
  */
 ipcMain.handle('resetar-dados', async (_e, confirmacao) => {
   if (confirmacao !== 'APAGAR TUDO') throw new Error('Digite APAGAR TUDO para confirmar');
+  if (!servidor) throw new Error('Inicie o servidor para guardar o backup antes de apagar os dados');
   let copia = null;
   if (servidor) { copia = await backupAgora('de segurança antes do reset', 'antes-do-reset'); await pararServidor(); }
   for (const f of ['academia.db', 'academia.db-wal', 'academia.db-shm']) {
@@ -302,6 +303,7 @@ if (!app.requestSingleInstanceLock() || PEDIU_ENCERRAR) {
   });
   app.on('window-all-closed', (e) => e.preventDefault());
   app.on('before-quit', async (e) => {
+    tunel.fechar();
     if (servidor) { e.preventDefault(); saindo = true; await pararServidor(); app.quit(); }
   });
 }

@@ -14,6 +14,46 @@ const SAIDA_REAL = [
 
 const ENDERECO = 'https://jeans-polyphonic-marina-tracked.trycloudflare.com';
 
+test('duas aberturas simultâneas compartilham um único processo', async () => {
+  const falso = cloudflaredFalso();
+  const tunel = criarTunel({ spawn: falso.spawn });
+  await Promise.all([tunel.abrir(3000), tunel.abrir(3000)]);
+  assert.equal(falso.chamadas.length, 1);
+  tunel.fechar();
+});
+
+test('fechar enquanto liga não permite que a resposta atrasada reative o túnel', async () => {
+  const falso = cloudflaredFalso({ nuncaResponde: true });
+  const tunel = criarTunel({ spawn: falso.spawn, esperaMs: 20 });
+  const abertura = tunel.abrir(3000);
+  tunel.fechar();
+  falso.filho().stderr.emit('data', Buffer.from(SAIDA_REAL));
+  assert.equal((await abertura).estado, 'desligado');
+  assert.equal(tunel.estado().estado, 'desligado');
+});
+
+test('a saída atrasada de um processo antigo não derruba o túnel novo', async () => {
+  const falso = cloudflaredFalso();
+  const tunel = criarTunel({ spawn: falso.spawn });
+  await tunel.abrir(3000);
+  const antigo = falso.filho();
+  tunel.fechar();
+  await tunel.abrir(3000);
+  antigo.emit('exit', 0);
+  assert.equal(tunel.estado().estado, 'no-ar');
+  tunel.fechar();
+});
+
+test('reconhece endereço dividido entre eventos de saída', async () => {
+  const falso = cloudflaredFalso({ nuncaResponde: true });
+  const tunel = criarTunel({ spawn: falso.spawn, esperaMs: 20 });
+  const abertura = tunel.abrir(3000);
+  falso.filho().stderr.emit('data', Buffer.from('https://jeans-polyphonic-'));
+  falso.filho().stderr.emit('data', Buffer.from('marina-tracked.trycloudflare.com\n'));
+  assert.equal((await abertura).url, ENDERECO);
+  tunel.fechar();
+});
+
 /** Um cloudflared de mentira: emite o que mandarem e anota como foi chamado. */
 function cloudflaredFalso({ falhaEm = [], saida = SAIDA_REAL, nuncaResponde = false } = {}) {
   const chamadas = [];

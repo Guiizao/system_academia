@@ -56,6 +56,10 @@
   .loja__numeros .loja__num:last-child { grid-column: 1 / -1; }
   .loja__grade { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .pag__lado { flex-wrap: wrap; justify-content: flex-end; }
+  /* na venda cabem valor, Receber e Cancelar: no celular eles descem para
+     uma segunda linha em vez de empurrar o Cancelar para fora da caixa */
+  .loja__vendas .tabela__linha { flex-wrap: wrap; row-gap: 8px; }
+  .loja__vendas .pag__lado { margin-left: auto; }
 }
 
 /* no celular o .container não tem margem lateral: cada bloco traz a sua,
