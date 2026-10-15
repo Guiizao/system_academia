@@ -1,5 +1,6 @@
 import { eq, desc, like, or, and } from 'drizzle-orm';
 import { normalizarRestricoes } from '../dominio/restricoes.js';
+import { contemBusca } from '../db/busca.js';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { aluno, avaliacaoFisica, plano, academia, cobranca } from '../db/schema.js';
 import { normalizarTelefone } from '../dominio/telefone.js';
@@ -53,7 +54,7 @@ export function criarServicoAlunos(db: Db) {
     const digitos = q.replace(/\D/g, '');
     const condicao = q
       ? and(eq(aluno.ativo, true), or(
-          like(aluno.nome, `%${q}%`),
+          contemBusca(aluno.nome, q),
           ...(digitos ? [like(aluno.telefone, `%${digitos}%`)] : []),
         ))
       : eq(aluno.ativo, true);

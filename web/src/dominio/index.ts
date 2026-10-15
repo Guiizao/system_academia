@@ -117,6 +117,20 @@ export function categoriaIMC(imc: number | null): string {
 
 /* ─── texto ────────────────────────────────────────────── */
 
+/**
+ * Texto para comparar em busca: sem acento, sem cedilha, sem diferença de
+ * maiúscula. "José" e "jose" viram o mesmo, "Conceição" e "conceicao" também.
+ */
+export function paraBusca(texto: string): string {
+  return texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+}
+
+/** O texto contém o que foi digitado, ignorando acento e maiúscula? */
+export function contem(texto: string, busca: string): boolean {
+  return paraBusca(texto).includes(paraBusca(busca));
+}
+
+
 export function iniciais(nome: string): string {
   return nome.trim().split(/\s+/).slice(0, 2).map((p) => p[0] ?? '').join('').toUpperCase();
 }

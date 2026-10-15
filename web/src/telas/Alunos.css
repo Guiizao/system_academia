@@ -113,6 +113,12 @@
 }
 .aba:hover { color: var(--text); }
 .aba.on { color: var(--text); }
+/* celular estreito (360): as 4 abas somavam 344px num espaco de 322 e o
+   "Historico" saia da tela. Aqui elas dividem a largura e encolhem a folga. */
+@media (max-width: 420px) {
+  .abas { gap: 0; }
+  .aba { flex: 1 1 auto; padding: 0 6px; }
+}
 .abas__marca {
   position: absolute; bottom: -1px; left: 0; height: 2px; border-radius: 2px; background: var(--accent);
   transition: transform 240ms var(--ease), width 240ms var(--ease);

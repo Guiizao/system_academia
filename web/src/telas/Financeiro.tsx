@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao, pode } from '../sessao';
-import { formatarData, diffDias, hoje } from '../dominio';
+import { formatarData, diffDias, hoje, contem } from '../dominio';
 import { Olho, useValores } from '../componentes/Valores';
-import { ConfirmarSenha } from '../componentes/ConfirmarSenha';
+import { HistoricoPagamentos } from './HistoricoPagamentos';
 import { mesCurto, variacaoTexto } from '../dominio/grafico';
 import { IconeAlerta } from '../componentes/Icones';
 import { BarrasVerticais, BarrasHorizontais } from '../componentes/Grafico';
@@ -13,7 +13,7 @@ import { FormPagamento } from './FormPagamento';
 import { FormPlano } from './FormPlano';
 import { RelatorioMes } from './RelatorioMes';
 import { mover, podeMover } from '../dominio/ordem';
-import type { Aluno, Pagamento, Plano } from '../tipos';
+import type { Aluno, Plano } from '../tipos';
 import './Financeiro.css';
 
 /** "/mes", "/3 meses", "/dia", "/5 dias" -- o que o cliente le no cartao */
@@ -22,7 +22,6 @@ function sufixoDuracao(p: Plano): string {
   return p.duracaoMeses === 1 ? '/mês' : `/${p.duracaoMeses} meses`;
 }
 
-const FORMA: Record<string, string> = { pix: 'Pix', dinheiro: 'dinheiro', debito: 'débito', credito: 'crédito', boleto: 'boleto' };
 
 export function Financeiro() {
   // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
@@ -30,20 +29,23 @@ export function Financeiro() {
   const { usuario, avisar } = useSessao();
   const dono = pode.verFinanceiro(usuario);
   const { dados: cobrancas, recarregar: recCob } = useDados(() => api.cobrancas(), []);
-  const { dados: pagamentos, recarregar: recPag } = useDados(() => api.pagamentos(), []);
+  // muda a cada pagamento recebido nesta tela: o historico recarrega junto
+  const [versaoHistorico, setVersaoHistorico] = useState(0);
   const [verDesativados, setVerDesativados] = useState(false);
   const { dados: planos, recarregar: recPlanos } =
     useDados(() => api.planos(dono && verDesativados), [dono, verDesativados]);
   const { dados: resumo, recarregar: recResumo } = useDados(() => (dono ? api.dashboard() : Promise.resolve(null)), [dono]);
   const { dados: rel, recarregar: recRel } = useDados(() => (dono ? api.relatorioFinanceiro() : Promise.resolve(null)), [dono]);
+  // pagar, editar ou excluir mexe no caixa todo: cartões, cobranças e relatório
+  const recarregarCaixa = () => { recCob(); recResumo(); recRel(); };
   const [editandoPlano, setEditandoPlano] = useState<Plano | null>(null);
   const [criandoPlano, setCriandoPlano] = useState(false);
   const [verRelatorio, setVerRelatorio] = useState(false);
   /** ordem mostrada enquanto o servidor grava: a seta responde na hora */
   const [ordemLocal, setOrdemLocal] = useState<Plano[] | null>(null);
   const [pagando, setPagando] = useState<Aluno | null>(null);
-  // pagamento lançado por engano (duas vezes): só o dono exclui, com a senha dele
-  const [excluindo, setExcluindo] = useState<Pagamento | null>(null);
+  // busca sem acento: "jose" acha "José"
+  const [buscaCob, setBuscaCob] = useState('');
 
   const H = hoje();
   const emAberto = cobrancas ?? [];
@@ -103,7 +105,11 @@ export function Financeiro() {
         alerta={atrasadas.length ? `${atrasadas.length} vencida${atrasadas.length === 1 ? '' : 's'}` : undefined}
         quantidade={emAberto.length}
       >
-        {emAberto.map((c) => {
+        <div className="busca cobranca__busca">
+          <input type="search" placeholder="Buscar aluno" value={buscaCob} aria-label="Buscar nas cobranças em aberto"
+                 onChange={(e) => setBuscaCob(e.target.value)} />
+        </div>
+        {emAberto.filter((c) => contem(c.alunoNome, buscaCob)).map((c) => {
           const dias = diffDias(H, c.vencimento);
           const atrasada = dias < 0;
           return (
@@ -123,49 +129,9 @@ export function Financeiro() {
         })}
       </Painel>
 
-      <Painel
-        titulo="Pagamentos recentes"
-        resumo={pagamentos?.length ? `${pagamentos.length} ${pagamentos.length === 1 ? 'registro' : 'registros'}` : 'Nenhum pagamento ainda'}
-        quantidade={pagamentos?.length ?? 0}
-      >
-        {pagamentos?.slice(0, 20).map((p) => (
-          <div key={p.id} className="tabela__linha">
-            <div>
-              <div className="tabela__forte">{p.alunoNome}</div>
-              <div className="tabela__fraco">
-                {formatarData(p.dataPagamento)}, {FORMA[p.forma] ?? p.forma}{p.observacao ? `, ${p.observacao}` : ''}
-              </div>
-            </div>
-            <div className="pag__lado">
-              <strong className="valor-ok">+{dinheiro(p.valorCentavos)}</strong>
-              {dono && (
-                <button type="button" className="btn btn-danger btn-sm" onClick={() => setExcluindo(p)}
-                        title="Excluir este pagamento (pede a sua senha)">Excluir</button>
-              )}
-            </div>
-          </div>
-        ))}
-      </Painel>
-
-      {excluindo && (
-        <ConfirmarSenha
-          titulo="Excluir pagamento"
-          rotuloBotao={`Excluir ${dinheiro(excluindo.valorCentavos)} de ${excluindo.alunoNome}`}
-          explicacao={<>
-            O pagamento sai do caixa e o vencimento de <b>{excluindo.alunoNome}</b> volta a ser o de
-            antes dele. Use para lançamento em dobro ou por engano. Não tem volta.
-          </>}
-          aoFechar={() => setExcluindo(null)}
-          aoConfirmar={async (senha) => {
-            const r = await api.excluirPagamento(excluindo.id, senha);
-            setExcluindo(null);
-            avisar(r.dataFimNova
-              ? `Pagamento excluído. ${excluindo.alunoNome} volta a vencer em ${formatarData(r.dataFimNova)}.`
-              : 'Pagamento excluído.', 'ok');
-            recPag(); recCob(); recRel(); recResumo();
-          }}
-        />
-      )}
+      {/* todos os pagamentos de cada mes, com busca; editar e excluir vivem
+          dentro da lista (ListaPagamentos), os mesmos da ficha do aluno */}
+      <HistoricoPagamentos versao={versaoHistorico} aoMudar={recarregarCaixa} />
 
       {dono && rel && (
         <div className="fin__graficos">
@@ -247,7 +213,7 @@ export function Financeiro() {
       {verRelatorio && rel && <RelatorioMes relatorio={rel} aoFechar={() => setVerRelatorio(false)} />}
       {pagando && (
         <FormPagamento aluno={pagando} aoFechar={() => setPagando(null)}
-                       aoPagar={() => { setPagando(null); recCob(); recPag(); recRel(); }} />
+                       aoPagar={() => { setPagando(null); setVersaoHistorico((v) => v + 1); recarregarCaixa(); }} />
       )}
     </div>
   );

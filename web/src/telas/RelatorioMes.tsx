@@ -30,7 +30,8 @@ export function RelatorioMes({ relatorio, aoFechar }: { relatorio: Relatorio; ao
 
   return (
     <Modal titulo={`Relatório de ${relatorio.mesPorExtenso}`} aoFechar={aoFechar} largo>
-      <div className="rel__numeros"><Olho className="olho--canto" />
+      <div className="lista-cab"><span>Valores do mês</span><Olho /></div>
+      <div className="rel__numeros">
         <div className="rel__num"><span>Recebido</span><strong>{dinheiro(relatorio.receitaCentavos)}</strong></div>
         <div className="rel__num"><span>Pagamentos</span><strong>{relatorio.pagamentos}</strong></div>
         <div className="rel__num"><span>Ticket médio</span><strong>{dinheiro(relatorio.ticketMedioCentavos)}</strong></div>

@@ -2,7 +2,8 @@ import { get, post, put, del, req } from './cliente';
 import type {
   Aluno, AvaliacaoFisica, AulaDoDia, Checkin, Cobranca, Config, Dashboard,
   FichaTreino, FormaPagamento, Pagamento, Plano, StatusAluno, Usuario,
-  Aviso, Membro, Exercicio, RelatorioMes, PreviaPagamento, Produto, Venda, SituacaoVenda } from '../tipos';
+  Aviso, Membro, Exercicio, RelatorioMes, PreviaPagamento, Produto, Venda, SituacaoVenda,
+  PagamentoDetalhe, HistoricoPagamentos } from '../tipos';
 
 const qs = (o: Record<string, string | undefined>) => {
   const p = new URLSearchParams(Object.entries(o).filter(([, v]) => v) as [string, string][]);
@@ -23,7 +24,7 @@ export const api = {
   criarAluno: (d: Record<string, unknown>) => post<Aluno>('/api/alunos', d),
   avaliacoes: (id: number) => get<AvaliacaoFisica[]>(`/api/alunos/${id}/avaliacoes`),
   checkinsDoAluno: (id: number) => get<Checkin[]>(`/api/alunos/${id}/checkins`),
-  pagamentosDoAluno: (id: number) => get<Pagamento[]>(`/api/alunos/${id}/pagamentos`),
+  pagamentosDoAluno: (id: number) => get<PagamentoDetalhe[]>(`/api/alunos/${id}/pagamentos`),
   fichasDoAluno: (id: number) => get<FichaTreino[]>(`/api/alunos/${id}/fichas`),
 
   registrarCheckin: (alunoId: number, atividade: string) => post<Checkin>('/api/checkins', { alunoId, atividade }),
@@ -68,6 +69,15 @@ export const api = {
   /** Só o dono, confirmando com a PRÓPRIA senha; o servidor desfaz a renovação. */
   excluirPagamento: (id: number, senha: string) =>
     req<{ ok: true; alunoId: number; dataFimNova: string | null }>('DELETE', `/api/pagamentos/${id}`, { senha }),
+
+  /** Todos os pagamentos de um mês, ou de todos os meses quando só há busca. */
+  historicoPagamentos: (f: { mes?: string; busca?: string }) =>
+    get<HistoricoPagamentos>(`/api/pagamentos/historico${qs({ mes: f.mes, busca: f.busca?.trim() || undefined })}`),
+  /** Só o dono, com a senha. Mudar data ou plano recalcula o vencimento. */
+  editarPagamento: (id: number, d: {
+    senha: string; dataPagamento?: string; valorCentavos?: number; forma?: FormaPagamento;
+    planoId?: number; periodos?: number; observacao?: string;
+  }) => put<{ ok: true; pagamento: PagamentoDetalhe; dataFimNova: string | null }>(`/api/pagamentos/${id}`, d),
 
   produtos: (todos = false) => get<Produto[]>(`/api/produtos${todos ? '?todos=1' : ''}`),
   salvarProduto: (d: Omit<Produto, 'id' | 'ativo'> & { id?: number; ativo?: boolean }) =>

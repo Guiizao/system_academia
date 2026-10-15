@@ -48,3 +48,8 @@
 @media (prefers-reduced-motion: reduce) {
   .gv__barra, .gh__barra { transition: none; }
 }
+
+/* barra que escolhe algo (o mês do histórico): mãozinha e foco visível */
+.gv--clicavel { cursor: pointer; border-radius: var(--rs); outline-offset: 3px; }
+.gv--clicavel:hover .gv__barra { filter: brightness(1.12); }
+.gv--clicavel:focus-visible { outline: 2px solid var(--accent); }

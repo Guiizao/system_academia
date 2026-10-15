@@ -100,3 +100,32 @@
 
 /* valor e botão de excluir lado a lado, alinhados à direita da linha */
 .pag__lado { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* busca dentro da lista de cobranças em aberto */
+.cobranca__busca { margin: 12px 0 4px; }
+.cobranca__busca input { padding-left: 14px; }
+
+/* ─── histórico de pagamentos ───────────────────────────────
+   Mesmo cartão das outras listas do Financeiro (raio, borda, sombra), mas
+   sempre aberto: é o lugar de conferir tudo, então não esconde nada. */
+.historico {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  box-shadow: var(--sombra-cartao); margin: 0 var(--gutter) var(--gap); padding: 14px 16px 6px;
+}
+.historico__cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.historico__cab h3 { font-size: var(--txt-md); font-weight: 700; letter-spacing: -.01em; }
+.historico__cab p { font-size: var(--txt-base); color: var(--muted); margin-top: 2px; }
+.historico__busca { margin: 0; width: min(320px, 100%); }
+.historico__busca input { padding-left: 14px; }
+.historico__mes {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
+  padding: 12px 0; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.historico__setas { display: flex; align-items: center; gap: 10px; }
+.historico__setas strong { font-size: var(--txt-md); min-width: 150px; text-align: center; }
+.historico__setas .btn { width: 32px; padding: 0; font-size: var(--txt-lg); line-height: 1; }
+.historico__totais { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; font-size: var(--txt-sm); color: var(--muted); }
+.historico__totais b { color: var(--text); font-size: var(--txt-base); }
+.historico__forma { white-space: nowrap; }
+/* a lista do mês pode ter 200 linhas: rola por dentro, o resto da tela fica parado */
+.historico__lista { max-height: 520px; overflow-y: auto; overscroll-behavior: contain; }

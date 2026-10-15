@@ -16,16 +16,23 @@ export interface Ponto {
 }
 
 /** Barras em pe: serve para o tempo (meses), que se le da esquerda para a direita. */
-export function BarrasVerticais({ dados, formatar, altura = 132 }: {
+export function BarrasVerticais({ dados, formatar, altura = 132, aoEscolher }: {
   dados: Ponto[]; formatar: (v: number) => string; altura?: number;
+  /** com isto, cada barra vira botão (ex.: escolher o mês no histórico) */
+  aoEscolher?: (indice: number) => void;
 }) {
   const escala = escalaDeBarras(dados.map((d) => d.valor));
   if (!dados.length) return <p className="grafico__vazio">Sem dados neste período.</p>;
 
   return (
     <div className="grafico grafico--vertical" style={{ ['--altura' as string]: `${altura}px` }}>
-      {dados.map((d) => (
-        <div key={d.rotulo} className={`gv ${d.destaque ? 'gv--destaque' : ''}`}>
+      {dados.map((d, i) => (
+        <div key={d.rotulo} className={`gv ${d.destaque ? 'gv--destaque' : ''} ${aoEscolher ? 'gv--clicavel' : ''}`}
+             {...(aoEscolher ? {
+               role: 'button', tabIndex: 0, 'aria-pressed': !!d.destaque, 'aria-label': `${d.rotulo}: ${formatar(d.valor)}`,
+               onClick: () => aoEscolher(i),
+               onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); aoEscolher(i); } },
+             } : {})}>
           <div className="gv__trilho">
             <div className="gv__barra" style={{ height: `${escala.pct(d.valor)}%` }} />
             <span className="grafico__balao" role="tooltip">

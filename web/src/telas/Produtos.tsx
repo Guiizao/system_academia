@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao } from '../sessao';
-import { formatarData } from '../dominio';
+import { contem, formatarData, paraBusca } from '../dominio';
 import { Modal } from '../componentes/Modal';
 import { ConfirmarSenha } from '../componentes/ConfirmarSenha';
 import { Olho, useValores } from '../componentes/Valores';
@@ -60,8 +60,7 @@ export function Produtos() {
   const { dados: fiados } = useDados(() => api.vendas('fiado'), [vendas]);
 
   const visiveis = useMemo(() => {
-    const t = busca.trim().toLowerCase();
-    return (produtos ?? []).filter((p) => !t || `${p.nome} ${p.categoria ?? ''}`.toLowerCase().includes(t));
+    return (produtos ?? []).filter((p) => contem(`${p.nome} ${p.categoria ?? ''}`, busca));
   }, [produtos, busca]);
 
   const emFalta = (produtos ?? []).filter((p) => p.estoque <= ESTOQUE_BAIXO).length;
@@ -300,7 +299,7 @@ function FormVenda({ produto, aoFechar, aoVender }: {
   const { formatar: dinheiro } = useValores();
 
   // o nome digitado bate com um aluno? Então a venda fica no nome dele
-  const aluno = alunos?.find((a) => a.nome.toLowerCase() === para.trim().toLowerCase());
+  const aluno = alunos?.find((a) => paraBusca(a.nome) === paraBusca(para));
   const total = produto.precoCentavos * quantidade;
 
   async function vender(e: React.FormEvent) {

@@ -4,6 +4,7 @@ import { useDados } from '../dados/useDados';
 import { useSessao, pode } from '../sessao';
 import type { Aluno } from '../tipos';
 import { Olho, useValores } from '../componentes/Valores';
+import { ListaPagamentos } from '../componentes/Pagamentos';
 import {
   iniciais, formatarTelefone, formatarData, tempoRelativo,
   calcularIMC, categoriaIMC, CLASSE_STATUS, ROTULO_STATUS, avisoStatus, ROTULO_NIVEL,
@@ -37,8 +38,18 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
   const abasRef = useRef<HTMLDivElement>(null);
   const [marca, setMarca] = useState<{ x: number; w: number } | null>(null);
   useLayoutEffect(() => {
-    const el = abasRef.current?.querySelector<HTMLElement>('.aba.on');
-    if (el) setMarca({ x: el.offsetLeft, w: el.offsetWidth });
+    const caixa = abasRef.current;
+    if (!caixa) return;
+    const medir = () => {
+      const el = caixa.querySelector<HTMLElement>('.aba.on');
+      if (el) setMarca({ x: el.offsetLeft, w: el.offsetWidth });
+    };
+    medir();
+    // girar o celular ou a fonte chegar depois muda a largura das abas
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(medir);
+    ro.observe(caixa);
+    return () => ro.disconnect();
   }, [aba, abas.length]);
 
   // uma entrada por hora: o botao espera junto com o servidor, em vez de
@@ -125,7 +136,7 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
           {podeTreino && <button className="btn btn-secondary btn-sm acao-aba" onClick={() => setModal('ficha')}>Montar ficha</button>}
           <AbaTreino key={versao} alunoId={aluno.id} />
         </>}
-        {aba === 'Pagamentos' && <AbaPagamentos alunoId={aluno.id} />}
+        {aba === 'Pagamentos' && <AbaPagamentos alunoId={aluno.id} aoMudar={aoMudar} />}
         {aba === 'Histórico' && <AbaHistorico alunoId={aluno.id} />}
       </div>
 
@@ -185,23 +196,21 @@ function AbaTreino({ alunoId }: { alunoId: number }) {
   return <>{dados.map((f) => <FichaCartao key={f.id} ficha={f} aoMudar={recarregar} />)}</>;
 }
 
-function AbaPagamentos({ alunoId }: { alunoId: number }) {
+function AbaPagamentos({ alunoId, aoMudar }: { alunoId: number; aoMudar: () => void }) {
   // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
   const { formatar: dinheiro } = useValores();
-  const { dados, carregando } = useDados(() => api.pagamentosDoAluno(alunoId), [alunoId]);
-  if (carregando) return <EsqueletoLinhas />;
+  const { dados, carregando, recarregar } = useDados(() => api.pagamentosDoAluno(alunoId), [alunoId]);
+  if (carregando && !dados) return <EsqueletoLinhas />;
   if (!dados?.length) return <div className="vazio">Sem pagamentos registrados.</div>;
+  const total = dados.reduce((s, p) => s + p.valorCentavos, 0);
   return (
-    <div className="tabela"><Olho className="olho--canto" />
-      {dados.map((p) => (
-        <div key={p.id} className="tabela__linha">
-          <div>
-            <div className="tabela__forte">{p.observacao ?? 'Pagamento'}</div>
-            <div className="tabela__fraco">{formatarData(p.dataPagamento)}, {ROTULO_FORMA[p.forma] ?? p.forma}</div>
-          </div>
-          <strong className="valor-ok">{dinheiro(p.valorCentavos)}</strong>
-        </div>
-      ))}
+    <div>
+      <div className="lista-cab">
+        <span>{dados.length} {dados.length === 1 ? 'pagamento' : 'pagamentos'}, total <strong>{dinheiro(total)}</strong></span>
+        <Olho />
+      </div>
+      {/* editar ou excluir muda o vencimento: a ficha toda precisa recarregar */}
+      <ListaPagamentos itens={dados} mostrarAluno={false} aoMudar={() => { recarregar(); aoMudar(); }} />
     </div>
   );
 }
@@ -227,7 +236,6 @@ function AbaHistorico({ alunoId }: { alunoId: number }) {
   );
 }
 
-const ROTULO_FORMA: Record<string, string> = { pix: 'Pix', dinheiro: 'dinheiro', debito: 'débito', credito: 'crédito', boleto: 'boleto' };
 
 function EsqueletoLinhas() {
   return (

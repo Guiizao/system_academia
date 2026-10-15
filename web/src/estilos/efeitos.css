@@ -100,9 +100,11 @@ html.ef-troca-de-tela .tela-troca { animation: entrar-tela 260ms var(--ease) bac
    Só o que está ATIVO acende: botão principal, campo em foco, item do
    menu aceso, selo de status. Acender tudo cansaria a vista em dois
    minutos de uso no balcão. */
+/* alcance curto (~9px): o botão costuma ficar perto da borda de cartões que
+   cortam o que vaza (vitrine de produtos), e brilho longo saía cortado reto */
 html.ef-neon .btn-primary {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
-              0 0 18px -4px var(--accent);
+              0 0 14px -5px var(--accent);
 }
 html.ef-neon .campo input:focus,
 html.ef-neon .campo select:focus,
@@ -115,7 +117,10 @@ html.ef-neon .sidebar__item.on {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 34%, transparent);
 }
-html.ef-neon .chip.on { box-shadow: 0 0 12px -3px var(--accent); }
+/* Brilho POR DENTRO do filtro: a faixa de filtros rola na horizontal, e caixa
+   com rolagem corta tudo que passa da borda dela -- o brilho de fora saía
+   cortado em linha reta, com cara de quadrado. Por dentro, nunca é cortado. */
+html.ef-neon .chip.on { box-shadow: inset 0 0 0 1px var(--accent), inset 0 0 10px -3px var(--accent); }
 html.ef-neon .b-ok, html.ef-neon .b-warn, html.ef-neon .b-danger {
   box-shadow: 0 0 10px -3px currentColor;
 }

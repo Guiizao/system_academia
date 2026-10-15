@@ -1,0 +1,20 @@
+/* Lista de pagamentos (ficha do aluno e histórico do Financeiro).
+   Linha: o que foi e quando, o valor, e os dois botões do dono. Os botões
+   ficam DEPOIS do valor e com largura fixa, para os valores alinharem numa
+   coluna só mesmo quando quem olha não é o dono. */
+.pagamentos { display: flex; flex-direction: column; }
+.pagamentos__linha {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center;
+  gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.pagamentos__linha:last-child { border-bottom: none; }
+.pagamentos__info { min-width: 0; }
+.pagamentos__titulo {
+  font-size: var(--txt-base); font-weight: 650;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pagamentos__detalhe { font-size: var(--txt-sm); color: var(--muted); margin-top: 2px; }
+.pagamentos__valor { white-space: nowrap; }
+.pagamentos__acoes { display: flex; gap: 2px; }
+.icone-btn--perigo:hover { color: var(--danger); background: var(--danger-suave); }
+

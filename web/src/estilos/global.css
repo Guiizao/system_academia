@@ -118,6 +118,8 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
   border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-suave); background: var(--surface);
 }
 .campo input::placeholder, .campo textarea::placeholder { color: var(--fraco); }
+/* travado tem que parecer travado: sem isso a pessoa clica e acha que o sistema congelou */
+.campo :is(input, select, textarea):disabled { color: var(--fraco); background: var(--surface); border-style: dashed; cursor: not-allowed; }
 .campo select option { background: var(--surface); color: var(--text); }
 .linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .linha3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -216,6 +218,13 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
 }
 .olho:hover { background: var(--surface-2); color: var(--text); }
 .olho[aria-pressed="true"] { color: var(--accent); }
-/* dentro de um bloco de números, o olho vai para o canto de cima */
-.olho--canto { position: absolute; top: 6px; right: 6px; margin: 0; }
-.rel__numeros, .tabela { position: relative; }
+
+/* cabeçalho de lista com o total e o olho -- o olho tem lugar próprio aqui,
+   em vez de flutuar por cima do valor da primeira linha */
+.lista-cab {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 4px 0 10px; border-bottom: 1px solid var(--border);
+  font-size: var(--txt-sm); color: var(--muted); font-weight: 600;
+}
+.lista-cab .olho { margin-left: 0; }
+.lista-cab strong { color: var(--text); font-weight: 750; }

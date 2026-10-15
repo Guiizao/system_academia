@@ -26,8 +26,12 @@
   max-height: 420px; overflow-y: auto; overscroll-behavior: contain;
 }
 
-/* o conteúdo da lista respeita o mesmo recuo do cabeçalho */
-.previa__corpo > * { padding-inline: 16px; }
+/* O conteúdo da lista respeita o mesmo recuo do cabeçalho. O seletor é mais
+   forte de propósito: cada lista traz a sua própria regra de linha
+   (.cobranca, .tabela__linha…) com `padding: 12px 0`, e com o mesmo peso
+   ganhava quem carregasse por último -- a cobrança ficava a 1 px da borda,
+   colada nela, enquanto o título ficava a 17 px. */
+.previa > .previa__corpo > * { padding-inline: 16px; }
 
 @media (max-width: 600px) {
   .previa__cab { flex-wrap: wrap; }

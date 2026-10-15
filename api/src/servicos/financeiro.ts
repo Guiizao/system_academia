@@ -1,16 +1,49 @@
-import { eq, and, desc, lt, gte, lte, gt, notExists, like, sum, count } from 'drizzle-orm';
+import { eq, and, desc, lt, gte, notExists, like, sum, count, sql, getTableColumns, type SQL } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { cobranca, pagamento, aluno, academia, plano, matricula } from '../db/schema.js';
+import { contemBusca } from '../db/busca.js';
 import { montarBrCode } from '../dominio/pix.js';
-import { hoje, diffDias, type DataISO } from '../dominio/datas.js';
+import { hoje, diffDias, adicionarMeses, type DataISO } from '../dominio/datas.js';
 import { criarServicoMatriculas } from './matriculas.js';
 import { ErroNegocio, ErroNaoEncontrado } from './erros.js';
 
 type Db = BetterSQLite3Database<any>;
 type Forma = 'pix' | 'dinheiro' | 'credito' | 'debito' | 'boleto';
+export type PagamentoDetalhe = typeof pagamento.$inferSelect & {
+  alunoNome: string; planoId: number | null; planoNome: string | null; alteraVencimento: boolean;
+};
 
 export function criarServicoFinanceiro(db: Db) {
   const matriculas = criarServicoMatriculas(db);
+
+  // A mesma associação serve à leitura, à exclusão e à edição, inclusive no legado.
+  const matriculaAtualDoPagamento = sql<number | null>`(select atual.id from matricula atual
+    where atual.aluno_id = ${pagamento.alunoId} and atual.status = 'ativa'
+    order by atual.data_fim desc limit 1)`;
+  const matriculaDoPagamento = sql<number | null>`coalesce(${pagamento.matriculaId},
+    (select candidata.id from matricula candidata
+      where candidata.aluno_id = ${pagamento.alunoId}
+        and candidata.criado_em >= ${pagamento.criadoEm}
+        and candidata.criado_em <= strftime('%Y-%m-%dT%H:%M:%fZ', ${pagamento.criadoEm}, '+60 seconds')
+        and not exists (select 1 from pagamento vinculado where vinculado.matricula_id = candidata.id)
+      order by (candidata.id = (select atual.id from matricula atual
+        where atual.aluno_id = candidata.aluno_id and atual.status = 'ativa'
+        order by atual.data_fim desc limit 1)) desc, candidata.id desc limit 1))`;
+
+  function pagamentosDetalhados(condicao?: SQL, limite = -1, q: Db = db): PagamentoDetalhe[] {
+    return q.select({
+      ...getTableColumns(pagamento), alunoNome: aluno.nome,
+      matriculaId: matricula.id, planoId: plano.id, planoNome: plano.nome,
+      alteraVencimento: sql<boolean>`coalesce(${matricula.id} = ${matriculaAtualDoPagamento}
+        and (${pagamento.matriculaId} is not null or not exists
+          (select 1 from pagamento posterior where posterior.aluno_id = ${pagamento.alunoId}
+            and posterior.id > ${pagamento.id})), 0)`.mapWith(Boolean),
+    }).from(pagamento)
+      .innerJoin(aluno, eq(aluno.id, pagamento.alunoId))
+      .leftJoin(matricula, eq(matricula.id, matriculaDoPagamento))
+      .leftJoin(plano, eq(plano.id, matricula.planoId))
+      .where(condicao).orderBy(desc(pagamento.dataPagamento), desc(pagamento.id)).limit(limite).all();
+  }
 
   /**
    * Pagamento + quitacao da cobranca + renovacao: uma transacao so.
@@ -70,61 +103,89 @@ export function criarServicoFinanceiro(db: Db) {
   }
 
   function excluirPagamento(pagamentoId: number) {
-    return db.transaction((tx) => {
+    return db.transaction((tx) => excluirPagamentoEm(tx as unknown as Db, pagamentoId));
+  }
+
+  function excluirPagamentoEm(tx: Db, pagamentoId: number) {
+    const registro = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
+    if (!registro) throw new ErroNaoEncontrado('Pagamento não encontrado');
+    const atual = matriculas.matriculaAtualSync(registro.alunoId, tx);
+    const matriculaId = registro.matriculaId;
+    const recusarAnterior = () => { throw new ErroNegocio('Exclua primeiro o pagamento mais recente deste aluno.'); };
+
+    if (matriculaId != null && !registro.alteraVencimento) recusarAnterior();
+    tx.delete(pagamento).where(eq(pagamento.id, registro.id)).run();
+    const semPagamento = notExists(tx.select({ id: pagamento.id }).from(pagamento)
+      .where(eq(pagamento.cobrancaId, cobranca.id)));
+
+    if (registro.cobrancaId != null) tx.update(cobranca).set({ status: 'aberta' })
+      .where(and(eq(cobranca.id, registro.cobrancaId), semPagamento)).run();
+
+    let dataFimNova = atual?.dataFim ?? null;
+    if (matriculaId != null) {
+      // Cobranças automáticas do período desfeito também deixam de existir.
+      const comPagamento = tx.select({ id: pagamento.id }).from(pagamento)
+        .innerJoin(cobranca, eq(cobranca.id, pagamento.cobrancaId))
+        .where(eq(cobranca.matriculaId, matriculaId)).get();
+      if (comPagamento) recusarAnterior();
+      tx.delete(cobranca).where(eq(cobranca.matriculaId, matriculaId)).run();
+      tx.delete(matricula).where(eq(matricula.id, matriculaId)).run();
+      const anterior = tx.select().from(matricula).where(and(
+        eq(matricula.alunoId, registro.alunoId), eq(matricula.status, 'encerrada'),
+        lt(matricula.id, matriculaId),
+      )).orderBy(desc(matricula.id)).get();
+      if (anterior) {
+        tx.update(matricula).set({ status: 'ativa' }).where(eq(matricula.id, anterior.id)).run();
+        tx.update(cobranca).set({ status: 'aberta' }).where(and(
+          eq(cobranca.matriculaId, anterior.id), eq(cobranca.status, 'paga'), semPagamento,
+        )).run();
+      }
+      dataFimNova = anterior?.dataFim ?? null;
+    }
+    return { ok: true, alunoId: registro.alunoId, dataFimNova };
+  }
+
+  function editarPagamento(pagamentoId: number, dados: {
+    dataPagamento?: DataISO; valorCentavos?: number; forma?: Forma;
+    planoId?: number; periodos?: number; observacao?: string;
+  }) {
+    if (dados.valorCentavos !== undefined && (!Number.isInteger(dados.valorCentavos) || dados.valorCentavos <= 0)) {
+      throw new ErroNegocio('Valor deve ser inteiro em centavos e maior que zero');
+    }
+    return db.transaction((transacao) => {
+      const tx = transacao as unknown as Db;
       const registro = tx.select().from(pagamento).where(eq(pagamento.id, pagamentoId)).get();
       if (!registro) throw new ErroNaoEncontrado('Pagamento não encontrado');
-      const atual = matriculas.matriculaAtualSync(registro.alunoId, tx as unknown as Db);
-      let matriculaId = registro.matriculaId;
-      const recusarAnterior = () => { throw new ErroNegocio('Exclua primeiro o pagamento mais recente deste aluno.'); };
-
-      if (matriculaId == null) {
-        // Legado: a renovação era gravada logo depois do pagamento, sem vínculo explícito.
-        const limite = new Date(Date.parse(registro.criadoEm) + 60_000).toISOString();
-        const candidatas = tx.select().from(matricula).where(and(
-          eq(matricula.alunoId, registro.alunoId), gte(matricula.criadoEm, registro.criadoEm),
-          lte(matricula.criadoEm, limite),
-          notExists(tx.select({ id: pagamento.id }).from(pagamento).where(eq(pagamento.matriculaId, matricula.id))),
-        )).orderBy(desc(matricula.id)).all();
-        const candidata = candidatas.find((m) => m.id === atual?.id) ?? candidatas[0];
-        if (candidata) {
-          const posterior = tx.select({ id: pagamento.id }).from(pagamento).where(and(
-            eq(pagamento.alunoId, registro.alunoId), gt(pagamento.id, registro.id),
-          )).get();
-          if (posterior) recusarAnterior();
-          matriculaId = candidata.id;
-        }
+      const detalhe = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
+      const mudouPeriodo = (dados.dataPagamento !== undefined && dados.dataPagamento !== registro.dataPagamento)
+        || (dados.planoId !== undefined && dados.planoId !== detalhe.planoId) || dados.periodos !== undefined;
+      if (detalhe.matriculaId != null && !detalhe.alteraVencimento && mudouPeriodo) {
+        throw new ErroNegocio('Esse pagamento tem renovação depois dele: só dá para mudar valor, forma e observação.');
       }
-
-      if (matriculaId != null && matriculaId !== atual?.id) recusarAnterior();
-      tx.delete(pagamento).where(eq(pagamento.id, registro.id)).run();
-      const semPagamento = notExists(tx.select({ id: pagamento.id }).from(pagamento)
-        .where(eq(pagamento.cobrancaId, cobranca.id)));
-
-      if (registro.cobrancaId != null) tx.update(cobranca).set({ status: 'aberta' })
-        .where(and(eq(cobranca.id, registro.cobrancaId), semPagamento)).run();
-
-      let dataFimNova = atual?.dataFim ?? null;
-      if (matriculaId != null) {
-        // Cobranças automáticas do período desfeito também deixam de existir.
-        const comPagamento = tx.select({ id: pagamento.id }).from(pagamento)
-          .innerJoin(cobranca, eq(cobranca.id, pagamento.cobrancaId))
-          .where(eq(cobranca.matriculaId, matriculaId)).get();
-        if (comPagamento) recusarAnterior();
-        tx.delete(cobranca).where(eq(cobranca.matriculaId, matriculaId)).run();
-        tx.delete(matricula).where(eq(matricula.id, matriculaId)).run();
-        const anterior = tx.select().from(matricula).where(and(
-          eq(matricula.alunoId, registro.alunoId), eq(matricula.status, 'encerrada'),
-          lt(matricula.id, matriculaId),
-        )).orderBy(desc(matricula.id)).get();
-        if (anterior) {
-          tx.update(matricula).set({ status: 'ativa' }).where(eq(matricula.id, anterior.id)).run();
-          tx.update(cobranca).set({ status: 'aberta' }).where(and(
-            eq(cobranca.matriculaId, anterior.id), eq(cobranca.status, 'paga'), semPagamento,
-          )).run();
-        }
-        dataFimNova = anterior?.dataFim ?? null;
+      const { planoId, periodos, ...campos } = dados;
+      const atualizado = { ...registro, ...campos, atualizadoEm: new Date().toISOString() };
+      let dataFimNova = matriculas.matriculaAtualSync(registro.alunoId, tx)?.dataFim ?? null;
+      // Só data, plano ou períodos refazem a renovação. Corrigir valor, forma ou
+      // observação não toca na matrícula: refazê-la apagaria as cobranças do período.
+      if (mudouPeriodo && (detalhe.alteraVencimento || (detalhe.matriculaId == null && planoId !== undefined))) {
+        const anterior = detalhe.matriculaId == null ? null
+          : tx.select().from(matricula).where(eq(matricula.id, detalhe.matriculaId)).get()!;
+        if (detalhe.alteraVencimento) excluirPagamentoEm(tx, pagamentoId);
+        const nova = matriculas.renovarEm(tx, {
+          alunoId: registro.alunoId, planoId: planoId ?? detalhe.planoId!,
+          dataPagamento: atualizado.dataPagamento, periodos,
+          observacao: anterior?.observacao ?? undefined,
+        });
+        atualizado.matriculaId = nova.id;
+        if (detalhe.alteraVencimento) tx.insert(pagamento).values(atualizado).run();
+        else tx.update(pagamento).set(atualizado).where(eq(pagamento.id, pagamentoId)).run();
+        if (registro.cobrancaId != null) tx.update(cobranca).set({ status: 'paga' })
+          .where(eq(cobranca.id, registro.cobrancaId)).run();
+        dataFimNova = nova.dataFim;
+      } else {
+        tx.update(pagamento).set(atualizado).where(eq(pagamento.id, pagamentoId)).run();
       }
-      return { ok: true, alunoId: registro.alunoId, dataFimNova };
+      return { ok: true, pagamento: pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0], dataFimNova };
     });
   }
 
@@ -177,8 +238,49 @@ export function criarServicoFinanceiro(db: Db) {
   }
 
   function pagamentosDoAluno(alunoId: number) {
-    return db.select().from(pagamento).where(eq(pagamento.alunoId, alunoId))
-      .orderBy(desc(pagamento.dataPagamento)).all();
+    return pagamentosDetalhados(eq(pagamento.alunoId, alunoId));
+  }
+
+  function historico(filtro: { mes?: string; busca?: string } = {}) {
+    const busca = filtro.busca?.trim();
+    const mes = filtro.mes ?? (busca ? undefined : hoje().slice(0, 7));
+    const itens = pagamentosDetalhados(and(
+      mes ? and(gte(pagamento.dataPagamento, `${mes}-01`),
+        lt(pagamento.dataPagamento, adicionarMeses(`${mes}-01`, 1, 1))) : undefined,
+      busca ? contemBusca(aluno.nome, busca) : undefined,
+    ), mes ? -1 : 500);
+    const formas = new Map<Forma, { forma: Forma; totalCentavos: number; quantidade: number }>();
+    const dias = new Map<string, number>();
+    let totalCentavos = 0;
+    for (const item of itens) {
+      totalCentavos += item.valorCentavos;
+      const resumo = formas.get(item.forma) ?? { forma: item.forma, totalCentavos: 0, quantidade: 0 };
+      resumo.totalCentavos += item.valorCentavos;
+      resumo.quantidade++;
+      formas.set(item.forma, resumo);
+      if (mes) dias.set(item.dataPagamento, (dias.get(item.dataPagamento) ?? 0) + item.valorCentavos);
+    }
+    const inicioAtual = `${hoje().slice(0, 7)}-01`;
+    const meses = Array.from({ length: 12 }, (_, i) => ({
+      mes: adicionarMeses(inicioAtual, i - 11, 1).slice(0, 7), totalCentavos: 0, quantidade: 0,
+    }));
+    const mesPagamento = sql<string>`substr(${pagamento.dataPagamento}, 1, 7)`;
+    const totais = db.select({ mes: mesPagamento, totalCentavos: sum(pagamento.valorCentavos), quantidade: count() })
+      .from(pagamento).where(and(gte(pagamento.dataPagamento, `${meses[0].mes}-01`),
+        lt(pagamento.dataPagamento, adicionarMeses(inicioAtual, 1, 1))))
+      .groupBy(mesPagamento).all();
+    for (const resumo of meses) {
+      const total = totais.find((t) => t.mes === resumo.mes);
+      resumo.totalCentavos = Number(total?.totalCentavos ?? 0);
+      resumo.quantidade = total?.quantidade ?? 0;
+    }
+    return {
+      itens, totalCentavos, quantidade: itens.length,
+      porForma: [...formas.values()].sort((a, b) => b.totalCentavos - a.totalCentavos),
+      porDia: [...dias.entries()].sort(([a], [b]) => a.localeCompare(b))
+        .map(([data, totalCentavos]) => ({ data, totalCentavos })),
+      meses,
+    };
   }
 
   function brCode(valorCentavos: number, txid?: string) {
@@ -240,7 +342,7 @@ export function criarServicoFinanceiro(db: Db) {
   }
 
   return {
-    registrarPagamento, excluirPagamento, cobrancasAbertas, pagamentosRecentes, pagamentosDoAluno,
+    registrarPagamento, excluirPagamento, editarPagamento, historico, cobrancasAbertas, pagamentosRecentes, pagamentosDoAluno,
     gerarCobrancasDevidas, pixDaCobranca, pixAvulso, receitaDoMes, recebidoEm, inadimplencia, distribuicaoPorPlano,
   };
 }

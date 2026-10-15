@@ -72,6 +72,29 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
 
   app.get('/api/pagamentos', caixa, async () => s.financeiro.pagamentosRecentes(30));
 
+  app.get('/api/pagamentos/historico', caixa, async (req) => {
+    const filtro = z.object({
+      mes: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
+      busca: z.string().trim().max(200).optional(),
+    }).parse(req.query);
+    return s.financeiro.historico(filtro);
+  });
+
+  app.put('/api/pagamentos/:id', dono, async (req) => {
+    const pagamentoId = id.parse((req.params as any).id);
+    const { senha, ...dados } = z.object({
+      senha: z.string().min(1).max(1024),
+      dataPagamento: data.optional(),
+      valorCentavos: z.number().int().positive().optional(),
+      forma: forma.optional(),
+      planoId: z.number().int().positive().optional(),
+      periodos: z.number().int().min(1).max(MAX_PERIODOS).optional(),
+      observacao: z.string().max(200).optional(),
+    }).strict().parse(req.body);
+    await s.auth.confirmarSenha(req.usuario!.id, senha);
+    return s.financeiro.editarPagamento(pagamentoId, dados);
+  });
+
   app.delete('/api/pagamentos/:id', dono, async (req) => {
     const pagamentoId = id.parse((req.params as any).id);
     const { senha } = z.object({ senha: z.string().min(1).max(1024) }).parse(req.body);

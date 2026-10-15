@@ -183,3 +183,23 @@ export type Venda = {
   pagaEm: DataISO | null;
   observacao: string | null;
 };
+
+/** Pagamento com o que a tela precisa para editar ou excluir. */
+export interface PagamentoDetalhe extends Pagamento {
+  alunoNome: string;
+  matriculaId: number | null;
+  planoId: number | null;
+  planoNome: string | null;
+  /** gerou a matrícula ATIVA do aluno: mudar data ou plano recalcula o vencimento */
+  alteraVencimento: boolean;
+}
+
+export interface HistoricoPagamentos {
+  itens: PagamentoDetalhe[];
+  totalCentavos: number;
+  quantidade: number;
+  porForma: Array<{ forma: FormaPagamento; totalCentavos: number; quantidade: number }>;
+  porDia: Array<{ data: DataISO; totalCentavos: number }>;
+  /** últimos 12 meses, do mais antigo ao atual */
+  meses: Array<{ mes: string; totalCentavos: number; quantidade: number }>;
+}
