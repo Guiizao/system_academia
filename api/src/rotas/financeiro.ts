@@ -75,9 +75,31 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
   app.get('/api/pagamentos/historico', caixa, async (req) => {
     const filtro = z.object({
       mes: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
+      de: data.optional(),
+      ate: data.optional(),
       busca: z.string().trim().max(200).optional(),
+      forma: forma.optional(),
+      planoId: id.optional(),
+      pagina: id.optional(),
+      porPagina: id.max(200).optional(),
+    }).refine((f) => Boolean(f.de) === Boolean(f.ate), { message: 'Informe as duas datas do intervalo.' })
+      .refine((f) => !f.mes || !f.de && !f.ate, { message: 'Use mês ou intervalo de datas.' })
+      .refine((f) => !f.de || !f.ate || f.de <= f.ate, { message: 'A data inicial deve ser anterior ou igual à final.' })
+      .parse(req.query);
+    const r = s.financeiro.historico(filtro);
+    // a recepção vê a lista para conferir "fulano pagou?", mas o total do
+    // caixa é do dono: o servidor nem envia (mesma regra do painel)
+    if (req.usuario?.papel === 'dono') return r;
+    const { totalCentavos, porForma, porDia, meses, ...semTotais } = r;
+    return semTotais;
+  });
+
+  app.get('/api/pagamentos/alteracoes', dono, async (req) => {
+    const filtro = z.object({
+      pagamentoId: id.optional(),
+      limite: id.max(200).optional(),
     }).parse(req.query);
-    return s.financeiro.historico(filtro);
+    return s.financeiro.alteracoes(filtro);
   });
 
   app.put('/api/pagamentos/:id', dono, async (req) => {
@@ -92,14 +114,14 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
       observacao: z.string().max(200).optional(),
     }).strict().parse(req.body);
     await s.auth.confirmarSenha(req.usuario!.id, senha);
-    return s.financeiro.editarPagamento(pagamentoId, dados);
+    return s.financeiro.editarPagamento(pagamentoId, dados, req.usuario!.id);
   });
 
   app.delete('/api/pagamentos/:id', dono, async (req) => {
     const pagamentoId = id.parse((req.params as any).id);
     const { senha } = z.object({ senha: z.string().min(1).max(1024) }).parse(req.body);
     await s.auth.confirmarSenha(req.usuario!.id, senha);
-    return s.financeiro.excluirPagamento(pagamentoId);
+    return s.financeiro.excluirPagamento(pagamentoId, req.usuario!.id);
   });
 
   /**

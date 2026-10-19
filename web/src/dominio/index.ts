@@ -162,3 +162,18 @@ export const DIAS_SEMANA = [
   'Quinta-feira', 'Sexta-feira', 'Sábado',
 ];
 export const DIAS_CURTOS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+/**
+ * Como escrever a quantidade de períodos. Plano de 1 mês vira "3 meses";
+ * plano de 3 meses vira "3 períodos (9 meses)" — ninguém precisa fazer a
+ * conta de cabeça no balcão.
+ */
+export function rotuloPeriodos(n: number, duracaoMeses: number): string {
+  if (duracaoMeses === 1) return n === 1 ? '1 mês' : `${n} meses`;
+  const total = n * duracaoMeses;
+  return n === 1 ? `1 período (${duracaoMeses} meses)` : `${n} períodos (${total} meses)`;
+}
+
+export const ROTULO_FORMA: Record<string, string> = {
+  pix: 'Pix', dinheiro: 'Dinheiro', debito: 'Débito', credito: 'Crédito', boleto: 'Boleto',
+};

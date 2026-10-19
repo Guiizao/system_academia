@@ -57,7 +57,7 @@ export function Agenda() {
       </div>
 
       <div className="aulas">
-        {carregando && <div className="carregando">Carregando…</div>}
+        {carregando && !aulas && <div className="carregando">Carregando…</div>}
         {aulas?.map((a) => {
           const pct = Math.round((a.inscritos / a.vagas) * 100);
           const lotada = a.inscritos >= a.vagas;

@@ -4,7 +4,8 @@ import type { Usuario } from './tipos';
 interface Sessao {
   usuario: Usuario;
   sair: () => void;
-  avisar: (msg: string, tom?: 'ok' | 'erro' | 'info') => void;
+  /** `semFesta`: deu certo, mas desfez algo (excluiu, cancelou): o boneco nao comemora */
+  avisar: (msg: string, tom?: 'ok' | 'erro' | 'info', opcoes?: { semFesta?: boolean }) => void;
 }
 
 export const SessaoCtx = createContext<Sessao | null>(null);

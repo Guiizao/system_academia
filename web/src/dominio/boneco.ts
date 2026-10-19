@@ -136,6 +136,22 @@ export const MS_PEGAR = 1500;
 export const MOMENTO_DA_PEGADA = 0.42;
 
 /**
+ * Comemorar: pagamento recebido, check-in feito, alguma coisa salva. Ele larga
+ * o aparelho, toma impulso, pula de braços em V e amortece na volta -- é o
+ * jeito de a tela responder "deu certo" sem mais um aviso para ler.
+ */
+export const COMEMORAR: readonly Pose[] = [
+  PARADO,
+  frente({ ombro: 22, cotovelo: 34, coxa: 26, joelho: -26 }, { quadril: 1 }),   // impulso: agacha um pouco
+  frente({ ombro: 148, cotovelo: 14, coxa: 8, joelho: -6 }, { voo: 4.6 }),     // sai do chão
+  frente({ ombro: 156, cotovelo: 8, coxa: 4, joelho: -2 }, { voo: 5.4, cabeca: -6 }), // no alto
+  frente({ ombro: 140, cotovelo: 18, coxa: 24, joelho: -24 }),                 // amortece
+  frente({ ombro: 150, cotovelo: 26, coxa: 6, joelho: -4 }),                   // braços ainda no alto
+  PARADO,
+];
+export const MS_COMEMORAR = 1400;
+
+/**
  * 12 exercícios + as pausas. A ordem conta uma sessão de treino: pega o
  * aparelho, faz a série, descansa, bebe água, mexe no celular.
  *

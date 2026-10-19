@@ -6,6 +6,7 @@ import { contem, formatarData, paraBusca } from '../dominio';
 import { Modal } from '../componentes/Modal';
 import { ConfirmarSenha } from '../componentes/ConfirmarSenha';
 import { Olho, useValores } from '../componentes/Valores';
+import { Contagem } from '../componentes/Contagem';
 import type { FormaPagamento, Produto, SituacaoVenda, Venda } from '../tipos';
 import './Produtos.css';
 
@@ -50,6 +51,7 @@ export function Produtos() {
   const dono = usuario.papel === 'dono';
   const { formatar: dinheiro } = useValores();
   const [busca, setBusca] = useState('');
+  const [buscaVenda, setBuscaVenda] = useState('');
   const [aba, setAba] = useState<SituacaoVenda>('fiado');
   const [editando, setEditando] = useState<Produto | 'novo' | null>(null);
   const [vendendo, setVendendo] = useState<Produto | null>(null);
@@ -63,6 +65,9 @@ export function Produtos() {
     return (produtos ?? []).filter((p) => contem(`${p.nome} ${p.categoria ?? ''}`, busca));
   }, [produtos, busca]);
 
+  // quem levou ou o que levou, sem acento
+  const vendasVisiveis = (vendas ?? []).filter((v) =>
+    contem(`${v.alunoNome ?? v.clienteNome ?? ''} ${v.produtoNome}`, buscaVenda));
   const emFalta = (produtos ?? []).filter((p) => p.estoque <= ESTOQUE_BAIXO).length;
   const fiadoAberto = (fiados ?? []).reduce((s, v) => s + v.totalCentavos, 0);
   const atualizar = () => { recProdutos(); recVendas(); };
@@ -87,7 +92,7 @@ export function Produtos() {
         <div className="card loja__num"><span>Com estoque baixo</span>
           <strong className={emFalta ? 't-warn' : ''}>{emFalta}</strong></div>
         <div className="card loja__num"><span>Fiado em aberto</span>
-          <strong className={fiadoAberto ? 't-danger' : ''}>{dinheiro(fiadoAberto)}</strong></div>
+          <strong className={fiadoAberto ? 't-danger' : ''}><Contagem valor={fiadoAberto} formatar={dinheiro} /></strong></div>
       </div>
 
       <div className="busca loja__busca">
@@ -140,11 +145,19 @@ export function Produtos() {
             ))}
           </div>
         </div>
+        {!!vendas?.length && (
+          <div className="busca loja__busca loja__busca--vendas">
+            <input type="search" placeholder="Buscar quem levou ou o produto" value={buscaVenda}
+                   onChange={(e) => setBuscaVenda(e.target.value)} aria-label="Buscar nas vendas" />
+          </div>
+        )}
         {!vendas?.length ? (
           <div className="vazio">{aba === 'fiado' ? 'Ninguém devendo nada.' : 'Nenhuma venda paga ainda.'}</div>
+        ) : !vendasVisiveis.length ? (
+          <div className="vazio">Nenhuma venda com esse nome.</div>
         ) : (
           <div className="tabela">
-            {vendas.map((v) => (
+            {vendasVisiveis.map((v) => (
               <div key={v.id} className="tabela__linha">
                 <div>
                   <div className="tabela__forte">{v.quantidade}× {v.produtoNome}</div>
@@ -188,7 +201,7 @@ export function Produtos() {
           aoConfirmar={async (senha) => {
             await api.cancelarVenda(cancelando.id, senha);
             setCancelando(null);
-            avisar('Venda cancelada e estoque devolvido.', 'ok');
+            avisar('Venda cancelada e estoque devolvido.', 'ok', { semFesta: true });
             atualizar();
           }}
         />

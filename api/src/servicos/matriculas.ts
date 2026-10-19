@@ -45,9 +45,9 @@ export function criarServicoMatriculas(db: Db) {
    * mesmo que registrar 3 pagamentos seguidos: a conta e a mesma, a ancora
    * tambem -- so poupa a recepcao de repetir a operacao.
    */
-  function validarPeriodos(periodos: number | undefined, ehDiaria: boolean): number {
+  function validarPeriodos(periodos: number | undefined, ehDiaria: boolean, preservarPeriodos = false): number {
     const n = periodos ?? 1;
-    if (!Number.isInteger(n) || n < 1 || n > MAX_PERIODOS) {
+    if (!Number.isInteger(n) || n < 1 || (!preservarPeriodos && n > MAX_PERIODOS)) {
       throw new ErroNegocio(`Dá para adiantar de 1 a ${MAX_PERIODOS} períodos de uma vez.`);
     }
     if (n > 1 && ehDiaria) {
@@ -61,7 +61,7 @@ export function criarServicoMatriculas(db: Db) {
    * chamam isto -- e por isso que o que a recepcao LE antes de confirmar e
    * exatamente o que vai ser gravado depois.
    */
-  function calcularPeriodo(args: ArgsPeriodo, q: Db = db): PeriodoRenovado & {
+  function calcularPeriodo(args: ArgsPeriodo, q: Db = db, preservarPeriodos = false): PeriodoRenovado & {
     planoNome: string; valorCentavos: number; periodos: number;
     dataFimAnterior: DataISO | null; diasAproveitados: number;
   } {
@@ -69,7 +69,7 @@ export function criarServicoMatriculas(db: Db) {
     if (!p) throw new ErroNaoEncontrado('Plano não encontrado');
     if (!p.ativo) throw new ErroNegocio('Plano desativado. Escolha um plano ativo.');
 
-    const periodos = validarPeriodos(args.periodos, p.duracaoDias != null);
+    const periodos = validarPeriodos(args.periodos, p.duracaoDias != null, preservarPeriodos);
     const anterior = matriculaAtualSync(args.alunoId, q);
 
     const periodo = calcularRenovacao({
@@ -115,8 +115,9 @@ export function criarServicoMatriculas(db: Db) {
    * Registrar pagamento usa isto para gravar pagamento + quitar cobranca +
    * renovar tudo numa transacao so (SQLite recusa BEGIN dentro de BEGIN).
    */
-  function renovarEm(tx: Db, args: ArgsPeriodo & { observacao?: string }) {
-    const periodo = calcularPeriodo(args, tx);
+  function renovarEm(tx: Db, args: ArgsPeriodo & { observacao?: string }, preservarPeriodos = false) {
+    // Só a edição interna usa esta exceção: a migração pode inferir mais de 12.
+    const periodo = calcularPeriodo(args, tx, preservarPeriodos);
     const anterior = matriculaAtualSync(args.alunoId, tx);
 
     if (anterior) {

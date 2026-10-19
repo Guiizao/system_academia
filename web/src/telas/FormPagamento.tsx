@@ -3,23 +3,12 @@ import QRCode from 'qrcode';
 import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao } from '../sessao';
-import { formatarBRL, formatarData, hoje } from '../dominio';
+import { formatarBRL, formatarData, hoje, rotuloPeriodos } from '../dominio';
 import { linkWhatsapp, mensagemCobranca, mensagemPix, podeAvisarNoWhatsapp } from '../dominio/whatsapp';
 import { Modal } from '../componentes/Modal';
 import type { Aluno, FormaPagamento, Plano, PreviaPagamento } from '../tipos';
 
 const MAX_PERIODOS = 12;
-
-/**
- * Como escrever a quantidade no seletor. Plano de 1 mês vira "3 meses";
- * plano de 3 meses vira "3 períodos (9 meses)" — ninguém precisa fazer a
- * conta de cabeça no balcão.
- */
-function rotuloPeriodos(n: number, duracaoMeses: number): string {
-  if (duracaoMeses === 1) return n === 1 ? '1 mês' : `${n} meses`;
-  const total = n * duracaoMeses;
-  return n === 1 ? `1 período (${duracaoMeses} meses)` : `${n} períodos (${total} meses)`;
-}
 
 /** A frase que explica o vencimento que acabou de aparecer na tela. */
 function explicarPrevia(p: PreviaPagamento, ehDiaria: boolean): string {

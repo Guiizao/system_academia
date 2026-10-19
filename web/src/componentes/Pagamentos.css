@@ -9,10 +9,9 @@
 }
 .pagamentos__linha:last-child { border-bottom: none; }
 .pagamentos__info { min-width: 0; }
-.pagamentos__titulo {
-  font-size: var(--txt-base); font-weight: 650;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+.pagamentos__titulo { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: var(--txt-base); font-weight: 650; }
+.pagamentos__titulo > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.pagamentos__editado { font-size: var(--txt-xs); padding: 0 6px; }
 .pagamentos__detalhe { font-size: var(--txt-sm); color: var(--muted); margin-top: 2px; }
 .pagamentos__valor { white-space: nowrap; }
 .pagamentos__acoes { display: flex; gap: 2px; }

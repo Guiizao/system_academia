@@ -156,12 +156,36 @@ export const pagamento = sqliteTable('pagamento', {
   cobrancaId: integer('cobranca_id').references(() => cobranca.id),
   alunoId: integer('aluno_id').notNull().references(() => aluno.id),
   valorCentavos: integer('valor_centavos').notNull(),
+  periodos: integer('periodos'),
   forma: text('forma', { enum: ['pix','dinheiro','credito','debito','boleto'] }).notNull(),
   dataPagamento: text('data_pagamento').notNull(),
   registradoPorUsuarioId: integer('registrado_por_usuario_id').references(() => usuario.id),
   observacao: text('observacao'),
 }, (t) => ({
   idxData: index('idx_pagamento_data').on(t.dataPagamento),
+}));
+
+export type PagamentoEstado = {
+  dataPagamento: string;
+  valorCentavos: number;
+  forma: typeof pagamento.$inferSelect['forma'];
+  planoNome: string | null;
+  periodos: number | null;
+  observacao: string | null;
+};
+
+export const pagamentoAlteracao = sqliteTable('pagamento_alteracao', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  // Sem FK: o registro precisa sobreviver à exclusão do pagamento.
+  pagamentoId: integer('pagamento_id').notNull(),
+  alunoId: integer('aluno_id').notNull().references(() => aluno.id),
+  acao: text('acao', { enum: ['editou', 'excluiu'] }).notNull(),
+  usuarioId: integer('usuario_id').references(() => usuario.id),
+  em: text('em').notNull().default(agora),
+  antes: text('antes', { mode: 'json' }).$type<PagamentoEstado>().notNull(),
+  depois: text('depois', { mode: 'json' }).$type<PagamentoEstado>(),
+}, (t) => ({
+  idxPagamentoEm: index('idx_pagamento_alteracao_pagamento_em').on(t.pagamentoId, t.em),
 }));
 
 export const produto = sqliteTable('produto', {

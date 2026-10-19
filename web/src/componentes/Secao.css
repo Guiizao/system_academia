@@ -1,0 +1,63 @@
+/* Prévia: cartão com cabeçalho (título, resumo, "Ver tudo") e um pouco do
+   conteúdo. Na grade da tela ficam lado a lado no PC e empilhadas no celular. */
+.resumo-grade {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap);
+  padding: 0 var(--gutter) var(--gap); align-items: start;
+}
+.shell--desktop .resumo-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.resumo-grade > .secao--larga { grid-column: 1 / -1; }
+
+.secao {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  box-shadow: var(--sombra-cartao); display: flex; flex-direction: column; min-width: 0;
+}
+.secao__cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 16px 8px; }
+.secao__id { min-width: 0; }
+.secao__id h3 { font-size: var(--txt-md); font-weight: 750; letter-spacing: -.01em; display: flex; align-items: center; gap: 6px; }
+.secao__id p {
+  font-size: var(--txt-sm); color: var(--muted); margin-top: 2px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px;
+}
+.secao__alerta {
+  font-size: var(--txt-xs); font-weight: 700; color: var(--danger); background: var(--danger-suave);
+  padding: 1px 7px; border-radius: var(--rp); white-space: nowrap;
+}
+
+/* "Ver tudo": texto azul com a seta que anda um pouco quando o cursor chega */
+.secao__ver {
+  display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; height: 30px; padding: 0 6px 0 10px;
+  border-radius: var(--rs); font-size: var(--txt-sm); font-weight: 700; color: var(--accent); white-space: nowrap;
+  transition: background-color var(--rapido), color var(--rapido);
+}
+.secao__ver:hover { background: var(--accent-suave); color: var(--accent-hover); }
+.secao__ver svg { transition: transform var(--rapido) var(--ease); }
+.secao__ver:hover svg { transform: translateX(2px); }
+
+.secao__corpo { padding: 0 16px 12px; flex: 1; min-width: 0; }
+.secao__vazio { font-size: var(--txt-base); color: var(--muted); padding: 10px 0 6px; }
+
+/* linha simples da prévia: quem, quando e quanto */
+.previa-linha {
+  display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border);
+  width: 100%; text-align: left;
+}
+.previa-linha:first-child { border-top: none; }
+.previa-linha__info { flex: 1; min-width: 0; }
+.previa-linha__nome { font-size: var(--txt-base); font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.previa-linha__det { font-size: var(--txt-sm); color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.previa-linha__valor { font-size: var(--txt-base); font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
+button.previa-linha { border-radius: var(--rs); transition: background-color var(--rapido); }
+button.previa-linha:hover { background: var(--surface-2); }
+
+/* ─── subtela: o painel completo ─── */
+.subtela__id { min-width: 0; }
+.subtela__voltar {
+  display: inline-flex; align-items: center; gap: 2px; margin: 0 0 4px -6px; padding: 3px 8px 3px 2px;
+  border-radius: var(--rs); font-size: var(--txt-sm); font-weight: 700; color: var(--muted);
+  transition: color var(--rapido), background-color var(--rapido);
+}
+.subtela__voltar:hover { color: var(--text); background: var(--surface-2); }
+.subtela__voltar svg { transform: rotate(180deg); transition: transform var(--rapido) var(--ease); }
+.subtela__voltar:hover svg { transform: rotate(180deg) translateX(2px); }
+.subtela__cab { align-items: flex-end; flex-wrap: wrap; }
+.subtela__cab h2 { font-size: var(--txt-2xl); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }

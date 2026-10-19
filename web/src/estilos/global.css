@@ -36,11 +36,26 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
 .sec-head h2 { font-size: var(--txt-md); font-weight: 700; letter-spacing: -.01em; }
 .sec-head__acoes { display: flex; align-items: center; gap: 8px; }
 /* o primeiro cabecalho da tela e o titulo dela */
-.container > .sec-head:first-child h2, .sec-head--tela h2 { font-size: var(--txt-xl); font-weight: 750; letter-spacing: -.02em; }
+.container > .sec-head:first-child h2, .sec-head--tela h2 { font-size: var(--txt-2xl); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
 .container > .sec-head:first-child { padding-top: 26px; padding-bottom: 14px; }
 .sec-sub { font-size: var(--txt-base); color: var(--muted); }
 .link-btn { font-size: var(--txt-base); color: var(--accent); font-weight: 650; transition: color var(--rapido); }
 .link-btn:hover { color: var(--accent-hover); }
+.t-danger { color: var(--danger); }
+.t-warn { color: var(--warn); }
+
+/* ─── seletor de duas ou tres opcoes (Lista | Alteracoes, Por mes | Todos) ─── */
+.segmento {
+  display: inline-flex; padding: 3px; gap: 2px; flex-shrink: 0; max-width: 100%; overflow-x: auto;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: calc(var(--rs) + 2px);
+}
+.segmento button {
+  height: 30px; padding: 0 12px; border-radius: var(--rs); font-size: var(--txt-sm); font-weight: 700;
+  color: var(--muted); white-space: nowrap;
+  transition: background-color var(--rapido) var(--ease), color var(--rapido), box-shadow var(--rapido);
+}
+.segmento button:hover { color: var(--text); }
+.segmento button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .22), inset 0 0 0 1px var(--border); }
 
 /* ─── etiquetas ───────────────────────────────────────── */
 .badge {
@@ -140,6 +155,9 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
    Tudo responde a uma acao: troca de tela, abrir, confirmar. */
 @keyframes entrar { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .entrar { animation: entrar var(--medio) var(--ease) backwards; }
+/* painel completo aberto de uma previa: entra pela direita, como quem desce um nivel */
+@keyframes entrar-fundo { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+.entrar-fundo { animation: entrar-fundo 240ms var(--ease) backwards; }
 @keyframes surgir { from { opacity: 0; } to { opacity: 1; } }
 
 /* Entrada escalonada: agora é o efeito "Listas em cascata" (estilos/efeitos.css),

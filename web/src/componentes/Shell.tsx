@@ -77,6 +77,9 @@ export function Shell({
     const id = requestAnimationFrame(() => setAnimarIndicador(true));
     return () => cancelAnimationFrame(id);
   }, []);
+  // onde o boneco treina: canto de cima no PC largo, rodape da lateral no tablet
+  // (a lateral tem um vao vazio ali) e barra de cima no celular
+  const bonecoNoCanto = largura >= 1101;
   const iniciaisUsuario = usuario.nome.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
   return (
@@ -102,6 +105,9 @@ export function Shell({
                 </button>
               ))}
             </nav>
+
+            {/* no vao vazio entre o menu e o rodape: ali ele nao cobre nada */}
+            {!bonecoNoCanto && <div className="sidebar__boneco"><Bonequinho mini={!desktop} /></div>}
 
             <div className="sidebar__rodape">
               <button className="sidebar__item" onClick={() => setVendoAvisos(true)} title="Avisos">
@@ -141,6 +147,7 @@ export function Shell({
               <span className="marca__nome">{nomePartes[0]} <b>{nomePartes.slice(1).join(' ')}</b></span>
             </button>
             <div className="topbar__acoes">
+              <Bonequinho mini />
               <button className="icone-btn" title="Avisos" aria-label={`Avisos: ${qtd}`} onClick={() => setVendoAvisos(true)}>
                 <IconeSino size={17} />{contador}
               </button>
@@ -153,7 +160,7 @@ export function Shell({
 
         {/* canto do treino: so no PC, e so enfeite. As telas que tem botao
             no canto superior direito abrem espaco para ele no CSS. */}
-        {desktop && <div className="shell__boneco"><Bonequinho /></div>}
+        {bonecoNoCanto && <div className="shell__boneco"><Bonequinho /></div>}
         <main className="conteudo">{children}</main>
       </div>
 

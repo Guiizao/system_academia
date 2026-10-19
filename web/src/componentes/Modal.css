@@ -51,7 +51,14 @@
 .checkbox-linha input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; margin-top: 1px; }
 .tags-escolha { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .tags-escolha .chip.on { background: var(--danger-suave); color: var(--danger); border-color: transparent; }
-.carregando { padding: 40px; text-align: center; color: var(--muted); font-size: var(--txt-base); }
+.carregando {
+  height: 112px; margin: 14px 0; border-radius: var(--rs); color: transparent; font-size: var(--txt-base); user-select: none;
+  background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 45%, var(--surface-2) 90%) 0 0 / 220% 100%;
+  -webkit-mask: repeating-linear-gradient(to bottom, #000 0 22px, transparent 22px 36px);
+          mask: repeating-linear-gradient(to bottom, #000 0 22px, transparent 22px 36px);
+  animation: brilho 1.3s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .carregando { animation: none; } }
 .erro-carga { margin: 14px; padding: 12px 14px; border-radius: var(--rs); background: var(--danger-suave); color: var(--danger); font-size: var(--txt-base); font-weight: 600; }
 
 .pagamento-total { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--border); margin-top: 2px; }

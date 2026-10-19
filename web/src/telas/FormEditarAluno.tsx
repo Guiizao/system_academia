@@ -43,7 +43,7 @@ export function FormEditarAluno({ aluno, aoFechar, aoSalvar }: { aluno: Aluno; a
     catch (err: any) { setErro(err.message); }
   }
   async function desativar() {
-    try { await api.atualizarAluno(aluno.id, { ativo: false }); avisar(`${aluno.nome.split(' ')[0]} desativado. O histórico foi mantido.`, 'ok'); aoSalvar(); }
+    try { await api.atualizarAluno(aluno.id, { ativo: false }); avisar(`${aluno.nome.split(' ')[0]} desativado. O histórico foi mantido.`, 'ok', { semFesta: true }); aoSalvar(); }
     catch (err: any) { setErro(err.message); }
   }
 

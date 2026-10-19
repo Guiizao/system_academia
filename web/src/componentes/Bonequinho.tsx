@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ALTURA_DO_APARELHO, ALTURA_DO_SUPORTE, LARGURA_DA_VISTA, MEIA_LARGURA_DO_SUPORTE,
-  CENAS, CHAO_Y, MS_PEGAR, MOMENTO_DA_PEGADA, PARADO, PEGAR,
+  CENAS, CHAO_Y, COMEMORAR, MS_COMEMORAR, MS_PEGAR, MOMENTO_DA_PEGADA, PARADO, PEGAR,
   arcoDaCorda, assentarNoChao, comAtraso, esqueletoDe, faseDaCorda, poseDosQuadros, poseNoTempo,
-  type Pose, type Ponto,
+  type Pose, type Ponto, type Vista,
 } from '../dominio/boneco';
 import './Bonequinho.css';
 
@@ -37,7 +37,11 @@ function anguloDoPunho(cotovelo: Ponto, mao: Ponto): number {
   return (Math.atan2(mao.y - cotovelo.y, mao.x - cotovelo.x) * 180) / Math.PI;
 }
 
-type Fase = { tipo: 'pegando' | 'treinando'; cena: number };
+/** `de`: de que ângulo ele vinha, quando não foi da cena anterior (comemorou no meio). */
+type Fase = { tipo: 'pegando' | 'treinando' | 'comemorando'; cena: number; de?: Vista };
+
+/** Quem quiser que ele comemore dispara este evento (o App faz isso a cada "deu certo"). */
+export const EVENTO_COMEMORAR = 'df:comemorar';
 
 /**
  * A camera girando.
@@ -58,7 +62,7 @@ function larguraDoGiro(pegando: boolean, t: number, mudaDeAngulo: boolean): numb
   return 1 - 0.92 * Math.sin(Math.PI * u);
 }
 
-export function Bonequinho() {
+export function Bonequinho({ mini = false }: { mini?: boolean }) {
   const [fase, setFase] = useState<Fase>(() => ({ tipo: primeiraEhPegar(0) ? 'pegando' : 'treinando', cena: 0 }));
   const [pose, setPose] = useState<Pose>(PARADO);
   const [ciclo, setCiclo] = useState(0);        // 0..1 dentro da repetição, para a corda
@@ -68,13 +72,26 @@ export function Bonequinho() {
 
   const cena = CENAS[fase.cena];
   const anterior = CENAS[(fase.cena - 1 + CENAS.length) % CENAS.length];
-  const giraCamera = anterior.vista !== cena.vista;
+  const giraCamera = (fase.de ?? anterior.vista) !== cena.vista;
+  const comemorando = fase.tipo === 'comemorando';
+
+  // algo deu certo: larga o que está fazendo e comemora. Depois volta a pegar o
+  // aparelho da mesma cena, como quem retoma a série.
+  useEffect(() => {
+    const comemorar = () => {
+      setPegada(false);
+      setFase((f) => (f.tipo === 'comemorando' ? f : { tipo: 'comemorando', cena: f.cena }));
+    };
+    window.addEventListener(EVENTO_COMEMORAR, comemorar);
+    return () => window.removeEventListener(EVENTO_COMEMORAR, comemorar);
+  }, []);
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const pegando = fase.tipo === 'pegando';
-    const duracao = pegando ? MS_PEGAR : cena.cicloMs * cena.repeticoes;
+    const festa = fase.tipo === 'comemorando';
+    const duracao = festa ? MS_COMEMORAR : pegando ? MS_PEGAR : cena.cicloMs * cena.repeticoes;
     const inicio = performance.now();
     let vivo = true;
     let quadroAnterior = inicio;
@@ -88,7 +105,8 @@ export function Bonequinho() {
       quadroAnterior = agora;
 
       if (decorrido >= duracao) {
-        if (pegando) { setPegada(true); setFase({ tipo: 'treinando', cena: fase.cena }); }
+        if (festa) setFase({ tipo: primeiraEhPegar(fase.cena) ? 'pegando' : 'treinando', cena: fase.cena, de: 'frente' });
+        else if (pegando) { setPegada(true); setFase({ tipo: 'treinando', cena: fase.cena }); }
         else {
           const proxima = (fase.cena + 1) % CENAS.length;
           setPegada(false);
@@ -97,11 +115,11 @@ export function Bonequinho() {
         return;
       }
 
-      const t = pegando ? decorrido / duracao : (decorrido % cena.cicloMs) / cena.cicloMs;
+      const t = pegando || festa ? decorrido / duracao : (decorrido % cena.cicloMs) / cena.cicloMs;
       if (pegando && t >= MOMENTO_DA_PEGADA) setPegada(true);
       setCiclo(t);
 
-      const alvo = pegando ? poseDosQuadros(PEGAR, t) : poseNoTempo(cena, t);
+      const alvo = festa ? poseDosQuadros(COMEMORAR, t) : pegando ? poseDosQuadros(PEGAR, t) : poseNoTempo(cena, t);
       // as pontas perseguem o alvo: é daqui que vem o "molenga"
       poseRef.current = comAtraso(poseRef.current, alvo, 0.18, msDoQuadro);
       setPose(poseRef.current);
@@ -110,18 +128,19 @@ export function Bonequinho() {
 
     quadro.current = requestAnimationFrame(passo);
     return () => { vivo = false; cancelAnimationFrame(quadro.current); };
-  }, [fase.tipo, fase.cena]);
+  }, [fase.tipo, fase.cena, fase.de]);
 
   // assentar no chão é o que impede o boneco de agachar no ar: ele desce o
   // corpo inteiro até o pé de apoio encostar na linha desenhada abaixo
   // de lado o ombro aponta para quem olha: a largura do corpo quase some
-  const e = assentarNoChao(esqueletoDe(pose, undefined, LARGURA_DA_VISTA[cena.vista]), pose.voo);
+  // comemorar é sempre de frente: os braços em V só se leem assim
+  const e = assentarNoChao(esqueletoDe(pose, undefined, LARGURA_DA_VISTA[comemorando ? 'frente' : cena.vista]), pose.voo);
   const osso = (a: Ponto, b: Ponto, chave: string) => (
     <line key={chave} className="bn__osso" x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
   );
 
   // enquanto ele não encostou a mão, o aparelho está no chão esperando
-  const noChao = fase.tipo === 'pegando' && !pegada;
+  const noChao = (fase.tipo === 'pegando' && !pegada) || comemorando;
   const [apoioE, apoioD] = noChao
     ? [{ x: APOIO.x + APOIO.meiaLargura, y: APOIO.y },
        { x: APOIO.x - APOIO.meiaLargura, y: APOIO.y }]
@@ -135,19 +154,27 @@ export function Bonequinho() {
   const giroD = noChao ? 90 : anguloDoPunho(e.cotoveloD, e.maoD);
   const fio = arcoDaCorda(e, faseDaCorda(ciclo));
 
-  const largura = larguraDoGiro(fase.tipo === 'pegando', ciclo, giraCamera);
-  const legenda = fase.tipo === 'pegando'
-    ? `Pegando o aparelho para ${cena.nome.toLowerCase()}`
+  // vindo de um exercício de perfil, ele vira de frente no começo do pulo
+  const largura = comemorando
+    ? (cena.vista === 'lado' && ciclo < 0.25 ? 0.08 + 0.92 * (ciclo / 0.25) : 1)
+    : larguraDoGiro(fase.tipo === 'pegando', ciclo, giraCamera);
+  const legenda = comemorando ? 'Comemorando!'
+    : fase.tipo === 'pegando' ? `Pegando o aparelho para ${cena.nome.toLowerCase()}`
     : `Treinando: ${cena.nome.toLowerCase()}`;
+  // a sombra encolhe e clareia quando ele sai do chão: é ela que vende o pulo
+  const voo = Math.min(pose.voo, 6);
+  const meioDosPes = (e.peE.x + e.peD.x) / 2;
 
   return (
-    <div className="bn" title={legenda} aria-hidden="true">
+    <div className={`bn ${mini ? 'bn--mini' : ''} ${comemorando ? 'bn--festa' : ''}`} title={legenda} aria-hidden="true">
       <svg viewBox="-6 -8 76 62" className="bn__svg">
         {/* o chão é a referência: o boneco é assentado NELE, não o contrário */}
         <line className="bn__chao" x1="3" y1={CHAO_Y} x2="61" y2={CHAO_Y} />
 
         {/* tudo menos o chão gira junto: o piso não acompanha a câmera */}
         <g transform={`translate(32 0) scale(${largura.toFixed(3)} 1) translate(-32 0)`}>
+        <ellipse className="bn__sombra" cx={meioDosPes} cy={CHAO_Y} rx={8.5 - voo * 0.75} ry={1.3}
+                 style={{ opacity: 0.9 - voo * 0.1 }} />
         {/* pernas atrás do tronco, cada uma saindo do seu lado do quadril */}
         {osso(e.quadrilE, e.joelhoE, 'coxaE')}
         {osso(e.joelhoE, e.peE, 'canelaE')}
@@ -161,6 +188,9 @@ export function Bonequinho() {
         {osso(e.quadril, e.ombro, 'tronco')}
         {osso(e.ombroD, e.ombroE, 'ombros')}
         <circle className="bn__cabeca" cx={e.cabeca.x} cy={e.cabeca.y} r="4.2" />
+        {/* a faixa na testa: o azul da academia, é o que faz dele "o nosso" */}
+        <path className="bn__faixa"
+              d={`M ${e.cabeca.x - 3.9} ${e.cabeca.y - 1.2} Q ${e.cabeca.x} ${e.cabeca.y - 2.6} ${e.cabeca.x + 3.9} ${e.cabeca.y - 1.2}`} />
 
         {osso(e.ombroE, e.cotoveloE, 'bracoE')}
         {osso(e.cotoveloE, e.maoE, 'antebracoE')}

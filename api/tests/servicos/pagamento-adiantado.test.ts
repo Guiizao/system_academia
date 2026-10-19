@@ -8,7 +8,7 @@
  *    ja adiantou novembro; da para jogar o vencimento dela para dezembro?"
  *    -- pagamento empilha, nao substitui.
  */
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { criarBancoDeTeste } from '../helpers/db.js';
 import { criarServicoFinanceiro } from '../../src/servicos/financeiro.js';
 import { criarServicoMatriculas } from '../../src/servicos/matriculas.js';
@@ -16,7 +16,11 @@ import { eq } from 'drizzle-orm';
 import { aluno, plano, academia, matricula } from '../../src/db/schema.js';
 
 let t: ReturnType<typeof criarBancoDeTeste>;
-afterEach(() => t?.fechar());
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-11-01T15:00:00Z'));
+});
+afterEach(() => { t?.fechar(); vi.useRealTimers(); });
 
 async function cenario(vencimentoAtual: string | null) {
   t = criarBancoDeTeste();

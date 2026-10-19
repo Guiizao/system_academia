@@ -56,8 +56,11 @@
 .plano.destaque { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
 .plano__tag { position: absolute; top: 14px; right: 14px; font-size: var(--txt-xs); font-weight: 700; background: var(--accent-suave); color: var(--accent); padding: 1px 8px; border-radius: var(--rp); }
 .plano__nome { font-size: var(--txt-md); font-weight: 750; }
-.plano__preco { font-size: var(--txt-2xl); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin: 4px 0 10px; }
-.plano__preco small { font-size: var(--txt-sm); color: var(--muted); font-weight: 600; letter-spacing: 0; margin-left: 2px; }
+/* o sufixo (/3 meses) nunca parte no meio: se nao couber, desce inteiro */
+.plano__preco { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 3px; font-size: var(--txt-2xl); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin: 4px 0 10px; }
+.plano__preco small { font-size: var(--txt-sm); color: var(--muted); font-weight: 600; letter-spacing: 0; white-space: nowrap; }
+.plano__alunos { font-size: var(--txt-sm); color: var(--muted); font-weight: 600; margin: -6px 0 10px; }
+.plano-sufixo { font-size: var(--txt-xs); color: var(--muted); font-weight: 600; margin-left: 2px; }
 .plano__item { font-size: var(--txt-base); color: var(--muted); margin-bottom: 4px; padding-left: 16px; position: relative; }
 .plano__item::before { content: ''; position: absolute; left: 2px; top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
 
@@ -67,7 +70,7 @@
 .btn-ordem {
   width: 26px; height: 26px; border-radius: var(--rp); border: 1px solid var(--border);
   background: var(--surface-2); color: var(--muted); font-size: var(--txt-base); line-height: 1;
-  cursor: pointer; transition: background var(--t) var(--ease), color var(--t) var(--ease);
+  cursor: pointer; transition: background-color var(--rapido) var(--ease), color var(--rapido) var(--ease);
 }
 .btn-ordem:hover:not(:disabled) { background: var(--accent-suave); color: var(--accent); border-color: transparent; }
 .btn-ordem:disabled { opacity: .35; cursor: default; }
@@ -101,31 +104,97 @@
 /* valor e botão de excluir lado a lado, alinhados à direita da linha */
 .pag__lado { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
-/* busca dentro da lista de cobranças em aberto */
-.cobranca__busca { margin: 12px 0 4px; }
-.cobranca__busca input { padding-left: 14px; }
+/* ─── painéis completos (subtelas) ─────────────────────────── */
+.pg-filtros {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 10px 14px; padding: 0 var(--gutter) 12px;
+}
+.pg-filtros__periodo { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.pg-filtros__campos { display: flex; gap: 8px; flex-wrap: wrap; flex: 1 1 420px; justify-content: flex-end; }
+.pg-filtros__busca { margin: 0; flex: 1 1 200px; max-width: 320px; }
+.pg-filtros__busca input { padding-left: 14px; }
+.pg-select {
+  height: 38px; min-width: 0; flex: 0 1 170px; padding: 0 10px; border-radius: var(--rs);
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font-size: var(--txt-base);
+}
+.pg-select:hover { border-color: var(--border-forte); }
+.pg-mes { display: flex; align-items: center; gap: 2px; }
+.pg-mes strong { font-size: var(--txt-md); min-width: 150px; text-align: center; }
+.pg-mes .icone-btn { font-size: var(--txt-lg); }
+.pg-mes .icone-btn:disabled { opacity: .35; cursor: default; }
 
-/* ─── histórico de pagamentos ───────────────────────────────
-   Mesmo cartão das outras listas do Financeiro (raio, borda, sombra), mas
-   sempre aberto: é o lugar de conferir tudo, então não esconde nada. */
-.historico {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-  box-shadow: var(--sombra-cartao); margin: 0 var(--gutter) var(--gap); padding: 14px 16px 6px;
+.pg-totais {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
+  padding: 0 var(--gutter) 12px; font-size: var(--txt-sm); color: var(--muted);
 }
-.historico__cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-.historico__cab h3 { font-size: var(--txt-md); font-weight: 700; letter-spacing: -.01em; }
-.historico__cab p { font-size: var(--txt-base); color: var(--muted); margin-top: 2px; }
-.historico__busca { margin: 0; width: min(320px, 100%); }
-.historico__busca input { padding-left: 14px; }
-.historico__mes {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
-  padding: 12px 0; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+.pg-totais b { color: var(--text); font-size: var(--txt-md); font-variant-numeric: tabular-nums; }
+.pg-totais__forma { white-space: nowrap; padding: 2px 8px; border-radius: var(--rp); background: var(--surface-2); }
+
+/* Tabela: no PC, colunas. Quando a PROPRIA tabela fica estreita (celular,
+   tablet, janela pela metade), cada pagamento vira uma linha de cartao: nome e
+   detalhe a esquerda, valor e botoes a direita. Quem decide e a largura da
+   tabela, nao a da tela: com a lateral aberta as duas nao batem. */
+.pg-tabela {
+  container-type: inline-size; margin: 0 var(--gutter) var(--gap); overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sombra-cartao);
 }
-.historico__setas { display: flex; align-items: center; gap: 10px; }
-.historico__setas strong { font-size: var(--txt-md); min-width: 150px; text-align: center; }
-.historico__setas .btn { width: 32px; padding: 0; font-size: var(--txt-lg); line-height: 1; }
-.historico__totais { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; font-size: var(--txt-sm); color: var(--muted); }
-.historico__totais b { color: var(--text); font-size: var(--txt-base); }
-.historico__forma { white-space: nowrap; }
-/* a lista do mês pode ter 200 linhas: rola por dentro, o resto da tela fica parado */
-.historico__lista { max-height: 520px; overflow-y: auto; overscroll-behavior: contain; }
+.pg-tabela__cab, .pg-tabela__linha {
+  display: grid; align-items: center; gap: 12px; padding: 0 16px;
+  grid-template-columns: 92px minmax(0, 1.6fr) minmax(0, 1.3fr) minmax(0, 1fr) 104px 80px;
+}
+.pg-tabela--sem-acoes .pg-tabela__cab, .pg-tabela--sem-acoes .pg-tabela__linha {
+  grid-template-columns: 92px minmax(0, 1.6fr) minmax(0, 1.3fr) minmax(0, 1fr) 104px;
+}
+.pg-tabela__cab {
+  height: 38px; font-size: var(--txt-xs); font-weight: 700; color: var(--muted);
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+}
+.pg-tabela__linha {
+  min-height: 54px; padding-top: 8px; padding-bottom: 8px; font-size: var(--txt-base);
+  border-bottom: 1px solid var(--border); transition: background-color var(--rapido);
+  animation: entrar var(--medio) var(--ease) backwards;
+}
+.pg-tabela__linha:last-child { border-bottom: none; }
+.pg-tabela__linha:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+.pg-tabela__data { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.pg-tabela__aluno { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pg-tabela__aluno > div { min-width: 0; }
+.pg-tabela__aluno b { display: block; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-tabela__det { display: none; font-size: var(--txt-sm); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-tabela__editado { font-size: var(--txt-xs); padding: 0 6px; cursor: pointer; flex-shrink: 0; }
+.pg-tabela__editado:hover { color: var(--text); }
+.pg-tabela__plano, .pg-tabela__forma { color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pg-tabela__forma small { display: block; font-size: var(--txt-xs); color: var(--fraco); overflow: hidden; text-overflow: ellipsis; }
+.pg-tabela__num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pg-tabela__acoes { display: flex; justify-content: flex-end; }
+.pg-tabela > .vazio, .pg-tabela > .carregando, .pg-tabela > .erro-carga { margin: 16px; }
+
+@container (max-width: 720px) {
+  .pg-tabela__cab { display: none; }
+  .pg-tabela__linha { grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; padding: 10px 12px 10px 16px; }
+  .pg-tabela--sem-acoes .pg-tabela__linha { grid-template-columns: minmax(0, 1fr) auto; }
+  .pg-tabela__data, .pg-tabela__plano, .pg-tabela__forma, .pg-tabela__editado { display: none; }
+  .pg-tabela__det { display: block; }
+}
+
+.pg-paginas { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 var(--gutter) var(--gap); font-size: var(--txt-sm); color: var(--muted); }
+
+.cobrancas-card { margin: 0 var(--gutter) var(--gap); }
+
+/* registro de alteracoes: quem, quando e o antes > depois de cada campo */
+.alteracoes { margin: 0 var(--gutter) var(--gap); display: flex; flex-direction: column; gap: 8px; }
+.alteracoes__filtro {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 10px 14px;
+  font-size: var(--txt-base); color: var(--muted); background: var(--surface-2); border-radius: var(--rs);
+}
+.alteracoes__filtro b { color: var(--text); }
+.alteracao {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 16px;
+  box-shadow: var(--sombra-cartao); animation: entrar var(--medio) var(--ease) backwards;
+}
+.alteracao__cab { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; font-size: var(--txt-base); }
+.alteracao__cab b { font-weight: 700; }
+.alteracao__cab small { margin-left: auto; color: var(--muted); font-size: var(--txt-sm); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.alteracao__det { margin: 6px 0 0 18px; font-size: var(--txt-sm); color: var(--muted); list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.alteracao__det s { color: var(--fraco); }
+.alteracao__det b { color: var(--text); font-weight: 650; }

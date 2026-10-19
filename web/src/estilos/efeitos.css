@@ -12,13 +12,17 @@
    inteiro", o que ajuda em tela cheia de caixa. */
 html.ef-relevo .card,
 html.ef-relevo .plano,
-html.ef-relevo .previa {
+html.ef-relevo .previa,
+html.ef-relevo .secao,
+html.ef-relevo .ficha-previa {
   transition: transform var(--rapido) var(--ease), box-shadow var(--rapido) var(--ease),
               border-color var(--rapido) var(--ease);
 }
 html.ef-relevo .card:hover,
 html.ef-relevo .plano:hover,
-html.ef-relevo .previa:hover {
+html.ef-relevo .previa:hover,
+html.ef-relevo .secao:hover,
+html.ef-relevo .ficha-previa:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .45);
   border-color: var(--border-forte);

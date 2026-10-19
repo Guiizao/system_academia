@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { criarBancoDeTeste } from '../helpers/db.js';
 import { construirServidor, criarServicos } from '../../src/servidor.js';
@@ -15,12 +15,14 @@ let alunoId: number, planoId: number, senhaHash: string;
 
 beforeAll(async () => { senhaHash = await hashSenha(SENHA); });
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2027-01-15T12:00:00.000Z'));
   banco = criarBancoDeTeste();
   servicos = criarServicos(banco.db);
   alunoId = banco.db.insert(aluno).values({ nome: 'José da Conceição', telefone: '+5511999990001' }).returning().get().id;
   planoId = banco.db.insert(plano).values({ nome: 'Mensal', precoCentavos: 13900, duracaoMeses: 1 }).returning().get().id;
 });
-afterEach(async () => { await servidor?.close(); servidor = undefined; banco.fechar(); });
+afterEach(async () => { await servidor?.close(); servidor = undefined; banco.fechar(); vi.useRealTimers(); });
 
 function pagar(campos: Partial<Parameters<typeof servicos.financeiro.registrarPagamento>[0]> = {}) {
   return servicos.financeiro.registrarPagamento({
@@ -44,9 +46,9 @@ describe('detalhe de pagamento e legado', () => {
     const segundo = pagar();
     const avulso = pagar({ planoId: undefined });
     expect(detalhes()).toEqual([
-      { ...avulso.pagamento, alunoNome: 'José da Conceição', planoId: null, planoNome: null, alteraVencimento: false },
-      { ...segundo.pagamento, alunoNome: 'José da Conceição', planoId, planoNome: 'Mensal', alteraVencimento: true },
-      { ...primeiro.pagamento, alunoNome: 'José da Conceição', planoId, planoNome: 'Mensal', alteraVencimento: false },
+      { ...avulso.pagamento, alunoNome: 'José da Conceição', planoId: null, planoNome: null, alteraVencimento: false, registradoPorNome: null, editado: false },
+      { ...segundo.pagamento, alunoNome: 'José da Conceição', planoId, planoNome: 'Mensal', alteraVencimento: true, registradoPorNome: null, editado: false },
+      { ...primeiro.pagamento, alunoNome: 'José da Conceição', planoId, planoNome: 'Mensal', alteraVencimento: false, registradoPorNome: null, editado: false },
     ]);
     banco.db.update(matricula).set({ status: 'cancelada' }).where(eq(matricula.id, segundo.matricula!.id)).run();
     expect(detalhes().every((item) => !item.alteraVencimento)).toBe(true);
@@ -225,7 +227,7 @@ describe('histórico de pagamentos', () => {
     pagar({ dataPagamento: '2026-11-01' });
     banco.db.update(aluno).set({ ativo: false }).run();
     const resposta = servicos.financeiro.historico({ mes: '2026-10' });
-    expect(Object.keys(resposta).sort()).toEqual(['itens', 'meses', 'porDia', 'porForma', 'quantidade', 'totalCentavos']);
+    expect(Object.keys(resposta).sort()).toEqual(['itens', 'meses', 'pagina', 'porDia', 'porForma', 'porPagina', 'quantidade', 'totalCentavos', 'totalPaginas']);
     expect(resposta.itens.map((item) => item.id)).toEqual([empate.pagamento.id, fim.pagamento.id, inicio.pagamento.id]);
     expect(resposta).toMatchObject({ totalCentavos: 3500, quantidade: 3, porForma: [
       { forma: 'dinheiro', totalCentavos: 2000, quantidade: 1 }, { forma: 'pix', totalCentavos: 1500, quantidade: 2 },
@@ -246,16 +248,17 @@ describe('histórico de pagamentos', () => {
     expect(servicos.financeiro.historico({ busca: '99990001' }).itens).toEqual([]);
   });
 
-  it('não limita o mês e limita só a busca a 500, depois de filtrar e ordenar', () => {
+  it('pagina os 505 resultados sem limitar os totais do mês nem da busca', () => {
     banco.db.transaction((tx) => {
       for (let i = 0; i < 505; i++) tx.insert(pagamento).values({ alunoId, valorCentavos: 100, forma: 'pix', dataPagamento: '2026-10-15' }).run();
     });
     expect(servicos.financeiro.historico({ mes: '2026-10' })).toMatchObject({ quantidade: 505, totalCentavos: 50500 });
-    expect(servicos.financeiro.historico({ mes: '2026-10', busca: 'jose' }).itens).toHaveLength(505);
+    expect(servicos.financeiro.historico({ mes: '2026-10', busca: 'jose' }).itens).toHaveLength(50);
     const busca = servicos.financeiro.historico({ busca: 'jose' });
-    expect(busca).toMatchObject({ quantidade: 500, totalCentavos: 50000 });
+    expect(busca).toMatchObject({ quantidade: 505, totalCentavos: 50500, pagina: 1, porPagina: 50, totalPaginas: 11 });
     expect(busca.itens[0].id).toBe(505);
-    expect(busca.itens.at(-1)!.id).toBe(6);
+    expect(busca.itens.at(-1)!.id).toBe(456);
+    expect(servicos.financeiro.historico({ busca: 'jose', pagina: 11 }).itens.map((item) => item.id)).toEqual([5, 4, 3, 2, 1]);
   });
 
   it('sempre traz 12 meses até o atual, inclusive zeros, sem depender dos filtros', () => {
@@ -264,12 +267,12 @@ describe('histórico de pagamentos', () => {
     pagar({ dataPagamento: `${meses[0]}-01`, valorCentavos: 1000 });
     pagar({ dataPagamento: inicioAtual, valorCentavos: 2000 });
     pagar({ dataPagamento: adicionarMeses(inicioAtual, -12, 1) });
-    pagar({ dataPagamento: adicionarMeses(inicioAtual, 1, 1) });
+    banco.db.insert(pagamento).values({ alunoId, valorCentavos: 13900, forma: 'pix', dataPagamento: adicionarMeses(inicioAtual, 1, 1) }).run();
     const resposta = servicos.financeiro.historico({ mes: '2020-01', busca: 'não existe' });
     expect(resposta).toMatchObject({ itens: [], totalCentavos: 0, quantidade: 0, porForma: [], porDia: [] });
     expect(resposta.meses).toEqual(meses.map((mes, i) => ({ mes, totalCentavos: i === 0 ? 1000 : i === 11 ? 2000 : 0, quantidade: i === 0 || i === 11 ? 1 : 0 })));
     expect(servicos.financeiro.historico({ busca: 'jose' }).meses).toEqual(resposta.meses);
-    expect(servicos.financeiro.historico()).toMatchObject({ totalCentavos: 2000, quantidade: 1 });
+    expect(servicos.financeiro.historico()).toMatchObject({ totalCentavos: 30800, quantidade: 4, pagina: 1, porPagina: 50, totalPaginas: 1, porDia: [] });
   });
 
   it.each(['2024-02', '2026-12'])('respeita o fim de mês e a virada de ano: %s', (mes) => {

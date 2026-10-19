@@ -29,6 +29,13 @@
       "when": 1791409052212,
       "tag": "0003_produtos_vendas",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792439570617,
+      "tag": "0004_periodos_historico_registro",
+      "breakpoints": true
     }
   ]
 }

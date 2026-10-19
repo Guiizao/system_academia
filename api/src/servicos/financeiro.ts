@@ -1,9 +1,10 @@
-import { eq, and, desc, lt, gte, notExists, like, sum, count, sql, getTableColumns, type SQL } from 'drizzle-orm';
+import { eq, and, desc, lt, lte, gt, gte, notExists, like, sum, count, sql, getTableColumns, type SQL } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { cobranca, pagamento, aluno, academia, plano, matricula } from '../db/schema.js';
+import { cobranca, pagamento, pagamentoAlteracao, aluno, academia, plano, matricula, usuario, type PagamentoEstado } from '../db/schema.js';
 import { contemBusca } from '../db/busca.js';
 import { montarBrCode } from '../dominio/pix.js';
 import { hoje, diffDias, adicionarMeses, type DataISO } from '../dominio/datas.js';
+import { calcularRenovacao } from '../dominio/renovacao.js';
 import { criarServicoMatriculas } from './matriculas.js';
 import { ErroNegocio, ErroNaoEncontrado } from './erros.js';
 
@@ -11,7 +12,16 @@ type Db = BetterSQLite3Database<any>;
 type Forma = 'pix' | 'dinheiro' | 'credito' | 'debito' | 'boleto';
 export type PagamentoDetalhe = typeof pagamento.$inferSelect & {
   alunoNome: string; planoId: number | null; planoNome: string | null; alteraVencimento: boolean;
+  registradoPorNome: string | null; editado: boolean;
 };
+
+function estadoPagamento({ dataPagamento, valorCentavos, forma, planoNome, periodos, observacao }: PagamentoDetalhe): PagamentoEstado {
+  return { dataPagamento, valorCentavos, forma, planoNome, periodos, observacao };
+}
+
+function validarDataPagamento(data: DataISO) {
+  if (data > hoje()) throw new ErroNegocio('A data do pagamento não pode ser depois de hoje.');
+}
 
 export function criarServicoFinanceiro(db: Db) {
   const matriculas = criarServicoMatriculas(db);
@@ -30,10 +40,14 @@ export function criarServicoFinanceiro(db: Db) {
         where atual.aluno_id = candidata.aluno_id and atual.status = 'ativa'
         order by atual.data_fim desc limit 1)) desc, candidata.id desc limit 1))`;
 
-  function pagamentosDetalhados(condicao?: SQL, limite = -1, q: Db = db): PagamentoDetalhe[] {
+  function pagamentosDetalhados(condicao?: SQL, limite = -1, q: Db = db, deslocamento = 0): PagamentoDetalhe[] {
     return q.select({
       ...getTableColumns(pagamento), alunoNome: aluno.nome,
       matriculaId: matricula.id, planoId: plano.id, planoNome: plano.nome,
+      registradoPorNome: usuario.nome,
+      editado: sql<boolean>`exists(select 1 from ${pagamentoAlteracao}
+        where ${pagamentoAlteracao.pagamentoId} = ${pagamento.id}
+          and ${pagamentoAlteracao.acao} = 'editou')`.mapWith(Boolean),
       alteraVencimento: sql<boolean>`coalesce(${matricula.id} = ${matriculaAtualDoPagamento}
         and (${pagamento.matriculaId} is not null or not exists
           (select 1 from pagamento posterior where posterior.aluno_id = ${pagamento.alunoId}
@@ -42,7 +56,8 @@ export function criarServicoFinanceiro(db: Db) {
       .innerJoin(aluno, eq(aluno.id, pagamento.alunoId))
       .leftJoin(matricula, eq(matricula.id, matriculaDoPagamento))
       .leftJoin(plano, eq(plano.id, matricula.planoId))
-      .where(condicao).orderBy(desc(pagamento.dataPagamento), desc(pagamento.id)).limit(limite).all();
+      .leftJoin(usuario, eq(usuario.id, pagamento.registradoPorUsuarioId))
+      .where(condicao).orderBy(desc(pagamento.dataPagamento), desc(pagamento.id)).limit(limite).offset(deslocamento).all();
   }
 
   /**
@@ -64,6 +79,7 @@ export function criarServicoFinanceiro(db: Db) {
       throw new ErroNegocio('Valor deve ser inteiro em centavos e maior que zero');
     }
     const dataPagamento = args.dataPagamento ?? hoje();
+    validarDataPagamento(dataPagamento);
 
     return db.transaction((tx) => {
       const a = tx.select({ id: aluno.id }).from(aluno).where(eq(aluno.id, args.alunoId)).get();
@@ -83,6 +99,7 @@ export function criarServicoFinanceiro(db: Db) {
         alunoId: args.alunoId, cobrancaId: args.cobrancaId,
         valorCentavos: args.valorCentavos, forma: args.forma,
         dataPagamento, observacao: args.observacao,
+        periodos: planoId ? (args.periodos ?? 1) : null,
         registradoPorUsuarioId: args.usuarioId,
       }).returning().get();
 
@@ -102,8 +119,17 @@ export function criarServicoFinanceiro(db: Db) {
     });
   }
 
-  function excluirPagamento(pagamentoId: number) {
-    return db.transaction((tx) => excluirPagamentoEm(tx as unknown as Db, pagamentoId));
+  function excluirPagamento(pagamentoId: number, usuarioId?: number) {
+    return db.transaction((transacao) => {
+      const tx = transacao as unknown as Db;
+      const antes = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
+      const resultado = excluirPagamentoEm(tx, pagamentoId);
+      tx.insert(pagamentoAlteracao).values({
+        pagamentoId, alunoId: antes.alunoId, acao: 'excluiu', usuarioId,
+        antes: estadoPagamento(antes), depois: null,
+      }).run();
+      return resultado;
+    });
   }
 
   function excluirPagamentoEm(tx: Db, pagamentoId: number) {
@@ -148,17 +174,19 @@ export function criarServicoFinanceiro(db: Db) {
   function editarPagamento(pagamentoId: number, dados: {
     dataPagamento?: DataISO; valorCentavos?: number; forma?: Forma;
     planoId?: number; periodos?: number; observacao?: string;
-  }) {
+  }, usuarioId?: number) {
     if (dados.valorCentavos !== undefined && (!Number.isInteger(dados.valorCentavos) || dados.valorCentavos <= 0)) {
       throw new ErroNegocio('Valor deve ser inteiro em centavos e maior que zero');
     }
+    if (dados.dataPagamento !== undefined) validarDataPagamento(dados.dataPagamento);
     return db.transaction((transacao) => {
       const tx = transacao as unknown as Db;
       const registro = tx.select().from(pagamento).where(eq(pagamento.id, pagamentoId)).get();
       if (!registro) throw new ErroNaoEncontrado('Pagamento não encontrado');
       const detalhe = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
       const mudouPeriodo = (dados.dataPagamento !== undefined && dados.dataPagamento !== registro.dataPagamento)
-        || (dados.planoId !== undefined && dados.planoId !== detalhe.planoId) || dados.periodos !== undefined;
+        || (dados.planoId !== undefined && dados.planoId !== detalhe.planoId)
+        || (dados.periodos !== undefined && dados.periodos !== registro.periodos);
       if (detalhe.matriculaId != null && !detalhe.alteraVencimento && mudouPeriodo) {
         throw new ErroNegocio('Esse pagamento tem renovação depois dele: só dá para mudar valor, forma e observação.');
       }
@@ -168,14 +196,37 @@ export function criarServicoFinanceiro(db: Db) {
       // Só data, plano ou períodos refazem a renovação. Corrigir valor, forma ou
       // observação não toca na matrícula: refazê-la apagaria as cobranças do período.
       if (mudouPeriodo && (detalhe.alteraVencimento || (detalhe.matriculaId == null && planoId !== undefined))) {
+        const pagamentoAnterior = tx.select({ id: pagamento.id }).from(pagamento).where(and(
+          eq(pagamento.alunoId, registro.alunoId), lt(pagamento.id, pagamentoId),
+          gt(pagamento.dataPagamento, atualizado.dataPagamento),
+        )).get();
+        if (pagamentoAnterior) throw new ErroNegocio('A data da renovação não pode ser antes do pagamento anterior do aluno.');
         const anterior = detalhe.matriculaId == null ? null
           : tx.select().from(matricula).where(eq(matricula.id, detalhe.matriculaId)).get()!;
+        const planoAnterior = anterior ? tx.select().from(plano).where(eq(plano.id, anterior.planoId)).get() : null;
+        const mesmoPlano = planoId === undefined || planoId === detalhe.planoId;
+        const dataInicioEscolhida = mesmoPlano && planoAnterior?.duracaoDias != null
+          && anterior!.dataInicio !== registro.dataPagamento ? anterior!.dataInicio : null;
         if (detalhe.alteraVencimento) excluirPagamentoEm(tx, pagamentoId);
+        // Sem flags no legado, um fim diferente do cálculo original é manual.
+        // Corrigir a data mantém essa escolha; trocar plano/períodos recalcula.
+        let dataFimManual: string | null = null;
+        if (anterior && mesmoPlano && (periodos === undefined || periodos === registro.periodos)) {
+          const restaurada = matriculas.matriculaAtualSync(registro.alunoId, tx);
+          const original = calcularRenovacao({
+            dataFimAnterior: restaurada?.dataFim ?? null, diaAncoraAtual: restaurada?.diaAncora ?? null,
+            dataPagamento: registro.dataPagamento, duracaoMeses: planoAnterior!.duracaoMeses * (registro.periodos ?? 1),
+            duracaoDias: planoAnterior!.duracaoDias, dataInicioEscolhida,
+          });
+          if (anterior.dataFim !== original.dataFim) dataFimManual = anterior.dataFim;
+        }
+        atualizado.periodos = periodos ?? registro.periodos ?? 1;
         const nova = matriculas.renovarEm(tx, {
           alunoId: registro.alunoId, planoId: planoId ?? detalhe.planoId!,
-          dataPagamento: atualizado.dataPagamento, periodos,
+          dataPagamento: atualizado.dataPagamento, periodos: atualizado.periodos,
+          dataInicioEscolhida, dataFimManual,
           observacao: anterior?.observacao ?? undefined,
-        });
+        }, periodos === undefined && registro.periodos != null);
         atualizado.matriculaId = nova.id;
         if (detalhe.alteraVencimento) tx.insert(pagamento).values(atualizado).run();
         else tx.update(pagamento).set(atualizado).where(eq(pagamento.id, pagamentoId)).run();
@@ -185,8 +236,25 @@ export function criarServicoFinanceiro(db: Db) {
       } else {
         tx.update(pagamento).set(atualizado).where(eq(pagamento.id, pagamentoId)).run();
       }
+      const depois = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
+      tx.insert(pagamentoAlteracao).values({
+        pagamentoId, alunoId: registro.alunoId, acao: 'editou', usuarioId,
+        antes: estadoPagamento(detalhe), depois: estadoPagamento(depois),
+      }).run();
       return { ok: true, pagamento: pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0], dataFimNova };
     });
+  }
+
+  function alteracoes(filtro: { pagamentoId?: number; limite?: number } = {}) {
+    return db.select({
+      id: pagamentoAlteracao.id, acao: pagamentoAlteracao.acao, em: pagamentoAlteracao.em,
+      usuarioNome: usuario.nome, alunoNome: aluno.nome, pagamentoId: pagamentoAlteracao.pagamentoId,
+      antes: pagamentoAlteracao.antes, depois: pagamentoAlteracao.depois,
+    }).from(pagamentoAlteracao)
+      .innerJoin(aluno, eq(aluno.id, pagamentoAlteracao.alunoId))
+      .leftJoin(usuario, eq(usuario.id, pagamentoAlteracao.usuarioId))
+      .where(filtro.pagamentoId === undefined ? undefined : eq(pagamentoAlteracao.pagamentoId, filtro.pagamentoId))
+      .orderBy(desc(pagamentoAlteracao.em), desc(pagamentoAlteracao.id)).limit(filtro.limite ?? 50).all();
   }
 
   /**
@@ -241,25 +309,33 @@ export function criarServicoFinanceiro(db: Db) {
     return pagamentosDetalhados(eq(pagamento.alunoId, alunoId));
   }
 
-  function historico(filtro: { mes?: string; busca?: string } = {}) {
+  function historico(filtro: {
+    mes?: string; de?: DataISO; ate?: DataISO; busca?: string; forma?: Forma;
+    planoId?: number; pagina?: number; porPagina?: number;
+  } = {}) {
     const busca = filtro.busca?.trim();
-    const mes = filtro.mes ?? (busca ? undefined : hoje().slice(0, 7));
-    const itens = pagamentosDetalhados(and(
+    const { mes, pagina = 1, porPagina = 50 } = filtro;
+    const condicao = and(
       mes ? and(gte(pagamento.dataPagamento, `${mes}-01`),
         lt(pagamento.dataPagamento, adicionarMeses(`${mes}-01`, 1, 1))) : undefined,
+      filtro.de ? gte(pagamento.dataPagamento, filtro.de) : undefined,
+      filtro.ate ? lte(pagamento.dataPagamento, filtro.ate) : undefined,
       busca ? contemBusca(aluno.nome, busca) : undefined,
-    ), mes ? -1 : 500);
-    const formas = new Map<Forma, { forma: Forma; totalCentavos: number; quantidade: number }>();
-    const dias = new Map<string, number>();
-    let totalCentavos = 0;
-    for (const item of itens) {
-      totalCentavos += item.valorCentavos;
-      const resumo = formas.get(item.forma) ?? { forma: item.forma, totalCentavos: 0, quantidade: 0 };
-      resumo.totalCentavos += item.valorCentavos;
-      resumo.quantidade++;
-      formas.set(item.forma, resumo);
-      if (mes) dias.set(item.dataPagamento, (dias.get(item.dataPagamento) ?? 0) + item.valorCentavos);
-    }
+      filtro.forma ? eq(pagamento.forma, filtro.forma) : undefined,
+      filtro.planoId !== undefined ? eq(matricula.planoId, filtro.planoId) : undefined,
+    );
+    const itens = pagamentosDetalhados(condicao, porPagina, db, (pagina - 1) * porPagina);
+    const total = sql<number>`coalesce(sum(${pagamento.valorCentavos}), 0)`.mapWith(Number);
+    const porForma = db.select({ forma: pagamento.forma, totalCentavos: total, quantidade: count() })
+      .from(pagamento).innerJoin(aluno, eq(aluno.id, pagamento.alunoId))
+      .leftJoin(matricula, eq(matricula.id, matriculaDoPagamento))
+      .where(condicao).groupBy(pagamento.forma).orderBy(desc(total), pagamento.forma).all();
+    const totalCentavos = porForma.reduce((soma, f) => soma + f.totalCentavos, 0);
+    const quantidade = porForma.reduce((soma, f) => soma + f.quantidade, 0);
+    const porDia = mes ? db.select({ data: pagamento.dataPagamento, totalCentavos: total })
+      .from(pagamento).innerJoin(aluno, eq(aluno.id, pagamento.alunoId))
+      .leftJoin(matricula, eq(matricula.id, matriculaDoPagamento))
+      .where(condicao).groupBy(pagamento.dataPagamento).orderBy(pagamento.dataPagamento).all() : [];
     const inicioAtual = `${hoje().slice(0, 7)}-01`;
     const meses = Array.from({ length: 12 }, (_, i) => ({
       mes: adicionarMeses(inicioAtual, i - 11, 1).slice(0, 7), totalCentavos: 0, quantidade: 0,
@@ -275,11 +351,8 @@ export function criarServicoFinanceiro(db: Db) {
       resumo.quantidade = total?.quantidade ?? 0;
     }
     return {
-      itens, totalCentavos, quantidade: itens.length,
-      porForma: [...formas.values()].sort((a, b) => b.totalCentavos - a.totalCentavos),
-      porDia: [...dias.entries()].sort(([a], [b]) => a.localeCompare(b))
-        .map(([data, totalCentavos]) => ({ data, totalCentavos })),
-      meses,
+      itens, totalCentavos, quantidade, porForma, porDia, meses,
+      pagina, porPagina, totalPaginas: Math.ceil(quantidade / porPagina),
     };
   }
 
@@ -342,7 +415,7 @@ export function criarServicoFinanceiro(db: Db) {
   }
 
   return {
-    registrarPagamento, excluirPagamento, editarPagamento, historico, cobrancasAbertas, pagamentosRecentes, pagamentosDoAluno,
+    registrarPagamento, excluirPagamento, editarPagamento, alteracoes, historico, cobrancasAbertas, pagamentosRecentes, pagamentosDoAluno,
     gerarCobrancasDevidas, pixDaCobranca, pixAvulso, receitaDoMes, recebidoEm, inadimplencia, distribuicaoPorPlano,
   };
 }

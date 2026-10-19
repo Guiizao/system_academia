@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ALTURA_DO_APARELHO, CENAS, EXERCICIOS, PARADO, PEGAR, MOMENTO_DA_PEGADA, CHAO_Y,
+  ALTURA_DO_APARELHO, CENAS, EXERCICIOS, PARADO, PEGAR, MOMENTO_DA_PEGADA, CHAO_Y, COMEMORAR, MS_COMEMORAR,
   poseNoTempo, poseDosQuadros, comAtraso, esqueletoDe, assentarNoChao, faseDaCorda, arcoDaCorda,
 } from '../src/dominio/boneco';
 
@@ -423,5 +423,41 @@ describe('o arco da corda', () => {
     const e = esqueletoEm(0.25);
     expect(arcoDaCorda(e, faseDaCorda(0.25)).opacidade).toBeLessThan(0.4);
     expect(arcoDaCorda(e, faseDaCorda(0)).opacidade).toBeCloseTo(1, 1);
+  });
+});
+
+describe('comemoracao: quando algo da certo no sistema', () => {
+  /*
+   * Pagamento recebido, check-in feito: ele larga o exercicio, pula de bracos
+   * para cima e volta. Tem que comecar e terminar parado (senao o corpo da um
+   * tranco ao voltar para o treino) e nao pode sair do desenho no salto.
+   */
+  it('comeca e termina parado', () => {
+    expect(COMEMORAR[0]).toEqual(PARADO);
+    expect(COMEMORAR.at(-1)).toEqual(PARADO);
+  });
+
+  it('no alto do salto as duas maos passam da cabeca e os pes saem do chao', () => {
+    const topo = poseDosQuadros(COMEMORAR, 0.45);
+    const e = assentarNoChao(esqueletoDe(topo), topo.voo);
+    expect(topo.voo).toBeGreaterThan(2);
+    expect(e.maoE.y).toBeLessThan(e.cabeca.y);
+    expect(e.maoD.y).toBeLessThan(e.cabeca.y);
+  });
+
+  it('em nenhum instante sai do quadro do desenho', () => {
+    for (let t = 0; t <= 1; t += 0.05) {
+      const p = poseDosQuadros(COMEMORAR, t);
+      const e = assentarNoChao(esqueletoDe(p), p.voo);
+      for (const [nome, ponto] of Object.entries(e)) {
+        expect(ponto.y, `${nome} em t=${t.toFixed(2)}`).toBeGreaterThan(-6);
+        expect(ponto.y, `${nome} em t=${t.toFixed(2)}`).toBeLessThan(CHAO_Y + 0.5);
+      }
+    }
+  });
+
+  it('dura pouco: e uma reacao, nao uma cena', () => {
+    expect(MS_COMEMORAR).toBeGreaterThanOrEqual(900);
+    expect(MS_COMEMORAR).toBeLessThanOrEqual(1800);
   });
 });

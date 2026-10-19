@@ -192,14 +192,35 @@ export interface PagamentoDetalhe extends Pagamento {
   planoNome: string | null;
   /** gerou a matrícula ATIVA do aluno: mudar data ou plano recalcula o vencimento */
   alteraVencimento: boolean;
+  /** quantos períodos do plano este pagamento cobriu; null = avulso */
+  periodos: number | null;
+  registradoPorNome: string | null;
+  /** alguém já editou: o registro de alterações tem o antes e o depois */
+  editado: boolean;
+}
+
+/** Fotografia do pagamento antes ou depois de uma edição. */
+export interface FotoPagamento {
+  dataPagamento: DataISO; valorCentavos: number; forma: FormaPagamento;
+  planoNome: string | null; periodos: number | null; observacao: string | null;
+}
+
+export interface AlteracaoPagamento {
+  id: number; acao: 'editou' | 'excluiu'; em: string; usuarioNome: string | null;
+  alunoNome: string; pagamentoId: number; antes: FotoPagamento; depois: FotoPagamento | null;
 }
 
 export interface HistoricoPagamentos {
   itens: PagamentoDetalhe[];
-  totalCentavos: number;
   quantidade: number;
-  porForma: Array<{ forma: FormaPagamento; totalCentavos: number; quantidade: number }>;
-  porDia: Array<{ data: DataISO; totalCentavos: number }>;
+  /* Os totais do caixa são do dono: para a recepção o servidor nem envia. */
+  totalCentavos?: number;
+  porForma?: Array<{ forma: FormaPagamento; totalCentavos: number; quantidade: number }>;
+  porDia?: Array<{ data: DataISO; totalCentavos: number }>;
   /** últimos 12 meses, do mais antigo ao atual */
-  meses: Array<{ mes: string; totalCentavos: number; quantidade: number }>;
+  meses?: Array<{ mes: string; totalCentavos: number; quantidade: number }>;
+  /** os totais valem para o filtro inteiro; `itens` traz só esta página */
+  pagina: number;
+  porPagina: number;
+  totalPaginas: number;
 }

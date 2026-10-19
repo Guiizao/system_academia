@@ -22,5 +22,18 @@
    aqui e so a aparicao suave do proprio aparelho na mao. */
 .bn__aparelho { transition: opacity 180ms var(--ease); }
 
+/* sombra no chao: encolhe quando ele pula (o tamanho vem do JS) */
+.bn__sombra { fill: var(--border-forte); }
+.bn__faixa { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; fill: none; }
+
+/* comemorando: o traco ganha o azul por um instante -- a tela respondendo */
+.bn__osso, .bn__cabeca { transition: stroke 220ms var(--ease); }
+.bn--festa .bn__osso, .bn--festa .bn__cabeca { stroke: var(--accent); }
+
+/* celular: cabe na barra de cima, ao lado do sino */
+.bn--mini { width: 54px; height: 44px; }
+/* pequeno, o traco de 1.7 vira fio de cabelo: engrossa para continuar lendo */
+.bn--mini .bn__osso, .bn--mini .bn__cabeca { stroke-width: 2.3; }
+.bn--mini .bn__faixa { stroke-width: 2.1; }
+
 @media (prefers-reduced-motion: reduce) { .bn { display: none; } }
-@media (max-width: 1100px) { .bn { display: none; } }

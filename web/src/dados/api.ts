@@ -3,7 +3,7 @@ import type {
   Aluno, AvaliacaoFisica, AulaDoDia, Checkin, Cobranca, Config, Dashboard,
   FichaTreino, FormaPagamento, Pagamento, Plano, StatusAluno, Usuario,
   Aviso, Membro, Exercicio, RelatorioMes, PreviaPagamento, Produto, Venda, SituacaoVenda,
-  PagamentoDetalhe, HistoricoPagamentos } from '../tipos';
+  PagamentoDetalhe, HistoricoPagamentos, AlteracaoPagamento } from '../tipos';
 
 const qs = (o: Record<string, string | undefined>) => {
   const p = new URLSearchParams(Object.entries(o).filter(([, v]) => v) as [string, string][]);
@@ -70,9 +70,21 @@ export const api = {
   excluirPagamento: (id: number, senha: string) =>
     req<{ ok: true; alunoId: number; dataFimNova: string | null }>('DELETE', `/api/pagamentos/${id}`, { senha }),
 
-  /** Todos os pagamentos de um mês, ou de todos os meses quando só há busca. */
-  historicoPagamentos: (f: { mes?: string; busca?: string }) =>
-    get<HistoricoPagamentos>(`/api/pagamentos/historico${qs({ mes: f.mes, busca: f.busca?.trim() || undefined })}`),
+  /** Pagamentos de um mês (`mes`), de um intervalo (`de`/`ate`) ou de todos os tempos (nenhum dos dois). */
+  historicoPagamentos: (f: {
+    mes?: string; de?: string; ate?: string; busca?: string;
+    forma?: FormaPagamento; planoId?: number; pagina?: number; porPagina?: number;
+  }) =>
+    get<HistoricoPagamentos>(`/api/pagamentos/historico${qs({
+      mes: f.mes, de: f.de, ate: f.ate, busca: f.busca?.trim() || undefined, forma: f.forma,
+      planoId: f.planoId ? String(f.planoId) : undefined,
+      pagina: f.pagina ? String(f.pagina) : undefined, porPagina: f.porPagina ? String(f.porPagina) : undefined,
+    })}`),
+  /** Quem editou ou excluiu qual pagamento, com o antes e o depois. Só o dono. */
+  alteracoesPagamentos: (f: { pagamentoId?: number; limite?: number } = {}) =>
+    get<AlteracaoPagamento[]>(`/api/pagamentos/alteracoes${qs({
+      pagamentoId: f.pagamentoId ? String(f.pagamentoId) : undefined, limite: f.limite ? String(f.limite) : undefined,
+    })}`),
   /** Só o dono, com a senha. Mudar data ou plano recalcula o vencimento. */
   editarPagamento: (id: number, d: {
     senha: string; dataPagamento?: string; valorCentavos?: number; forma?: FormaPagamento;

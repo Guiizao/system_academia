@@ -5,8 +5,10 @@ import { BarrasVerticais } from '../componentes/Grafico';
 import { mesCurto } from '../dominio/grafico';
 import { useSessao } from '../sessao';
 import { Olho, useValores } from '../componentes/Valores';
+import { Contagem } from '../componentes/Contagem';
 import { iniciais, tempoRelativo, CLASSE_STATUS, ROTULO_STATUS, avisoStatus } from '../dominio';
 import type { Tela } from '../componentes/Shell';
+import type { AcaoAlunos } from './Alunos';
 import { IconeMais, IconeCheckin, IconeFinanceiro, IconeAgenda, IconeWhats } from '../componentes/Icones';
 import './Dashboard.css';
 
@@ -15,7 +17,11 @@ function saudacao(): string {
   return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
 }
 
-export function Dashboard({ aoNavegar, aoAbrirAluno }: { aoNavegar: (t: Tela) => void; aoAbrirAluno: (id: number) => void }) {
+export function Dashboard({ aoNavegar, aoAbrirAluno, aoAcaoAlunos }: {
+  aoNavegar: (t: Tela) => void; aoAbrirAluno: (id: number) => void;
+  /** atalho que FAZ a coisa: abrir o cadastro, ou ir direto para a busca do check-in */
+  aoAcaoAlunos: (acao: AcaoAlunos) => void;
+}) {
   // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
   const { formatar: dinheiro } = useValores();
   const { usuario } = useSessao();
@@ -46,8 +52,8 @@ export function Dashboard({ aoNavegar, aoAbrirAluno }: { aoNavegar: (t: Tela) =>
       <div className="dash__grade">
         <section className="dash__col">
           <nav className="atalhos" aria-label="Atalhos">
-            <Atalho Icone={IconeCheckin} rotulo="Check-in" onClick={() => aoNavegar('alunos')} />
-            <Atalho Icone={IconeMais} rotulo="Novo aluno" onClick={() => aoNavegar('alunos')} />
+            <Atalho Icone={IconeCheckin} rotulo="Check-in" onClick={() => aoAcaoAlunos('checkin')} />
+            <Atalho Icone={IconeMais} rotulo="Novo aluno" onClick={() => aoAcaoAlunos('novo')} />
             {usuario.papel !== 'professor' && <Atalho Icone={IconeFinanceiro} rotulo="Receber" onClick={() => aoNavegar('financeiro')} />}
             <Atalho Icone={IconeAgenda} rotulo="Agenda" onClick={() => aoNavegar('agenda')} />
           </nav>
@@ -55,10 +61,10 @@ export function Dashboard({ aoNavegar, aoAbrirAluno }: { aoNavegar: (t: Tela) =>
           {temFinanceiro && (
             <div className="painel receita">
               <span className="painel__rot">Receita do mês<Olho /></span>
-              <span className="receita__valor num">{dinheiro(r.receitaMesCentavos!)}</span>
+              <span className="receita__valor num"><Contagem valor={r.receitaMesCentavos!} formatar={dinheiro} /></span>
               <div className="receita__linha">
-                <div><span>Recebido hoje</span><strong className="num">{dinheiro(r.recebidoHojeCentavos!)}</strong></div>
-                <div><span>Em atraso</span><strong className={`num ${r.inadimplenciaCentavos ? 't-danger' : ''}`}>{dinheiro(r.inadimplenciaCentavos!)}</strong></div>
+                <div><span>Recebido hoje</span><strong className="num"><Contagem valor={r.recebidoHojeCentavos!} formatar={dinheiro} /></strong></div>
+                <div><span>Em atraso</span><strong className={`num ${r.inadimplenciaCentavos ? 't-danger' : ''}`}><Contagem valor={r.inadimplenciaCentavos!} formatar={dinheiro} /></strong></div>
               </div>
             </div>
           )}
@@ -138,7 +144,7 @@ function Numero({ valor, rotulo, ponto }: { valor: number; rotulo: string; ponto
   return (
     <div className="numero">
       <span className="numero__rot">{ponto && <i className={`ponto ${ponto}`} />}{rotulo}</span>
-      <span className="numero__val num">{valor}</span>
+      <span className="numero__val num"><Contagem valor={valor} formatar={String} /></span>
     </div>
   );
 }

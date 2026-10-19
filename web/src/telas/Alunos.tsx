@@ -25,7 +25,14 @@ function useAtrasado<T>(valor: T, ms = 250) {
   return v;
 }
 
-export function Alunos({ focoId }: { focoId?: number | null }) {
+/** O que o atalho do Início pediu: abrir o cadastro ou ir para a busca do check-in. */
+export type AcaoAlunos = 'novo' | 'checkin';
+
+export function Alunos({ focoId, acao }: {
+  focoId?: number | null;
+  /** `vez` muda a cada clique: o mesmo atalho duas vezes seguidas funciona as duas */
+  acao?: { tipo: AcaoAlunos; vez: number } | null;
+}) {
   const { desktop } = useLargura();
   const { avisar } = useSessao();
   const [busca, setBusca] = useState('');
@@ -44,6 +51,10 @@ export function Alunos({ focoId }: { focoId?: number | null }) {
   const lista = dados ?? [];
 
   useEffect(() => { setIndice(0); }, [buscaAtrasada, filtro]);
+  useEffect(() => {
+    if (acao?.tipo === 'novo') setModal('novo');
+    if (acao?.tipo === 'checkin') { setBusca(''); buscaRef.current?.focus(); }
+  }, [acao?.vez]);
   // aberto a partir de um aviso ou do painel: seleciona aquele aluno
   useEffect(() => { if (focoId) setSelecionado(focoId); }, [focoId]);
   useEffect(() => {

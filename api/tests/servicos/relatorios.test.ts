@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { criarBancoDeTeste } from '../helpers/db.js';
 import { criarServicoRelatorios } from '../../src/servicos/relatorios.js';
 import { criarServicoFinanceiro } from '../../src/servicos/financeiro.js';
@@ -10,6 +10,8 @@ let fin: ReturnType<typeof criarServicoFinanceiro>;
 let ana: number, bia: number, mensal: number, trimestral: number;
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-11-01T15:00:00Z'));
   t = criarBancoDeTeste();
   rel = criarServicoRelatorios(t.db as any);
   fin = criarServicoFinanceiro(t.db as any);
@@ -19,7 +21,7 @@ beforeEach(() => {
   mensal = t.db.insert(plano).values({ nome: 'Mensal', precoCentavos: 9000, duracaoMeses: 1 }).returning().get().id;
   trimestral = t.db.insert(plano).values({ nome: 'Trimestral', precoCentavos: 24000, duracaoMeses: 3 }).returning().get().id;
 });
-afterEach(() => t.fechar());
+afterEach(() => { t.fechar(); vi.useRealTimers(); });
 
 const pagar = (alunoId: number, valor: number, forma: any, data: string, planoId?: number) =>
   fin.registrarPagamento({ alunoId, valorCentavos: valor, forma, dataPagamento: data, planoId });
