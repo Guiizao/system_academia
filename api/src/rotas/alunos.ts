@@ -60,6 +60,16 @@ export function rotasAlunos(app: FastifyInstance, s: Servicos) {
     return s.alunos.atualizar(id.parse((req.params as any).id), d);
   });
 
+  app.post('/api/alunos/:id/inativar', todos, async (req) => {
+    if (req.usuario!.papel === 'professor') {
+      throw new ErroPermissao('Professor não marca aluno como inativo');
+    }
+    return s.alunos.inativar(id.parse((req.params as any).id));
+  });
+
+  app.get('/api/alunos/:id/periodos', { preHandler: exigir('dono', 'recepcao') }, async (req) =>
+    s.alunos.periodos(id.parse((req.params as any).id)));
+
   app.get('/api/alunos/:id/avaliacoes', todos, async (req) =>
     s.alunos.avaliacoes(id.parse((req.params as any).id)));
 

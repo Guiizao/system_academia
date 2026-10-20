@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao } from '../sessao';
-import type { StatusAluno } from '../tipos';
-import { iniciais, CLASSE_STATUS, ROTULO_STATUS, avisoStatus, ROTULO_OBJETIVO } from '../dominio';
+import type { Aluno, StatusAluno } from '../tipos';
+import { iniciais, avisoStatus, ROTULO_OBJETIVO, ROTULO_STATUS } from '../dominio';
 import { useLargura } from '../componentes/Shell';
 import { Modal } from '../componentes/Modal';
+import { SeloStatus, ConfirmarInativo } from '../componentes/Inativar';
 import { IconeBusca, IconeMais, IconeCheck } from '../componentes/Icones';
 import { PerfilAluno } from './PerfilAluno';
 import { FormAluno } from './FormAluno';
@@ -40,6 +41,7 @@ export function Alunos({ focoId, acao }: {
   const [selecionado, setSelecionado] = useState<number | null>(focoId ?? null);
   const [indice, setIndice] = useState(0);
   const [modal, setModal] = useState<'novo' | 'pagamento' | null>(null);
+  const [inativando, setInativando] = useState<Aluno | null>(null);
   // linha que acabou de receber check-in: acende por um instante
   const [confirmado, setConfirmado] = useState<number | null>(null);
   const confirmar = (id: number) => { setConfirmado(id); window.setTimeout(() => setConfirmado((c) => (c === id ? null : c)), 1400); };
@@ -59,7 +61,8 @@ export function Alunos({ focoId, acao }: {
   useEffect(() => { if (focoId) setSelecionado(focoId); }, [focoId]);
   useEffect(() => {
     if (desktop && lista.length && (selecionado === null || !lista.some((a) => a.id === selecionado))) {
-      setSelecionado(lista[0].id);
+      // indice junto: senão o destaque e o Enter ficam num aluno e a ficha em outro
+      setSelecionado(lista[0].id); setIndice(0);
     }
   }, [desktop, lista, selecionado]);
 
@@ -68,7 +71,8 @@ export function Alunos({ focoId, acao }: {
   // Atalhos: o que faz a recepcao rapida no horario de pico.
   useEffect(() => {
     async function onKey(e: KeyboardEvent) {
-      if (modal) return;
+      // qualquer janela aberta, desta tela ou do perfil: o Enter dela não pode virar check-in
+      if (modal || document.documentElement.classList.contains('modal-aberto')) return;
       const emCampo = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName ?? '');
       if (e.key === '/' && !emCampo) { e.preventDefault(); buscaRef.current?.focus(); return; }
       if (e.key === 'Escape') { buscaRef.current?.blur(); return; }
@@ -78,6 +82,9 @@ export function Alunos({ focoId, acao }: {
         const n = Math.max(0, Math.min(lista.length - 1, indice + (e.key === 'ArrowDown' ? 1 : -1)));
         setIndice(n); setSelecionado(lista[n].id);
       }
+      // Enter no selo Vencido ou num botão da ficha é daquele botão; no resto
+      // (busca, linhas, filtros, menu) continua sendo o check-in do destacado
+      if (e.key === 'Enter' && (document.activeElement as HTMLElement | null)?.matches('.badge--acao, .perfil button')) return;
       if (e.key === 'Enter' && lista[indice]) {
         e.preventDefault();
         const a = lista[indice];
@@ -125,27 +132,34 @@ export function Alunos({ focoId, acao }: {
           <div className="vazio"><strong>Nenhum aluno encontrado</strong>Ajuste a busca ou o filtro.</div>
         )}
         {lista.map((a, i) => (
-          <button key={a.id}
-                  className={`aluno-item ${selecionado === a.id ? 'sel' : ''} ${i === indice && desktop ? 'foco' : ''} ${confirmado === a.id ? 'confirmado' : ''}`}
-                  onClick={() => { setSelecionado(a.id); setIndice(i); }}>
-            <div className="avatar">{iniciais(a.nome)}</div>
-            {confirmado === a.id && <span className="visto" aria-label="Check-in registrado"><IconeCheck size={11} /></span>}
-            <div className="aluno-item__info">
-              <div className="aluno-item__nome">{a.nome}</div>
-              <div className="aluno-item__meta">
-                {a.planoNome ?? 'Sem plano'}
-                {a.ultimaAvaliacao?.objetivo && `, ${ROTULO_OBJETIVO[a.ultimaAvaliacao.objetivo].toLowerCase()}`}
+          // a linha inteira abre o aluno (o ::after do botão cobre tudo); o selo
+          // "Vencido" fica por cima, como um segundo botão, sem botão dentro de botão
+          <div key={a.id}
+               className={`aluno-item ${selecionado === a.id ? 'sel' : ''} ${i === indice && desktop ? 'foco' : ''} ${confirmado === a.id ? 'confirmado' : ''}`}>
+            {/* Tab chegando na linha também a destaca: o Enter vai para quem está com o foco */}
+            <button type="button" className="aluno-item__abrir" onClick={() => { setSelecionado(a.id); setIndice(i); }}
+                    onFocus={() => { if (desktop) { setSelecionado(a.id); setIndice(i); } }}>
+              <div className="avatar">{iniciais(a.nome)}</div>
+              {confirmado === a.id && <span className="visto" aria-label="Check-in registrado"><IconeCheck size={11} /></span>}
+              <div className="aluno-item__info">
+                <div className="aluno-item__nome">{a.nome}</div>
+                <div className="aluno-item__meta">
+                  {a.planoNome ?? 'Sem plano'}
+                  {a.ultimaAvaliacao?.objetivo && `, ${ROTULO_OBJETIVO[a.ultimaAvaliacao.objetivo].toLowerCase()}`}
+                </div>
               </div>
-            </div>
+              {/* o status mora fora do botão (o selo é outro botão): o leitor de tela lê aqui */}
+              <span className="so-leitor">{`, ${ROTULO_STATUS[a.status]}${avisoStatus(a.status, a.diasParaVencer) ? `, ${avisoStatus(a.status, a.diasParaVencer)}` : ''}`}</span>
+            </button>
             <div className="aluno-item__dir">
-              <span className={`badge ${CLASSE_STATUS[a.status]}`}>{ROTULO_STATUS[a.status]}</span>
+              <SeloStatus aluno={a} aoInativar={() => setInativando(a)} />
               {(a.status === 'vencido' || a.status === 'vencendo') && (
                 <div className={`aluno-item__aviso ${a.status === 'vencido' ? 'grave' : ''}`}>
                   {avisoStatus(a.status, a.diasParaVencer)}
                 </div>
               )}
             </div>
-          </button>
+          </div>
         ))}
       </div>
     </>
@@ -161,6 +175,11 @@ export function Alunos({ focoId, acao }: {
         <FormAluno aoFechar={() => setModal(null)}
                    aoCriar={(id) => { setModal(null); setBusca(''); setFiltro('todos'); setSelecionado(id); recarregar(); }} />
       )}
+      {inativando && (
+        // fechar também recarrega: se outro aparelho mudou o aluno, a linha se corrige
+        <ConfirmarInativo aluno={inativando} aoFechar={() => { setInativando(null); recarregar(); }}
+                          aoInativar={() => { setInativando(null); recarregar(); }} />
+      )}
       {modal === 'pagamento' && detalhe && (
         <FormPagamento aluno={detalhe} aoFechar={() => setModal(null)}
                        aoPagar={() => { setModal(null); recarregar(); }} />
@@ -172,7 +191,7 @@ export function Alunos({ focoId, acao }: {
     return (
       <div className="entrar">
         {painelLista}
-        {detalhe && selecionado !== null && modal === null && (
+        {detalhe && selecionado !== null && modal === null && !inativando && (
           <Modal titulo={detalhe.nome} aoFechar={() => setSelecionado(null)} largo ocultarTitulo>{perfil}</Modal>
         )}
         <button className="fab" onClick={() => setModal('novo')} aria-label="Novo aluno"><IconeMais size={22} /></button>

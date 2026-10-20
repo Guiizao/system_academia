@@ -1,8 +1,8 @@
-import { eq, desc, like, or, and } from 'drizzle-orm';
+import { eq, desc, like, or, and, inArray } from 'drizzle-orm';
 import { normalizarRestricoes } from '../dominio/restricoes.js';
 import { contemBusca } from '../db/busca.js';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { aluno, avaliacaoFisica, plano, academia, cobranca } from '../db/schema.js';
+import { aluno, avaliacaoFisica, plano, academia, cobranca, matricula } from '../db/schema.js';
 import { normalizarTelefone } from '../dominio/telefone.js';
 import { statusDoAluno, diasParaVencer, type StatusAluno } from '../dominio/status.js';
 import { hoje, type DataISO } from '../dominio/datas.js';
@@ -69,6 +69,27 @@ export function criarServicoAlunos(db: Db) {
   function obter(id: number, hojeISO = hoje()) {
     const a = db.select().from(aluno).where(eq(aluno.id, id)).get();
     return a ? comStatus(a, hojeISO, diasAviso()) : null;
+  }
+
+  function inativar(id: number) {
+    const atual = obter(id);
+    if (!atual) throw new ErroNaoEncontrado('Aluno não encontrado');
+    if (atual.status !== 'vencido') {
+      throw new ErroNegocio('Só aluno vencido pode ser marcado como inativo.');
+    }
+    db.transaction((tx) => {
+      tx.update(matricula).set({ status: 'encerrada' })
+        .where(and(eq(matricula.alunoId, id), eq(matricula.status, 'ativa'))).run();
+      tx.update(cobranca).set({ status: 'cancelada' })
+        .where(and(eq(cobranca.alunoId, id), eq(cobranca.status, 'aberta'))).run();
+    });
+    return obter(id);
+  }
+
+  function periodos(alunoId: number): Array<{ dataInicio: DataISO; dataFim: DataISO }> {
+    return db.select({ dataInicio: matricula.dataInicio, dataFim: matricula.dataFim }).from(matricula)
+      .where(and(eq(matricula.alunoId, alunoId), inArray(matricula.status, ['ativa', 'encerrada'])))
+      .orderBy(matricula.dataInicio).all();
   }
 
   function criar(dados: NovoAluno, pagamentoInicial?: {
@@ -157,5 +178,5 @@ export function criarServicoAlunos(db: Db) {
     return obter(id);
   }
 
-  return { listar, obter, criar, atualizar, avaliacoes, registrarAvaliacao };
+  return { listar, obter, criar, atualizar, inativar, periodos, avaliacoes, registrarAvaliacao };
 }

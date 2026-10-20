@@ -4,6 +4,7 @@ import type {
   FichaTreino, FormaPagamento, Pagamento, Plano, StatusAluno, Usuario,
   Aviso, Membro, Exercicio, RelatorioMes, PreviaPagamento, Produto, Venda, SituacaoVenda,
   PagamentoDetalhe, HistoricoPagamentos, AlteracaoPagamento } from '../tipos';
+import type { Periodo } from '../dominio/meses-pagos';
 
 const qs = (o: Record<string, string | undefined>) => {
   const p = new URLSearchParams(Object.entries(o).filter(([, v]) => v) as [string, string][]);
@@ -25,6 +26,10 @@ export const api = {
   avaliacoes: (id: number) => get<AvaliacaoFisica[]>(`/api/alunos/${id}/avaliacoes`),
   checkinsDoAluno: (id: number) => get<Checkin[]>(`/api/alunos/${id}/checkins`),
   pagamentosDoAluno: (id: number) => get<PagamentoDetalhe[]>(`/api/alunos/${id}/pagamentos`),
+  /** os intervalos que as matrículas cobriram: a linha do tempo dos meses pagos */
+  periodosDoAluno: (id: number) => get<Periodo[]>(`/api/alunos/${id}/periodos`),
+  /** só vencido: encerra a matrícula e cancela a cobrança em aberto */
+  inativarAluno: (id: number) => post<Aluno>(`/api/alunos/${id}/inativar`),
   fichasDoAluno: (id: number) => get<FichaTreino[]>(`/api/alunos/${id}/fichas`),
 
   registrarCheckin: (alunoId: number, atividade: string) => post<Checkin>('/api/checkins', { alunoId, atividade }),

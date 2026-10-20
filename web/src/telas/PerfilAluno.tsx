@@ -5,9 +5,11 @@ import { useSessao, pode } from '../sessao';
 import type { Aluno } from '../tipos';
 import { Olho, useValores } from '../componentes/Valores';
 import { ListaPagamentos } from '../componentes/Pagamentos';
+import { SeloStatus, ConfirmarInativo } from '../componentes/Inativar';
+import { MesesPagos } from '../componentes/MesesPagos';
 import {
   iniciais, formatarTelefone, formatarData, tempoRelativo,
-  calcularIMC, categoriaIMC, CLASSE_STATUS, ROTULO_STATUS, avisoStatus, ROTULO_NIVEL,
+  calcularIMC, categoriaIMC, avisoStatus, ROTULO_NIVEL,
 } from '../dominio';
 import { estadoDoCheckin } from '../dominio/checkin';
 import { IconeCheckin, IconeAlerta, IconeFinanceiro, IconeCheck } from '../componentes/Icones';
@@ -25,7 +27,7 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
   const [aba, setAba] = useState<(typeof ABAS)[number]>('Medidas');
   const [registrando, setRegistrando] = useState(false);
   const [registrado, setRegistrado] = useState(false);
-  const [modal, setModal] = useState<'editar' | 'avaliacao' | 'ficha' | null>(null);
+  const [modal, setModal] = useState<'editar' | 'avaliacao' | 'ficha' | 'inativar' | null>(null);
   const [versao, setVersao] = useState(0);
   const fechouSalvando = () => { setModal(null); setVersao((x) => x + 1); aoMudar(); };
   const podeTreino = usuario.papel !== 'recepcao';
@@ -79,7 +81,7 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
           <h2>{aluno.nome}</h2>
           <p>{aluno.planoNome ?? 'Sem plano'}, {formatarTelefone(aluno.telefone)}</p>
           <div className="perfil__selos">
-            <span className={`badge ${CLASSE_STATUS[aluno.status]}`}>{ROTULO_STATUS[aluno.status]}</span>
+            <SeloStatus aluno={aluno} aoInativar={() => setModal('inativar')} />
             {av?.nivel && <span className="badge b-blue">{ROTULO_NIVEL[av.nivel]}</span>}
             {aluno.matricula && <span className="badge b-mudo">Vence {formatarData(aluno.matricula.dataFim)}</span>}
             <span className="badge b-mudo">{aluno.checkinsNoMes} check-ins no mês</span>
@@ -136,10 +138,11 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
           {podeTreino && <button className="btn btn-secondary btn-sm acao-aba" onClick={() => setModal('ficha')}>Montar ficha</button>}
           <AbaTreino key={versao} alunoId={aluno.id} />
         </>}
-        {aba === 'Pagamentos' && <AbaPagamentos alunoId={aluno.id} aoMudar={aoMudar} />}
+        {aba === 'Pagamentos' && <AbaPagamentos aluno={aluno} aoMudar={aoMudar} />}
         {aba === 'Histórico' && <AbaHistorico alunoId={aluno.id} />}
       </div>
 
+      {modal === 'inativar' && <ConfirmarInativo aluno={aluno} aoFechar={() => setModal(null)} aoInativar={() => { setModal(null); aoMudar(); }} />}
       {modal === 'editar' && <FormEditarAluno aluno={aluno} aoFechar={() => setModal(null)} aoSalvar={fechouSalvando} />}
       {modal === 'avaliacao' && <FormAvaliacao aluno={aluno} aoFechar={() => setModal(null)} aoSalvar={fechouSalvando} />}
       {modal === 'ficha' && <FormFicha alunoInicial={aluno.id} aoFechar={() => setModal(null)} aoCriar={fechouSalvando} />}
@@ -196,15 +199,19 @@ function AbaTreino({ alunoId }: { alunoId: number }) {
   return <>{dados.map((f) => <FichaCartao key={f.id} ficha={f} aoMudar={recarregar} />)}</>;
 }
 
-function AbaPagamentos({ alunoId, aoMudar }: { alunoId: number; aoMudar: () => void }) {
+function AbaPagamentos({ aluno, aoMudar }: { aluno: Aluno; aoMudar: () => void }) {
   // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
   const { formatar: dinheiro } = useValores();
-  const { dados, carregando, recarregar } = useDados(() => api.pagamentosDoAluno(alunoId), [alunoId]);
+  // pagar, editar, excluir ou inativar trocam a matrícula: é o sinal para buscar de novo
+  const mudou = `${aluno.matricula?.id}-${aluno.matricula?.dataFim}`;
+  const { dados, carregando, recarregar } = useDados(() => api.pagamentosDoAluno(aluno.id), [aluno.id, mudou]);
+  const { dados: periodos } = useDados(() => api.periodosDoAluno(aluno.id), [aluno.id, mudou]);
   if (carregando && !dados) return <EsqueletoLinhas />;
   if (!dados?.length) return <div className="vazio">Sem pagamentos registrados.</div>;
   const total = dados.reduce((s, p) => s + p.valorCentavos, 0);
   return (
     <div>
+      {periodos && <MesesPagos periodos={periodos} status={aluno.status} />}
       <div className="lista-cab">
         <span>{dados.length} {dados.length === 1 ? 'pagamento' : 'pagamentos'}, total <strong>{dinheiro(total)}</strong></span>
         <Olho />

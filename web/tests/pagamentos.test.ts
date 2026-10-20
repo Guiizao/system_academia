@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { descreverCobertura } from '../src/componentes/Pagamentos';
-import { somarMes } from '../src/telas/TodosPagamentos';
+import { somarMes } from '../src/dominio';
 import type { PagamentoDetalhe, Plano } from '../src/tipos';
 
 const plano = (p: Partial<Plano>): Plano => ({

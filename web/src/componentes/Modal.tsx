@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom';
 import { IconeFechar } from './Icones';
 import './Modal.css';
 
+/** quantas janelas abertas: a de dentro fechando não destrava a rolagem da de fora */
+let abertos = 0;
+
 /**
  * Folha inferior no celular, dialogo centralizado no PC. Esc e clique fora fecham.
  * Renderizado direto no <body> (portal): dentro de uma tela com animacao de
@@ -28,6 +31,9 @@ export function Modal({ titulo, aoFechar, children, largo, ocultarTitulo }: {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // com uma janela por cima de outra, só a de cima responde ao teclado
+      const caixas = document.querySelectorAll('.modal-caixa');
+      if (caixas[caixas.length - 1] !== caixaRef.current) return;
       if (e.key === 'Escape') { fechar(); return; }
       // Tab preso dentro do modal: sem isso o foco escapa para a tela de tras,
       // e quem usa teclado se perde no meio do cadastro.
@@ -43,12 +49,23 @@ export function Modal({ titulo, aoFechar, children, largo, ocultarTitulo }: {
     };
     window.addEventListener('keydown', onKey);
     // trava a rolagem de tras: no app de PC quem rola e o #root, no navegador e o body
+    abertos++;
     document.documentElement.classList.add('modal-aberto');
     return () => {
       window.removeEventListener('keydown', onKey);
-      document.documentElement.classList.remove('modal-aberto');
+      if (--abertos === 0) document.documentElement.classList.remove('modal-aberto');
     };
   }, [fechar]);
+
+  // ao fechar, o foco volta para quem abriu (o selo, o botão): o teclado não se
+  // perde. Lido na primeira renderização, antes de o autoFocus de dentro pegar o foco.
+  const [quemAbriu] = useState(() => document.activeElement as HTMLElement | null);
+  // Só devolve quando a janela saiu mesmo da página: o StrictMode desmonta e
+  // remonta de mentira, e devolver ali roubaria o foco do autoFocus de dentro.
+  useEffect(() => {
+    const caixa = caixaRef.current;
+    return () => { window.setTimeout(() => { if (!caixa?.isConnected && quemAbriu?.isConnected) quemAbriu.focus(); }); };
+  }, [quemAbriu]);
 
   return createPortal(
     <div className={`modal-fundo ${saindo ? 'saindo' : ''}`} onMouseDown={(e) => e.target === e.currentTarget && fechar()}>

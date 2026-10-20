@@ -32,6 +32,13 @@ export function diffDias(de: DataISO, ate: DataISO): number {
   return Math.round((Date.UTC(a2, m2 - 1, d2) - Date.UTC(a1, m1 - 1, d1)) / 86_400_000);
 }
 
+/** 'AAAA-MM' andando n meses para a frente (ou para trás). */
+export function somarMes(mes: string, n: number): string {
+  const [a, m] = mes.split('-').map(Number);
+  const d = new Date(a, m - 1 + n, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export function formatarData(d: DataISO): string {
   const [a, m, dia] = d.split('-');
   return `${dia}/${m}/${a}`;

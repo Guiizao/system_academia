@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao } from '../sessao';
-import { formatarData, formatarHora, hoje, rotuloPeriodos, ROTULO_FORMA } from '../dominio';
+import { formatarData, formatarHora, hoje, rotuloPeriodos, somarMes, ROTULO_FORMA } from '../dominio';
 import { SubTela } from '../componentes/Secao';
 import { AcoesPagamento, ExcluirPagamento, FormEditarPagamento, descreverCobertura } from '../componentes/Pagamentos';
 import { Olho, useValores } from '../componentes/Valores';
@@ -17,13 +17,6 @@ import type { AlteracaoPagamento, FormaPagamento, FotoPagamento, PagamentoDetalh
  */
 
 const POR_PAGINA = 50;
-
-/** 'AAAA-MM' andando n meses para a frente (ou para trás). */
-export function somarMes(mes: string, n: number): string {
-  const [a, m] = mes.split('-').map(Number);
-  const d = new Date(a, m - 1 + n, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
 
 export function mesPorExtenso(mes: string): string {
   const [a, m] = mes.split('-').map(Number);
