@@ -95,6 +95,19 @@ export function criarServicoProdutos(banco: Banco) {
     return (filtro === 'fiado' ? consulta : consulta.limit(100)).all();
   }
 
+  function vendasDoAluno(alunoId: number) {
+    if (!banco.select({ id: aluno.id }).from(aluno).where(eq(aluno.id, alunoId)).get()) {
+      throw new ErroNaoEncontrado('Aluno não encontrado');
+    }
+    return banco.select({
+      ...getTableColumns(venda), produtoNome: produto.nome, alunoNome: aluno.nome,
+    }).from(venda)
+      .innerJoin(produto, eq(produto.id, venda.produtoId))
+      .leftJoin(aluno, eq(aluno.id, venda.alunoId))
+      .where(eq(venda.alunoId, alunoId))
+      .orderBy(desc(venda.dataVenda), desc(venda.id)).all();
+  }
+
   function registrarVenda(dados: NovaVenda) {
     const campos = dadosVenda.parse(dados);
     if (campos.situacao === 'fiado' && !campos.alunoId && !campos.clienteNome) {
@@ -153,5 +166,5 @@ export function criarServicoProdutos(banco: Banco) {
     });
   }
 
-  return { listar, criar, atualizar, excluir, listarVendas, registrarVenda, receberVenda, excluirVenda };
+  return { listar, criar, atualizar, excluir, listarVendas, vendasDoAluno, registrarVenda, receberVenda, excluirVenda };
 }

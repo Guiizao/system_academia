@@ -16,8 +16,8 @@ export type MesDaLinha = {
   faixas: Faixa[];
   /** onde fica hoje dentro do mês, ou null em outro mês */
   hoje: number | null;
-  /** mais da metade do mês coberta */
-  pago: boolean;
+  /** o mês como a recepção fala: pago, vencido (devendo) ou null */
+  estado: 'pago' | 'vencido' | null;
 };
 
 export const NOME_MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho',
@@ -30,6 +30,18 @@ const somarDia = (d: DataISO) => {
   const [a, m, dia] = d.split('-').map(Number);
   return new Date(Date.UTC(a, m - 1, dia + 1)).toISOString().slice(0, 10);
 };
+
+/**
+ * "Outubro pago" na fala do balcão: quem começou dia 20/10 pagou outubro, mesmo
+ * com a maior parte dos dias caindo em novembro. Vale o dia em que o período
+ * começou, repetido a cada mês; o vencimento já é o começo do próximo.
+ */
+function mesCoberto(mes: string, p: Periodo): boolean {
+  const [a, m] = mes.split('-').map(Number);
+  const ultimoDia = new Date(Date.UTC(a, m, 0)).getUTCDate();
+  const dia = `${mes}-${String(Math.min(Number(p.dataInicio.slice(8)), ultimoDia)).padStart(2, '0')}`;
+  return dia === p.dataInicio || (dia > p.dataInicio && dia < p.dataFim);
+}
 
 /**
  * Os meses a desenhar: até 3 para trás (contexto), o de hoje e o que já
@@ -72,14 +84,14 @@ export function mesesPagos(periodos: Periodo[], hojeISO: DataISO, status: Status
       else acc.push({ ...f });
       return acc;
     }, []);
-    const coberto = juntas.filter((f) => f.tipo === 'pago').reduce((s, f) => s + f.ate - f.de, 0);
     const [a, m] = mes.split('-');
     meses.push({
       mes, rotulo: NOME_MES[Number(m) - 1].slice(0, 3),
       ano: mes === inicio || m === '01' ? a : null,
       faixas: juntas,
       hoje: mes === mesHoje ? (Number(hojeISO.slice(8)) - 0.5) / dias : null,
-      pago: coberto > 0.5,
+      estado: periodos.some((p) => mesCoberto(mes, p)) ? 'pago'
+        : status === 'vencido' && mes >= ultimoFim.slice(0, 7) && mes <= mesHoje ? 'vencido' : null,
     });
   }
   return meses;

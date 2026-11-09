@@ -1,6 +1,6 @@
-import { eq, and, desc, lt, lte, gt, gte, notExists, like, sum, count, sql, getTableColumns, type SQL } from 'drizzle-orm';
+import { eq, and, inArray, desc, lt, lte, gt, gte, notExists, like, sum, count, sql, getTableColumns, type SQL } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { cobranca, pagamento, pagamentoAlteracao, aluno, academia, plano, matricula, usuario, type PagamentoEstado } from '../db/schema.js';
+import { cobranca, pagamento, venda, pagamentoAlteracao, aluno, academia, plano, matricula, usuario, type PagamentoEstado } from '../db/schema.js';
 import { contemBusca } from '../db/busca.js';
 import { montarBrCode } from '../dominio/pix.js';
 import { hoje, diffDias, adicionarMeses, type DataISO } from '../dominio/datas.js';
@@ -67,7 +67,7 @@ export function criarServicoFinanceiro(db: Db) {
   function registrarPagamento(args: {
     alunoId: number; valorCentavos: number; forma: Forma;
     cobrancaId?: number; planoId?: number; dataPagamento?: DataISO;
-    observacao?: string; usuarioId?: number;
+    observacao?: string; usuarioId?: number; vendasIds?: number[];
     /** quantos periodos do plano o aluno esta adiantando num pagamento so */
     periodos?: number;
     /** diária marcada para outro dia */
@@ -115,6 +115,17 @@ export function criarServicoFinanceiro(db: Db) {
       if (nova) pg = tx.update(pagamento).set({ matriculaId: nova.id })
         .where(eq(pagamento.id, pg.id)).returning().get()!;
 
+      if (args.vendasIds?.length) {
+        if (args.forma === 'boleto') throw new ErroNegocio('Boleto não recebe produto junto.');
+        const ids = [...new Set(args.vendasIds)];
+        const vendas = tx.select().from(venda).where(inArray(venda.id, ids)).all();
+        if (vendas.length !== ids.length || vendas.some((v) => v.alunoId !== args.alunoId || v.situacao !== 'fiado')) {
+          throw new ErroNegocio('Venda inexistente, de outro aluno ou já paga.');
+        }
+        tx.update(venda).set({ situacao: 'paga', forma: args.forma, pagaEm: dataPagamento,
+          pagamentoId: pg.id, atualizadoEm: new Date().toISOString(),
+        }).where(inArray(venda.id, ids)).run();
+      }
       return { pagamento: pg, matricula: nova };
     });
   }
@@ -140,6 +151,9 @@ export function criarServicoFinanceiro(db: Db) {
     const recusarAnterior = () => { throw new ErroNegocio('Exclua primeiro o pagamento mais recente deste aluno.'); };
 
     if (matriculaId != null && !registro.alteraVencimento) recusarAnterior();
+    tx.update(venda).set({ situacao: 'fiado', forma: null, pagaEm: null, pagamentoId: null,
+      atualizadoEm: new Date().toISOString(),
+    }).where(eq(venda.pagamentoId, registro.id)).run();
     tx.delete(pagamento).where(eq(pagamento.id, registro.id)).run();
     const semPagamento = notExists(tx.select({ id: pagamento.id }).from(pagamento)
       .where(eq(pagamento.cobrancaId, cobranca.id)));
@@ -183,6 +197,9 @@ export function criarServicoFinanceiro(db: Db) {
       const tx = transacao as unknown as Db;
       const registro = tx.select().from(pagamento).where(eq(pagamento.id, pagamentoId)).get();
       if (!registro) throw new ErroNaoEncontrado('Pagamento não encontrado');
+      const vendasLigadas = tx.select({ id: venda.id }).from(venda).where(eq(venda.pagamentoId, pagamentoId)).all();
+      const formaVenda = dados.forma ?? registro.forma;
+      if (vendasLigadas.length && formaVenda === 'boleto') throw new ErroNegocio('Boleto não recebe produto junto.');
       const detalhe = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
       const mudouPeriodo = (dados.dataPagamento !== undefined && dados.dataPagamento !== registro.dataPagamento)
         || (dados.planoId !== undefined && dados.planoId !== detalhe.planoId)
@@ -235,6 +252,12 @@ export function criarServicoFinanceiro(db: Db) {
         dataFimNova = nova.dataFim;
       } else {
         tx.update(pagamento).set(atualizado).where(eq(pagamento.id, pagamentoId)).run();
+      }
+      // A renovação pode excluir e recriar o pagamento; restaura também seus vínculos.
+      if (vendasLigadas.length && formaVenda !== 'boleto') {
+        tx.update(venda).set({ situacao: 'paga', forma: formaVenda, pagaEm: atualizado.dataPagamento,
+          pagamentoId, atualizadoEm: new Date().toISOString(),
+        }).where(inArray(venda.id, vendasLigadas.map((v) => v.id))).run();
       }
       const depois = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
       tx.insert(pagamentoAlteracao).values({

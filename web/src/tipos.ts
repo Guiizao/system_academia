@@ -30,6 +30,8 @@ export interface Aluno {
   id: number; nome: string; telefone: string;
   email: string | null; cpf: string | null; sexo: string | null; dataNascimento: string | null;
   observacoesMedicas: string | null; restricoes: string[]; aceitaWhatsapp: boolean;
+  /** recado livre da recepção: aparece em amarelo na lista e na ficha */
+  observacao: string | null;
   status: StatusAluno; diasParaVencer: number | null; planoNome: string | null;
   matricula: Matricula | null; ultimaAvaliacao: AvaliacaoFisica | null;
   checkinsNoMes: number; ultimoCheckin: DataISO | null;
@@ -182,6 +184,8 @@ export type Venda = {
   dataVenda: DataISO;
   pagaEm: DataISO | null;
   observacao: string | null;
+  /** recebida junto com este pagamento (mensalidade); null = à parte */
+  pagamentoId: number | null;
 };
 
 /** Pagamento com o que a tela precisa para editar ou excluir. */

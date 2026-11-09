@@ -148,6 +148,7 @@ export function rotasFinanceiro(app: FastifyInstance, s: Servicos) {
       valorCentavos: z.number().int().positive(),
       forma,
       cobrancaId: z.number().int().positive().optional(),
+      vendasIds: z.array(z.number().int().positive()).max(20).optional(),
       planoId: z.number().int().positive().optional(),
       /** adiantamento: 2 = o aluno pagou este periodo e o proximo */
       periodos: z.number().int().min(1).max(MAX_PERIODOS).optional(),

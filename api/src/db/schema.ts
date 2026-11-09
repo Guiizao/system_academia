@@ -69,6 +69,7 @@ export const aluno = sqliteTable('aluno', {
   email: text('email'),
   endereco: text('endereco'),
   observacoesMedicas: text('observacoes_medicas'),
+  observacao: text('observacao'),
   restricoes: text('restricoes', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
   fotoPath: text('foto_path'),
   aceitaWhatsapp: integer('aceita_whatsapp', { mode: 'boolean' }).notNull().default(false),
@@ -214,6 +215,7 @@ export const venda = sqliteTable('venda', {
   forma: text('forma', { enum: ['pix', 'dinheiro', 'credito', 'debito'] }),
   dataVenda: text('data_venda').notNull(),
   pagaEm: text('paga_em'),
+  pagamentoId: integer('pagamento_id').references(() => pagamento.id),
   registradoPorUsuarioId: integer('registrado_por_usuario_id').notNull().references(() => usuario.id),
   observacao: text('observacao'),
 }, (t) => ({

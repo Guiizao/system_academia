@@ -240,3 +240,35 @@
 .meses-pagos__legenda span { display: inline-flex; align-items: center; gap: 6px; }
 .mp-ponto { position: static; display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
 .mp-ponto--hoje { width: 2px; height: 12px; border-radius: 1px; background: var(--text); }
+
+/* observacao do aluno: alerta na lista, faixa amarela na ficha */
+.aluno-item__obs { color: var(--warn); margin-right: 5px; vertical-align: -2px; }
+.perfil__obs {
+  display: flex; align-items: flex-start; gap: 8px; margin: 0 28px 14px; padding: 10px 14px;
+  border-radius: var(--rs); font-size: var(--txt-base); font-weight: 600;
+  background: var(--warn-suave); color: var(--warn);
+}
+.perfil__obs > svg { flex-shrink: 0; margin-top: 2px; }
+.perfil__obs p { flex: 1; min-width: 0; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.perfil__obs .icone-btn { flex-shrink: 0; color: inherit; margin: -5px -8px -5px 0; }
+.perfil__obs--editando { flex-direction: column; align-items: stretch; }
+.perfil__obs--editando textarea { width: 100%; resize: vertical; font: inherit; font-weight: 500; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs); padding: 8px 10px; }
+.perfil__obs-acoes { display: flex; justify-content: flex-end; gap: 8px; }
+.perfil__obs-nova { display: block; margin: 0 28px 14px; }
+.perfil__faixa-ver { margin-left: auto; color: inherit; text-decoration: underline; flex-shrink: 0; }
+
+/* grafico simples: um bloco por mes, sem conta de dias */
+.meses-pagos__cab .segmento { order: 3; }
+.mp-blocos { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 6px; }
+.mp-bloco {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 46px;
+  border-radius: var(--rs); background: var(--surface-2); color: var(--muted); font-size: var(--txt-sm); font-weight: 650;
+}
+.mp-bloco__mes { display: inline-flex; align-items: center; gap: 4px; }
+.mp-bloco__ano { font-size: 10px; font-weight: 500; line-height: 1; }
+.mp-bloco--pago { background: var(--ok-suave); color: var(--ok); }
+.mp-bloco--vencido { background: var(--danger-suave); color: var(--danger); }
+.mp-bloco--hoje { box-shadow: inset 0 0 0 1.5px currentColor; }
+.produtos-aluno { margin-top: 18px; }
+.fp-fiado { margin-bottom: 4px; }
+.fp-fiado .form-nota { margin-bottom: 10px; }

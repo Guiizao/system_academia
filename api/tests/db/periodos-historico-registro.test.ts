@@ -92,9 +92,9 @@ describe('migração 0004: períodos e registro de alterações', () => {
 
   it('registra a 0004 no journal gerado pelo Drizzle', () => {
     const journal = JSON.parse(readFileSync(join(pasta, 'meta', '_journal.json'), 'utf8'));
-    expect(journal.entries).toHaveLength(5);
+    expect(journal.entries.length).toBeGreaterThanOrEqual(5);
     expect(journal.entries[4]).toMatchObject({ idx: 4, tag: '0004_periodos_historico_registro', breakpoints: true });
     expect(journal.entries[4].when).toBeGreaterThan(journal.entries[3].when);
-    expect(readMigrationFiles({ migrationsFolder: pasta })).toHaveLength(5);
+    expect(readMigrationFiles({ migrationsFolder: pasta })).toHaveLength(journal.entries.length);
   });
 });

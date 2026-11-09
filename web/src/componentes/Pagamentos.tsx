@@ -7,7 +7,7 @@ import { Modal } from './Modal';
 import { ConfirmarSenha } from './ConfirmarSenha';
 import { IconeLapis, IconeLixeira } from './Icones';
 import { useValores } from './Valores';
-import type { FormaPagamento, PagamentoDetalhe, Plano } from '../tipos';
+import type { FormaPagamento, PagamentoDetalhe, Plano, Venda } from '../tipos';
 import './Pagamentos.css';
 
 /**
@@ -27,6 +27,66 @@ export function descreverCobertura(p: PagamentoDetalhe, planos?: Plano[] | null)
   return p.periodos > 1 || plano.duracaoMeses > 1
     ? `${p.planoNome}, ${rotuloPeriodos(p.periodos, plano.duracaoMeses)}`
     : p.planoNome;
+}
+
+/** Venda não aceita boleto: só as quatro formas do balcão. */
+export const FORMAS_VENDA: Array<[FormaPagamento, string]> = [['pix', 'Pix'], ['dinheiro', 'Dinheiro'], ['debito', 'Débito'], ['credito', 'Crédito']];
+
+export function ReceberVenda({ venda: v, aoEscolher }: { venda: Venda; aoEscolher: (forma: FormaPagamento) => void }) {
+  return (
+    <select className="loja__receber" aria-label={`Receber ${v.produtoNome} de ${v.alunoNome ?? v.clienteNome}`} value=""
+            onChange={(e) => e.target.value && aoEscolher(e.target.value as FormaPagamento)}>
+      <option value="">Receber…</option>
+      {FORMAS_VENDA.map(([f, r]) => <option key={f} value={f}>em {r}</option>)}
+    </select>
+  );
+}
+
+export const nomeDaVenda = (v: Venda) => (v.quantidade > 1 ? `${v.produtoNome} × ${v.quantidade}` : v.produtoNome);
+
+/** O que o aluno levou da loja, na ficha dele: primeiro o que está devendo. */
+export function ProdutosDoAluno({ vendas, aoMudar }: { vendas: Venda[]; aoMudar: () => void }) {
+  const { avisar } = useSessao();
+  const { formatar: dinheiro } = useValores();
+  if (!vendas.length) return null;
+  const fiado = vendas.filter((v) => v.situacao === 'fiado');
+
+  async function receber(v: Venda, forma: FormaPagamento) {
+    try {
+      await api.receberVenda(v.id, forma);
+      avisar(`${nomeDaVenda(v)}: ${dinheiro(v.totalCentavos)} recebido`, 'ok');
+      aoMudar();
+    } catch (e: any) { avisar(e.message, 'erro'); }
+  }
+
+  return (
+    <section className="produtos-aluno">
+      <div className="lista-cab">
+        <span>{vendas.length} {vendas.length === 1 ? 'produto' : 'produtos'}
+          {fiado.length > 0 && <>, devendo <strong className="t-danger">{dinheiro(fiado.reduce((s, v) => s + v.totalCentavos, 0))}</strong></>}
+        </span>
+      </div>
+      <div className="pagamentos">
+        {[...fiado, ...vendas.filter((v) => v.situacao === 'paga')].map((v) => (
+          <div key={v.id} className="pagamentos__linha">
+            <div className="pagamentos__info">
+              <div className="pagamentos__titulo">
+                <span>{nomeDaVenda(v)}</span>
+                {v.situacao === 'fiado' && <span className="badge b-danger pagamentos__editado">devendo</span>}
+              </div>
+              <div className="pagamentos__detalhe">
+                {v.situacao === 'fiado'
+                  ? `Levou em ${formatarData(v.dataVenda)}`
+                  : `Pago em ${formatarData(v.pagaEm ?? v.dataVenda)}${v.forma ? `, ${ROTULO_FORMA[v.forma] ?? v.forma}` : ''}${v.pagamentoId ? ', junto com a mensalidade' : ''}`}
+              </div>
+            </div>
+            <strong className={`pagamentos__valor ${v.situacao === 'fiado' ? 'valor-danger' : 'valor-ok'}`}>{dinheiro(v.totalCentavos)}</strong>
+            {v.situacao === 'fiado' ? <ReceberVenda venda={v} aoEscolher={(f) => receber(v, f)} /> : <span />}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export function ListaPagamentos({ itens, mostrarAluno, aoMudar }: {

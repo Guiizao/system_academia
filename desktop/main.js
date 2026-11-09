@@ -4,7 +4,7 @@
  * banco ou servico para instalar a parte. Fechar a janela nao derruba o
  * servidor -- ele segue na bandeja do Windows ate "Encerrar".
  */
-import { app, BrowserWindow, ipcMain, Tray, Menu, shell, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, shell, nativeImage, powerMonitor } from 'electron';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { mkdirSync, existsSync, appendFileSync, rmSync } from 'node:fs';
@@ -13,6 +13,7 @@ import { lerInicioWindows, gravarInicioWindows } from './sistema/inicio-windows.
 import { linkExternoPermitido, ehOSistema } from './sistema/links.js';
 import { mensagemImportacao } from './sistema/importacao.js';
 import { criarTunel } from './sistema/tunel.js';
+import { manterTelaViva } from './sistema/tela-viva.js';
 import { spawn } from 'node:child_process';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
@@ -72,7 +73,12 @@ async function estado() {
     versao: app.getVersion(),
   };
 }
-const avisarPainel = async () => painel?.webContents.send('estado', await estado());
+async function avisarPainel() {
+  if (!painel) return;
+  const atual = await estado();
+  // a janela pode ter sido fechada enquanto o estado era montado
+  if (painel && !painel.isDestroyed()) painel.webContents.send('estado', atual);
+}
 
 async function iniciarServidor() {
   if (servidor) return;
@@ -179,6 +185,7 @@ function abrirSistema() {
     webPreferences: { preload: join(aqui, 'preload-sistema.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   acompanharMaximizar(janelaSistema);
+  manterTelaViva(janelaSistema, 'Sistema', log);
   janelaSistema.loadURL(`http://localhost:${PORTA}`);
   // link externo abre no navegador padrao, nunca dentro do app
   // (WhatsApp, por exemplo); so http/https -- nada de file: ou outro protocolo
@@ -193,7 +200,7 @@ function abrirSistema() {
   janelaSistema.on('closed', () => { janelaSistema = null; avisarQueContinua(); });
 }
 
-function criarPainel() {
+function criarPainel(mostrar) {
   painel = new BrowserWindow({
     width: 980, height: 740, minWidth: 720, minHeight: 560, title: 'DARK FISIC | Servidor',
     backgroundColor: FUNDO, frame: false, autoHideMenuBar: true, show: false,
@@ -201,15 +208,23 @@ function criarPainel() {
     webPreferences: { preload: join(aqui, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   acompanharMaximizar(painel);
+  manterTelaViva(painel, 'Painel', log);
   painel.loadFile(join(aqui, 'painel', 'index.html'));
-  painel.once('ready-to-show', () => { if (!process.argv.includes('--oculto')) painel.show(); });
-  // fechar o painel NAO derruba o servidor: ele segue na bandeja
-  painel.on('close', (e) => {
+  painel.once('ready-to-show', () => { if (mostrar) painel?.show(); });
+  // Fechar o painel NAO derruba o servidor: ele segue na bandeja. A janela e
+  // destruida de verdade e nasce de novo ao abrir: escondida por dias, a pagina
+  // podia voltar preta e sem botao.
+  painel.on('closed', () => {
+    painel = null;
     if (saindo) return;
-    e.preventDefault(); painel.hide();
-    log('Painel minimizado para a bandeja. O servidor continua no ar.');
+    log('Painel fechado. O servidor continua no ar, na bandeja.');
     avisarQueContinua();
   });
+}
+
+function mostrarPainel() {
+  if (!painel) { criarPainel(true); return; }
+  painel.show(); painel.focus();
 }
 
 function atualizarBandeja() {
@@ -219,7 +234,7 @@ function atualizarBandeja() {
     { label: servidor ? '● Servidor no ar' : '○ Servidor parado', enabled: false },
     { type: 'separator' },
     { label: 'Abrir o sistema', enabled: !!servidor, click: abrirSistema },
-    { label: 'Painel do servidor', click: () => { painel.show(); painel.focus(); } },
+    { label: 'Painel do servidor', click: mostrarPainel },
     { type: 'separator' },
     { label: 'Encerrar (tira o sistema do ar)', click: () => { saindo = true; app.quit(); } },
   ]));
@@ -289,14 +304,21 @@ if (!app.requestSingleInstanceLock() || PEDIU_ENCERRAR) {
 } else {
   app.on('second-instance', (_e, argv) => {
     if (argv.includes('--encerrar')) { log('Encerrado pelo atualizador.'); saindo = true; app.quit(); return; }
-    painel?.show(); painel?.focus();
+    if (app.isReady()) mostrarPainel();
   });
   app.whenReady().then(async () => {
     // icone desenhado no tamanho da bandeja (16 px, e 32 px em tela ampliada via @2x)
     const icone = nativeImage.createFromPath(join(aqui, 'painel', 'icone-bandeja.png'));
     bandeja = new Tray(icone.isEmpty() ? nativeImage.createEmpty() : icone);
-    bandeja.on('double-click', () => { painel.show(); painel.focus(); });
-    criarPainel();
+    bandeja.on('double-click', mostrarPainel);
+    criarPainel(!process.argv.includes('--oculto'));
+    // a placa de video costuma cair na suspensao do notebook: a janela fica preta mesmo com a pagina viva
+    app.on('child-process-gone', (_e, { type, reason }) => {
+      if (type !== 'GPU' || reason === 'clean-exit') return;
+      log(`A placa de vídeo caiu (${reason}). Recarregando as telas.`, 'erro');
+      for (const w of BrowserWindow.getAllWindows()) w.webContents.reload();
+    });
+    powerMonitor.on('resume', () => { for (const w of BrowserWindow.getAllWindows()) w.webContents.invalidate(); });
     atualizarBandeja();
     // "ninguem clica em nada" (spec 9.1): o servidor sobe sozinho ao abrir o app
     await iniciarServidor();

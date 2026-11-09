@@ -51,6 +51,7 @@ export function rotasAlunos(app: FastifyInstance, s: Servicos) {
       email: z.string().optional(), cpf: z.string().optional(),
       dataNascimento: z.string().optional(), sexo: z.string().optional(), endereco: z.string().optional(),
       observacoesMedicas: z.string().optional(), restricoes: z.array(z.string().trim().max(40)).max(20).optional(),
+      observacao: z.string().trim().max(500).optional(),
       aceitaWhatsapp: z.boolean().optional(), ativo: z.boolean().optional(),
     }).parse(req.body);
     // desativar aluno (exclusao logica) e decisao de caixa, nao de professor
@@ -90,6 +91,9 @@ export function rotasAlunos(app: FastifyInstance, s: Servicos) {
 
   app.get('/api/alunos/:id/checkins', todos, async (req) =>
     s.checkins.doAluno(id.parse((req.params as any).id)));
+
+  app.get('/api/alunos/:id/vendas', { preHandler: exigir('dono', 'recepcao') }, async (req) =>
+    s.produtos.vendasDoAluno(id.parse((req.params as any).id)));
 
   app.get('/api/alunos/:id/pagamentos', { preHandler: exigir('dono', 'recepcao') }, async (req) =>
     s.financeiro.pagamentosDoAluno(id.parse((req.params as any).id)));

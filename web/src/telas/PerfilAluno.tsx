@@ -2,9 +2,10 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { api } from '../dados/api';
 import { useDados } from '../dados/useDados';
 import { useSessao, pode } from '../sessao';
-import type { Aluno } from '../tipos';
+import type { Aluno, Venda } from '../tipos';
 import { Olho, useValores } from '../componentes/Valores';
-import { ListaPagamentos } from '../componentes/Pagamentos';
+import { ListaPagamentos, ProdutosDoAluno, nomeDaVenda } from '../componentes/Pagamentos';
+import { ObservacaoAluno } from '../componentes/ObservacaoAluno';
 import { SeloStatus, ConfirmarInativo } from '../componentes/Inativar';
 import { MesesPagos } from '../componentes/MesesPagos';
 import {
@@ -57,6 +58,13 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
   // uma entrada por hora: o botao espera junto com o servidor, em vez de
   // deixar a recepcao apertar e receber recusa
   const entrada = estadoDoCheckin(aluno.ultimoCheckinEm);
+  const { formatar: dinheiro } = useValores();
+  // venda é assunto de caixa: professor não recebe. aluno como dependência: qualquer mudança na lista busca de novo
+  const caixa = pode.receberPagamento(usuario);
+  const { dados: todasVendas, recarregar: recarregarVendas } = useDados(() => (caixa ? api.vendasDoAluno(aluno.id) : Promise.resolve([])), [aluno, caixa]);
+  // ao trocar de aluno a resposta antiga ainda está na memória por um instante
+  const vendas = (todasVendas ?? []).filter((v) => v.alunoId === aluno.id);
+  const fiados = vendas.filter((v) => v.situacao === 'fiado');
 
   // Bug #4 corrigido: o botao REGISTRA no servidor antes de dizer que registrou.
   async function checkin() {
@@ -110,6 +118,16 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
         </div>
       )}
 
+      {fiados.length > 0 && (
+        <div className="perfil__faixa grave">
+          <IconeAlerta size={15} />
+          <span>Deve {dinheiro(fiados.reduce((s, v) => s + v.totalCentavos, 0))} na loja: {fiados.map(nomeDaVenda).join(', ')}.</span>
+          {aba !== 'Pagamentos' && caixa && <button className="link-btn perfil__faixa-ver" onClick={() => setAba('Pagamentos')}>Ver</button>}
+        </div>
+      )}
+
+      <ObservacaoAluno aluno={aluno} aoMudar={aoMudar} />
+
       {aluno.restricoes.length > 0 && (
         <div className="perfil__restricoes">
           <div className="perfil__restricoes-cab"><IconeAlerta size={14} />Restrições médicas</div>
@@ -138,7 +156,7 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
           {podeTreino && <button className="btn btn-secondary btn-sm acao-aba" onClick={() => setModal('ficha')}>Montar ficha</button>}
           <AbaTreino key={versao} alunoId={aluno.id} />
         </>}
-        {aba === 'Pagamentos' && <AbaPagamentos aluno={aluno} aoMudar={aoMudar} />}
+        {aba === 'Pagamentos' && <AbaPagamentos aluno={aluno} aoMudar={aoMudar} vendas={vendas} aoMudarVendas={recarregarVendas} />}
         {aba === 'Histórico' && <AbaHistorico alunoId={aluno.id} />}
       </div>
 
@@ -199,15 +217,18 @@ function AbaTreino({ alunoId }: { alunoId: number }) {
   return <>{dados.map((f) => <FichaCartao key={f.id} ficha={f} aoMudar={recarregar} />)}</>;
 }
 
-function AbaPagamentos({ aluno, aoMudar }: { aluno: Aluno; aoMudar: () => void }) {
+function AbaPagamentos({ aluno, aoMudar, vendas, aoMudarVendas }: {
+  aluno: Aluno; aoMudar: () => void; vendas: Venda[]; aoMudarVendas: () => void;
+}) {
   // o olho vale para o sistema inteiro: esconder aqui esconde em todas as telas
   const { formatar: dinheiro } = useValores();
-  // pagar, editar, excluir ou inativar trocam a matrícula: é o sinal para buscar de novo
-  const mudou = `${aluno.matricula?.id}-${aluno.matricula?.dataFim}`;
-  const { dados, carregando, recarregar } = useDados(() => api.pagamentosDoAluno(aluno.id), [aluno.id, mudou]);
-  const { dados: periodos } = useDados(() => api.periodosDoAluno(aluno.id), [aluno.id, mudou]);
+  // a lista recarrega a cada mudança e traz um aluno novo: é o sinal para buscar de novo
+  const { dados, carregando, recarregar } = useDados(() => api.pagamentosDoAluno(aluno.id), [aluno]);
+  const { dados: periodos } = useDados(() => api.periodosDoAluno(aluno.id), [aluno]);
   if (carregando && !dados) return <EsqueletoLinhas />;
-  if (!dados?.length) return <div className="vazio">Sem pagamentos registrados.</div>;
+  if (!dados?.length) {
+    return <>{vendas.length ? <ProdutosDoAluno vendas={vendas} aoMudar={aoMudarVendas} /> : <div className="vazio">Sem pagamentos registrados.</div>}</>;
+  }
   const total = dados.reduce((s, p) => s + p.valorCentavos, 0);
   return (
     <div>
@@ -218,6 +239,7 @@ function AbaPagamentos({ aluno, aoMudar }: { aluno: Aluno; aoMudar: () => void }
       </div>
       {/* editar ou excluir muda o vencimento: a ficha toda precisa recarregar */}
       <ListaPagamentos itens={dados} mostrarAluno={false} aoMudar={() => { recarregar(); aoMudar(); }} />
+      <ProdutosDoAluno vendas={vendas} aoMudar={aoMudarVendas} />
     </div>
   );
 }

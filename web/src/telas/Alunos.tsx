@@ -7,7 +7,7 @@ import { iniciais, avisoStatus, ROTULO_OBJETIVO, ROTULO_STATUS } from '../domini
 import { useLargura } from '../componentes/Shell';
 import { Modal } from '../componentes/Modal';
 import { SeloStatus, ConfirmarInativo } from '../componentes/Inativar';
-import { IconeBusca, IconeMais, IconeCheck } from '../componentes/Icones';
+import { IconeBusca, IconeMais, IconeCheck, IconeAlerta } from '../componentes/Icones';
 import { PerfilAluno } from './PerfilAluno';
 import { FormAluno } from './FormAluno';
 import { FormPagamento } from './FormPagamento';
@@ -73,6 +73,8 @@ export function Alunos({ focoId, acao }: {
     async function onKey(e: KeyboardEvent) {
       // qualquer janela aberta, desta tela ou do perfil: o Enter dela não pode virar check-in
       if (modal || document.documentElement.classList.contains('modal-aberto')) return;
+      // na caixa de observação e no seletor Receber da ficha, setas e Enter são do campo
+      if (['TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName ?? '')) return;
       const emCampo = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName ?? '');
       if (e.key === '/' && !emCampo) { e.preventDefault(); buscaRef.current?.focus(); return; }
       if (e.key === 'Escape') { buscaRef.current?.blur(); return; }
@@ -142,7 +144,10 @@ export function Alunos({ focoId, acao }: {
               <div className="avatar">{iniciais(a.nome)}</div>
               {confirmado === a.id && <span className="visto" aria-label="Check-in registrado"><IconeCheck size={11} /></span>}
               <div className="aluno-item__info">
-                <div className="aluno-item__nome">{a.nome}</div>
+                <div className="aluno-item__nome">
+                  {a.observacao && <span className="aluno-item__obs" title={a.observacao}><IconeAlerta size={13} /><span className="so-leitor">Tem observação: </span></span>}
+                  {a.nome}
+                </div>
                 <div className="aluno-item__meta">
                   {a.planoNome ?? 'Sem plano'}
                   {a.ultimaAvaliacao?.objetivo && `, ${ROTULO_OBJETIVO[a.ultimaAvaliacao.objetivo].toLowerCase()}`}

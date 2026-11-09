@@ -6,6 +6,7 @@ import { useSessao } from '../sessao';
 import { formatarBRL, formatarData, hoje, rotuloPeriodos } from '../dominio';
 import { linkWhatsapp, mensagemCobranca, mensagemPix, podeAvisarNoWhatsapp } from '../dominio/whatsapp';
 import { Modal } from '../componentes/Modal';
+import { nomeDaVenda } from '../componentes/Pagamentos';
 import type { Aluno, FormaPagamento, Plano, PreviaPagamento } from '../tipos';
 
 const MAX_PERIODOS = 12;
@@ -29,7 +30,9 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
   const { dados: planos } = useDados(() => api.planos(), []);
   const { dados: cobrancas } = useDados(() => api.cobrancas(), []);
   const { dados: cfg } = useDados(() => api.config(), []);
+  const { dados: vendas } = useDados(() => api.vendasDoAluno(aluno.id), [aluno.id]);
   const minhas = (cobrancas ?? []).filter((c) => c.alunoId === aluno.id);
+  const fiados = (vendas ?? []).filter((v) => v.situacao === 'fiado');
 
   const [cobrancaId, setCobrancaId] = useState('');
   const [planoId, setPlanoId] = useState(aluno.matricula ? String(aluno.matricula.planoId) : '');
@@ -39,6 +42,8 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
   const [pixErro, setPixErro] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // o fiado que o aluno resolveu acertar junto: nunca vem marcado, dinheiro é decisão de quem recebe
+  const [juntos, setJuntos] = useState<number[]>([]);
   // quantos periodos de uma vez: "a moca ja adiantou novembro"
   const [periodos, setPeriodos] = useState(1);
   // por padrao o sistema calcula tudo; quem quiser assume as datas na mao
@@ -68,21 +73,23 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
   // o periodo extra sai pelo preco do plano; o primeiro pode vir da cobranca em aberto
   const precoPlano = plano?.precoCentavos ?? 0;
   const valor = (cobranca?.valorCentavos ?? precoPlano) + (periodos - 1) * precoPlano;
+  const produtos = fiados.filter((v) => juntos.includes(v.id)).reduce((s, v) => s + v.totalCentavos, 0);
+  const total = valor + produtos;
 
   // Pix amarrado a cobranca quando existe; senao (renovacao antecipada, plano novo), Pix avulso do valor
   useEffect(() => {
     setPix(null); setQr(null); setPixErro(null);
-    if (forma !== 'pix' || !valor) return;
+    if (forma !== 'pix' || !total) return;
     let vivo = true;
     // adiantamento muda o total, entao o Pix da cobranca nao serve mais
-    (cobranca && periodos === 1 ? api.pixDaCobranca(cobranca.id) : api.pixAvulso(valor))
+    (cobranca && periodos === 1 && !produtos ? api.pixDaCobranca(cobranca.id) : api.pixAvulso(total))
       .then(async (r) => {
         const img = await QRCode.toDataURL(r.payload, { margin: 1, width: 440, errorCorrectionLevel: 'M', color: { dark: '#111318', light: '#FFFFFF' } });
         if (vivo) { setPix(r.payload); setQr(img); }
       })
       .catch((e) => vivo && setPixErro(e.message));
     return () => { vivo = false; };
-  }, [forma, cobrancaId, valor, periodos]);
+  }, [forma, cobrancaId, total, periodos]);
 
   /**
    * A prévia vem do servidor de propósito: é a MESMA conta que vai ser
@@ -113,6 +120,7 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
         alunoId: aluno.id, valorCentavos: valor, forma,
         cobrancaId: cobranca?.id, planoId: plano?.id,
         periodos: podeAdiantar ? periodos : undefined,
+        vendasIds: juntos.length ? juntos : undefined,
         observacao: plano
           ? (periodos > 1 ? `${plano.nome}, ${rotuloPeriodos(periodos, plano.duracaoMeses)} adiantados` : plano.nome)
           : 'Pagamento avulso',
@@ -122,7 +130,7 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
           dataFimManual: vencimentoManual || null,
         } : {}),
       });
-      avisar(`Pagamento de ${formatarBRL(valor)} registrado`, 'ok');
+      avisar(`Pagamento de ${formatarBRL(total)} registrado`, 'ok');
       aoPagar();
     } catch (err: any) { setErro(err.message); }
     finally { setEnviando(false); }
@@ -193,8 +201,21 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
           </div>
         )}
 
+        {fiados.length > 0 && (
+          <div className="fp-fiado">
+            <p className="form-nota form-nota--alerta">Está devendo na loja. Marque o que vai acertar junto:</p>
+            {fiados.map((v) => (
+              <label key={v.id} className="checkbox-linha">
+                <input type="checkbox" checked={juntos.includes(v.id)} disabled={juntos.length >= 20 && !juntos.includes(v.id)}
+                       onChange={(e) => setJuntos((j) => (e.target.checked ? [...j, v.id] : j.filter((x) => x !== v.id)))} />
+                <span>{nomeDaVenda(v)}, {formatarBRL(v.totalCentavos)}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
         <div className="pagamento-total">
-          <span>Total</span><strong>{formatarBRL(valor)}</strong>
+          <span>Total</span><strong>{formatarBRL(total)}</strong>
         </div>
 
         {previa && (
@@ -244,7 +265,7 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
         {pixErro && forma === 'pix' && <p className="form-nota form-nota--alerta">{pixErro}</p>}
         {pix && (
           <div className="pix-caixa">
-            {qr && <img className="pix-caixa__qr" src={qr} alt={`QR code Pix de ${formatarBRL(valor)}`} />}
+            {qr && <img className="pix-caixa__qr" src={qr} alt={`QR code Pix de ${formatarBRL(total)}`} />}
             <div className="pix-caixa__rot">Pix copia e cola</div>
             <code>{pix}</code>
             <button type="button" className="btn btn-secondary btn-sm"
@@ -259,7 +280,7 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
 
         {erro && <div className="form-erro" role="alert">{erro}</div>}
         <button className="btn btn-primary btn-bloco" disabled={enviando || !valor}>
-          {enviando ? 'Registrando…' : `Confirmar recebimento de ${formatarBRL(valor)}`}
+          {enviando ? 'Registrando…' : `Confirmar recebimento de ${formatarBRL(total)}`}
         </button>
 
         <div className="aviso-whatsapp">
@@ -275,7 +296,7 @@ export function FormPagamento({ aluno, aoFechar, aoPagar }: {
             </button>
             <button type="button" className="btn btn-secondary btn-sm" disabled={!avisoPermitido || !pix}
                     title={!pix ? 'Escolha a forma Pix para gerar o código' : avisoPermitido ? 'Manda só o código Pix' : motivoSemAviso}
-                    onClick={() => pix && abrirWhatsapp(mensagemPix({ nome: aluno.nome, valorCentavos: valor, codigo: pix }))}>
+                    onClick={() => pix && abrirWhatsapp(mensagemPix({ nome: aluno.nome, valorCentavos: total, codigo: pix }))}>
               Enviar código Pix
             </button>
           </div>

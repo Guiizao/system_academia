@@ -36,6 +36,13 @@
       "when": 1792439570617,
       "tag": "0004_periodos_historico_registro",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794222000000,
+      "tag": "0005_observacao_produtos_aluno",
+      "breakpoints": true
     }
   ]
 }

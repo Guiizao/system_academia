@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mesesPagos, resumoPagos, trechoPago } from '../src/dominio/meses-pagos';
 
 const per = (dataInicio: string, dataFim: string) => ({ dataInicio, dataFim });
-const pagos = (meses: ReturnType<typeof mesesPagos>) => meses.filter((m) => m.pago).map((m) => m.mes);
+const pagos = (meses: ReturnType<typeof mesesPagos>) => meses.filter((m) => m.estado === 'pago').map((m) => m.mes);
 
 describe('linha do tempo dos meses pagos', () => {
   it('pagou outubro a janeiro de uma vez: os quatro meses ficam pagos, fevereiro só tem a sobra até o vencimento', () => {
@@ -10,6 +10,24 @@ describe('linha do tempo dos meses pagos', () => {
     expect(pagos(m)).toEqual(['2026-10', '2026-11', '2026-12', '2027-01']);
     expect(m.at(-1)?.mes).toBe('2027-02');
     expect(m.find((x) => x.mes === '2027-02')?.faixas).toEqual([{ de: 0, ate: 5 / 28, tipo: 'pago' }]);
+  });
+
+  it('quem começou dia 20 pagou aquele mês, não o seguinte', () => {
+    expect(pagos(mesesPagos([per('2026-10-20', '2026-11-20')], '2026-10-25', 'ativo'))).toEqual(['2026-10']);
+  });
+
+  it('diária conta no mês dela', () => {
+    expect(pagos(mesesPagos([per('2026-10-15', '2026-10-15')], '2026-10-20', 'ativo'))).toEqual(['2026-10']);
+  });
+
+  it('dia 31 num mês curto cai no último dia do mês', () => {
+    expect(pagos(mesesPagos([per('2026-12-31', '2027-03-31')], '2027-01-10', 'ativo'))).toEqual(['2026-12', '2027-01', '2027-02']);
+  });
+
+  it('vencido: do mês do vencimento até hoje fica devendo; inativo não', () => {
+    const estados = (s: 'vencido' | 'inativo') => mesesPagos([per('2026-09-05', '2026-10-05')], '2026-11-20', s).map((m) => `${m.mes}:${m.estado}`);
+    expect(estados('vencido')).toEqual(['2026-09:pago', '2026-10:vencido', '2026-11:vencido', '2026-12:null']);
+    expect(estados('inativo')).toEqual(['2026-09:pago', '2026-10:null', '2026-11:null', '2026-12:null']);
   });
 
   it('renovações seguidas viram uma faixa só dentro do mês, sem emenda', () => {

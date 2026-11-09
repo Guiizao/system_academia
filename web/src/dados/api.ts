@@ -30,6 +30,7 @@ export const api = {
   periodosDoAluno: (id: number) => get<Periodo[]>(`/api/alunos/${id}/periodos`),
   /** só vencido: encerra a matrícula e cancela a cobrança em aberto */
   inativarAluno: (id: number) => post<Aluno>(`/api/alunos/${id}/inativar`),
+  vendasDoAluno: (id: number) => get<Venda[]>(`/api/alunos/${id}/vendas`),
   fichasDoAluno: (id: number) => get<FichaTreino[]>(`/api/alunos/${id}/fichas`),
 
   registrarCheckin: (alunoId: number, atividade: string) => post<Checkin>('/api/checkins', { alunoId, atividade }),
@@ -64,6 +65,8 @@ export const api = {
     cobrancaId?: number; planoId?: number; observacao?: string;
     /** 2 = o aluno pagou este período e o próximo, de uma vez */
     periodos?: number;
+    /** vendas fiado recebidas junto, na mesma operação */
+    vendasIds?: number[];
     /** quando a recepção registra um pagamento de outro dia */
     dataPagamento?: string;
     /** diária marcada para um dia específico */

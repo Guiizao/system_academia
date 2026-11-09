@@ -143,7 +143,7 @@ export function criarServicoAlunos(db: Db) {
   }
 
   /** Edita dados do aluno. ativo=false e a exclusao logica (spec 11): o historico fica. */
-  function atualizar(id: number, d: Partial<NovoAluno> & { ativo?: boolean; endereco?: string }) {
+  function atualizar(id: number, d: Partial<NovoAluno> & { ativo?: boolean; endereco?: string; observacao?: string }) {
     const atual = db.select().from(aluno).where(eq(aluno.id, id)).get();
     if (!atual) throw new ErroNaoEncontrado('Aluno não encontrado');
     const m: Partial<typeof aluno.$inferInsert> = { atualizadoEm: new Date().toISOString() };
@@ -156,6 +156,11 @@ export function criarServicoAlunos(db: Db) {
     }
     for (const k of ['email', 'cpf', 'dataNascimento', 'sexo', 'endereco', 'observacoesMedicas'] as const) {
       if (d[k] !== undefined) (m as any)[k] = (d[k] as string)?.trim() || null;
+    }
+    if (d.observacao !== undefined) {
+      const observacao = d.observacao.trim();
+      if (observacao.length > 500) throw new ErroNegocio('Observação deve ter até 500 caracteres.');
+      m.observacao = observacao || null;
     }
     if (d.restricoes !== undefined) m.restricoes = normalizarRestricoes(d.restricoes);
     if (d.aceitaWhatsapp !== undefined) m.aceitaWhatsapp = d.aceitaWhatsapp;

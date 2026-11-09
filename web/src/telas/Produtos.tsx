@@ -5,6 +5,7 @@ import { useSessao } from '../sessao';
 import { contem, formatarData, paraBusca } from '../dominio';
 import { Modal } from '../componentes/Modal';
 import { ConfirmarSenha } from '../componentes/ConfirmarSenha';
+import { FORMAS_VENDA, ReceberVenda } from '../componentes/Pagamentos';
 import { Olho, useValores } from '../componentes/Valores';
 import { Contagem } from '../componentes/Contagem';
 import type { FormaPagamento, Produto, SituacaoVenda, Venda } from '../tipos';
@@ -21,7 +22,7 @@ import './Produtos.css';
 const MAX_FOTOS = 3;
 const LADO_DA_FOTO = 640;           // px do lado maior depois de reduzir
 const ESTOQUE_BAIXO = 3;
-const FORMAS: Array<[FormaPagamento, string]> = [['pix', 'Pix'], ['dinheiro', 'Dinheiro'], ['debito', 'Débito'], ['credito', 'Crédito']];
+const FORMAS = FORMAS_VENDA;
 const ROTULO_FORMA = Object.fromEntries(FORMAS) as Record<string, string>;
 
 /**
@@ -169,13 +170,7 @@ export function Produtos() {
                 </div>
                 <div className="pag__lado">
                   <strong className={v.situacao === 'fiado' ? 'valor-danger' : 'valor-ok'}>{dinheiro(v.totalCentavos)}</strong>
-                  {v.situacao === 'fiado' && (
-                    <select className="loja__receber" aria-label={`Receber de ${v.alunoNome ?? v.clienteNome}`} value=""
-                            onChange={(e) => e.target.value && receber(v, e.target.value as FormaPagamento)}>
-                      <option value="">Receber…</option>
-                      {FORMAS.map(([f, r]) => <option key={f} value={f}>em {r}</option>)}
-                    </select>
-                  )}
+                  {v.situacao === 'fiado' && <ReceberVenda venda={v} aoEscolher={(f) => receber(v, f)} />}
                   {dono && <button className="btn btn-danger btn-sm" onClick={() => setCancelando(v)}>Cancelar</button>}
                 </div>
               </div>
