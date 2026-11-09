@@ -91,6 +91,10 @@
   background: var(--warn-suave); color: var(--warn);
 }
 .perfil__faixa.grave { background: var(--danger-suave); color: var(--danger); }
+/* texto longo (dívida com vários produtos): o ícone não encolhe e fica no alto */
+.perfil__faixa { align-items: flex-start; }
+.perfil__faixa > svg { flex-shrink: 0; margin-top: 2px; }
+.perfil__fone { white-space: nowrap; }
 
 .perfil__restricoes {
   margin: 0 28px 16px; padding: 14px 16px; border-radius: var(--r);
@@ -175,7 +179,7 @@
 .modal-corpo .perfil__topo, .modal-corpo .perfil__corpo { padding-left: 0; padding-right: 0; }
 .modal-corpo .abas { margin-left: 0; margin-right: 0; }
 .modal-corpo .perfil__topo { padding-top: 4px; }
-.modal-corpo .perfil__faixa, .modal-corpo .perfil__restricoes { margin-left: 0; margin-right: 0; }
+.modal-corpo .perfil__faixa, .modal-corpo .perfil__restricoes, .modal-corpo .perfil__obs, .modal-corpo .perfil__obs-nova { margin-left: 0; margin-right: 0; }
 .modal-corpo .perfil__acoes { width: 100%; }
 .modal-corpo .perfil__acoes .btn { flex: 1; }
 .ficha__gate { flex-direction: row; align-items: flex-start; }

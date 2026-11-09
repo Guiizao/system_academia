@@ -114,6 +114,11 @@ window.__auditar = async function () {
         if (Math.abs(menor - tl) > 1.5) achados.add(`DESALINHADO: titulo em ${Math.round(tl)}px, blocos em ${Math.round(menor)}px`);
       }
     }
+    // 8. icone espremido por texto longo ao lado (a faixa de divida da 0.1.17 virava um pontinho)
+    for (const svg of document.querySelectorAll('svg[width]')) {
+      const w = svg.getBoundingClientRect().width;
+      if (visivel(svg.parentElement) && w > 0 && w < Number(svg.getAttribute('width')) * 0.8) achados.add(`ICONE ESPREMIDO: ${nome(svg.parentElement)} (${Math.round(w)}px)`);
+    }
     return achados.size ? [...achados].slice(0, 12) : 'ok';
   };
   const telas = ['Início', 'Alunos', 'Treinos', 'Agenda', 'Financeiro', 'Produtos', 'Configurações'];

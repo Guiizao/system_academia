@@ -87,7 +87,7 @@ export function PerfilAluno({ aluno, aoMudar, aoPagar, aoCheckin }: {
         <div className="avatar lg">{iniciais(aluno.nome)}</div>
         <div className="perfil__id">
           <h2>{aluno.nome}</h2>
-          <p>{aluno.planoNome ?? 'Sem plano'}, {formatarTelefone(aluno.telefone)}</p>
+          <p>{aluno.planoNome ?? 'Sem plano'}, <span className="perfil__fone">{formatarTelefone(aluno.telefone)}</span></p>
           <div className="perfil__selos">
             <SeloStatus aluno={aluno} aoInativar={() => setModal('inativar')} />
             {av?.nivel && <span className="badge b-blue">{ROTULO_NIVEL[av.nivel]}</span>}

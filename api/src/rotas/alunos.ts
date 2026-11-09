@@ -54,9 +54,9 @@ export function rotasAlunos(app: FastifyInstance, s: Servicos) {
       observacao: z.string().trim().max(500).optional(),
       aceitaWhatsapp: z.boolean().optional(), ativo: z.boolean().optional(),
     }).parse(req.body);
-    // desativar aluno (exclusao logica) e decisao de caixa, nao de professor
-    if (d.ativo === false && req.usuario!.papel === 'professor') {
-      throw new ErroPermissao('Professor não desativa aluno');
+    // Desativar ou reativar cadastro é decisão de caixa, não de professor.
+    if (d.ativo !== undefined && req.usuario!.papel === 'professor') {
+      throw new ErroPermissao(d.ativo ? 'Professor não reativa aluno' : 'Professor não desativa aluno');
     }
     return s.alunos.atualizar(id.parse((req.params as any).id), d);
   });

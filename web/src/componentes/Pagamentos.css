@@ -15,5 +15,11 @@
 .pagamentos__detalhe { font-size: var(--txt-sm); color: var(--muted); margin-top: 2px; }
 .pagamentos__valor { white-space: nowrap; }
 .pagamentos__acoes { display: flex; gap: 2px; }
+/* na ficha cabe pouco: o nome do plano e do produto quebra linha em vez de virar reticência */
+.perfil .pagamentos__titulo { flex-wrap: wrap; row-gap: 2px; }
+.perfil .pagamentos__titulo > span:first-child { white-space: normal; overflow-wrap: anywhere; }
+/* produto: o Receber desce para baixo do nome e libera a linha */
+.pagamentos__linha--produto { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.pagamentos__linha--produto .loja__receber { margin-top: 8px; }
 .icone-btn--perigo:hover { color: var(--danger); background: var(--danger-suave); }
 

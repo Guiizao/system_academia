@@ -68,7 +68,7 @@ export function ProdutosDoAluno({ vendas, aoMudar }: { vendas: Venda[]; aoMudar:
       </div>
       <div className="pagamentos">
         {[...fiado, ...vendas.filter((v) => v.situacao === 'paga')].map((v) => (
-          <div key={v.id} className="pagamentos__linha">
+          <div key={v.id} className="pagamentos__linha pagamentos__linha--produto">
             <div className="pagamentos__info">
               <div className="pagamentos__titulo">
                 <span>{nomeDaVenda(v)}</span>
@@ -79,9 +79,9 @@ export function ProdutosDoAluno({ vendas, aoMudar }: { vendas: Venda[]; aoMudar:
                   ? `Levou em ${formatarData(v.dataVenda)}`
                   : `Pago em ${formatarData(v.pagaEm ?? v.dataVenda)}${v.forma ? `, ${ROTULO_FORMA[v.forma] ?? v.forma}` : ''}${v.pagamentoId ? ', junto com a mensalidade' : ''}`}
               </div>
+              {v.situacao === 'fiado' && <ReceberVenda venda={v} aoEscolher={(f) => receber(v, f)} />}
             </div>
             <strong className={`pagamentos__valor ${v.situacao === 'fiado' ? 'valor-danger' : 'valor-ok'}`}>{dinheiro(v.totalCentavos)}</strong>
-            {v.situacao === 'fiado' ? <ReceberVenda venda={v} aoEscolher={(f) => receber(v, f)} /> : <span />}
           </div>
         ))}
       </div>

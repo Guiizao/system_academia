@@ -147,6 +147,11 @@ export function criarServicoFinanceiro(db: Db) {
     const registro = pagamentosDetalhados(eq(pagamento.id, pagamentoId), 1, tx)[0];
     if (!registro) throw new ErroNaoEncontrado('Pagamento não encontrado');
     const atual = matriculas.matriculaAtualSync(registro.alunoId, tx);
+    const cadastroAtivo = tx.select({ ativo: aluno.ativo }).from(aluno)
+      .where(eq(aluno.id, registro.alunoId)).get()!.ativo;
+    // Desfazer recebimento não desfaz a saída do aluno: sem cadastro/matrícula
+    // ativos, a cobrança desquitada deve ser cancelada, não virar dívida.
+    const statusDesquitada = cadastroAtivo && atual ? 'aberta' : 'cancelada';
     const matriculaId = registro.matriculaId;
     const recusarAnterior = () => { throw new ErroNegocio('Exclua primeiro o pagamento mais recente deste aluno.'); };
 
@@ -158,8 +163,8 @@ export function criarServicoFinanceiro(db: Db) {
     const semPagamento = notExists(tx.select({ id: pagamento.id }).from(pagamento)
       .where(eq(pagamento.cobrancaId, cobranca.id)));
 
-    if (registro.cobrancaId != null) tx.update(cobranca).set({ status: 'aberta' })
-      .where(and(eq(cobranca.id, registro.cobrancaId), semPagamento)).run();
+    if (registro.cobrancaId != null) tx.update(cobranca).set({ status: statusDesquitada })
+      .where(and(eq(cobranca.id, registro.cobrancaId), eq(cobranca.status, 'paga'), semPagamento)).run();
 
     let dataFimNova = atual?.dataFim ?? null;
     if (matriculaId != null) {
@@ -176,7 +181,7 @@ export function criarServicoFinanceiro(db: Db) {
       )).orderBy(desc(matricula.id)).get();
       if (anterior) {
         tx.update(matricula).set({ status: 'ativa' }).where(eq(matricula.id, anterior.id)).run();
-        tx.update(cobranca).set({ status: 'aberta' }).where(and(
+        tx.update(cobranca).set({ status: statusDesquitada }).where(and(
           eq(cobranca.matriculaId, anterior.id), eq(cobranca.status, 'paga'), semPagamento,
         )).run();
       }

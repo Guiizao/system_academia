@@ -12,8 +12,9 @@ export function criarServicoCheckins(db: Db) {
     alunoId: number; atividade: string;
     origem?: 'manual' | 'qr' | 'catraca'; usuarioId?: number; agora?: Date;
   }) {
-    const a = db.select({ id: aluno.id }).from(aluno).where(eq(aluno.id, args.alunoId)).get();
+    const a = db.select({ id: aluno.id, ativo: aluno.ativo }).from(aluno).where(eq(aluno.id, args.alunoId)).get();
     if (!a) throw new Error('Aluno não encontrado');
+    if (!a.ativo) throw new ErroNegocio('Aluno desativado não pode fazer check-in.');
 
     const agora = args.agora ?? new Date();
     // Botao apertado varias vezes, recepcao e celular ao mesmo tempo: sem este
